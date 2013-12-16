@@ -77,13 +77,13 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 		settingsWidget->show();
 		settingsWidget->raise();
 		break;
-	case Qt::Key_I:
+    case Qt::Key_G:
 		createDistanceField();
 		break;
-	case Qt::Key_Insert:
+    case Qt::Key_I:
 		addVertex();
 		break;
-	case Qt::Key_Delete:
+    case Qt::Key_D:
 		if(spline->getPoints().size() > 3)
 			deleteVertex();
 		break;
