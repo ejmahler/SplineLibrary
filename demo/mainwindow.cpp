@@ -232,15 +232,31 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
 
 void MainWindow::addVertex(void)
 {
-	//get the midway point between the chosen vertex and the next vertex
-	float currentT = spline->getT(selectedObject);
-	float nextT = spline->getT(selectedObject + 1);
-	Vector3D halfPoint = spline->getPosition((currentT + nextT) * 0.5);
+    //get the midway point between the chosen vertex and the previous vertex
+    //if this is the first vertex, use the next one instead
 
-	//insert this new point
-	std::vector<Vector3D> points = spline->getPoints();
-	points.insert(points.begin() + (selectedObject + 1), halfPoint);
-	selectedObject = selectedObject + 1;
+    std::vector<Vector3D> points = spline->getPoints();
+    if(selectedObject == 0)
+    {
+        int index = 1;
+        float currentT = spline->getT(selectedObject);
+        float nextT = spline->getT(index);
+        Vector3D halfPoint = spline->getPosition((currentT + nextT) * 0.5);
+
+        //insert this new point
+        points.insert(points.begin() + index, halfPoint);
+        selectedObject = index;
+    }
+    else
+    {
+        int index = selectedObject - 1;
+        float currentT = spline->getT(selectedObject);
+        float nextT = spline->getT(index);
+        Vector3D halfPoint = spline->getPosition((currentT + nextT) * 0.5);
+
+        //insert this new point
+        points.insert(points.begin() + selectedObject, halfPoint);
+    }
 
 	//redraw spline
 	rebuildSpline(points);
@@ -254,9 +270,9 @@ void MainWindow::deleteVertex(void)
 	points.erase(points.begin() + selectedObject);
 
 	//return the "previous" index. if the current
-	selectedObject--;
-	if(selectedObject < 0)
-		selectedObject += (points.size() - 1);
+    selectedObject;
+    if(selectedObject > points.size())
+        selectedObject = points.size() - 1;
 
 	//redraw spline
 	rebuildSpline(points);
