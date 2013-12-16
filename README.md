@@ -20,7 +20,9 @@ Features
     * Given a data point that may or may not be on the spline, what T value brings the spline closest to that data point?
     * Create a SplineInverter object and call either its findClosestFast or findClosestPrecise method
 
-The actual code is in the spline-source directory. A Qt Creator demo project is available in the demo directory.
+Project Layout
+-------------
+The root of the repository is a Qt Creator project that demonstrates some uses of the library. The source for the spline code itself is in the "spline-source" directory, and the code to set up the demo is in the "demo" directory.
 
 License
 -------------
