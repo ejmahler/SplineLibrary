@@ -2,6 +2,8 @@ SplineLibrary
 =============
 A C++ library to collect many useful spline functions into one place.
 
+A spline is a formula for smoothly transitioning from one data point to the next in a data set. For example, you could create a spline containing ten colors (each stored as R, G, and B values) to create a color gradient that smoothly transitions from one color to the next (This project's demo actually does this!)
+
 Features
 -------------
 * Interpolation of standard catmull-rom splines
@@ -23,6 +25,8 @@ Features
 Project Layout
 -------------
 The root of the repository is a Qt Creator project that demonstrates some uses of the library. The source for the spline code itself is in the "spline-source" directory, and the code to set up the demo is in the "demo" directory.
+
+The demo project requires Qt, but the spline-source code has no third-party dependencies.
 
 License
 -------------
