@@ -10,7 +10,7 @@ class CatmullRomSpline : public Spline
 {
 public:
 
-	CatmullRomSpline(const std::vector<Vector3D> &points, double alpha = 0.5);
+	CatmullRomSpline(const std::vector<Vector3D> &points, double alpha = 0);
 	~CatmullRomSpline();
 
 	Vector3D getPosition(double x) const;
