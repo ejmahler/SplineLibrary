@@ -78,70 +78,31 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 		painter.drawImage(0,0,*backgroundImage);
 	}
 	
-	//draw lines
-	painter.setPen(Qt::red);
-	std::vector<Vector3D> points = spline->getPoints();
+    //draw lines
+    std::vector<Vector3D> points = spline->getPoints();
 
-	double stepSize = 0.01;
-	double currentStep = stepSize;
-	double limit = spline->getMaxT();
-	auto initial = spline->getPositionVelocity(0);
-	Vector3D previousPoint = initial.position;
+    double stepSize = 0.01;
+    double currentStep = stepSize;
+    double limit = spline->getMaxT();
+    Vector3D previousPoint = spline->getPosition(0);
 
-	painter.setPen(Qt::blue);
+    painter.setPen(Qt::blue);
 
-	while(currentStep <= limit)
-	{
-		auto currentData = spline->getPosition(currentStep);
+    while(currentStep <= limit)
+    {
+        auto currentData = spline->getPosition(currentStep);
 
-		painter.drawLine(
-			QPointF(previousPoint.x(),previousPoint.y()),
-			QPointF(currentData.x(),currentData.y())
-			);
+        painter.drawLine(
+            QPointF(previousPoint.x(),previousPoint.y()),
+            QPointF(currentData.x(),currentData.y())
+            );
 
+        currentStep += stepSize;
+        previousPoint = currentData;
+    }
 
-		currentStep += stepSize;
-		previousPoint = currentData;
-	}
-
-	/*
-	//draw acceleration lines every 2 units of distance
-	painter.setPen(Qt::white);
-	currentStep = 0;
-	stepSize = 5; 
-	limit = spline->getMaxT();
-
-	while(currentStep < limit)
-	{
-		auto fullResult = spline->getPositionVelocityAcceleration(currentStep);
-
-		double currentSpeed = fullResult.velocity.length();
-		Vector3D currentAccel = 4000 * fullResult.acceleration / (currentSpeed * currentSpeed);
-		Vector3D currentTangent = fullResult.velocity.normalized();
-
-		double projectedLength = Vector3D::dotProduct(currentTangent, currentAccel);
-	
-
-		Vector3D endPoint = (fullResult.position + (currentAccel - currentTangent * projectedLength));
-
-		painter.drawLine(
-			QPointF(fullResult.position.x(),fullResult.position.y()),
-			QPointF(endPoint.x(),endPoint.y())
-			);
-
-
-		currentStep += stepSize / currentSpeed;
-	}*/
-
-	//draw control points on top of line
-	//if this is a loop, don't draw the final point
-	int pointLimit;
-	if(spline->isLoop())
-		pointLimit = points.size() - 1;
-	else
-		pointLimit = points.size();
-
-	for(int i = 0; i < pointLimit; i++)
+    //draw control points on top of line
+    for(int i = 0; i < points.size(); i++)
 	{
 		painter.save();
 
@@ -302,7 +263,7 @@ void GraphicsController::createDistanceField(const QString &filename)
 						x + base + dx * step,
 						y + base + dy * step, 
 						0);
-					double tfast = calc.findClosestFast(realPoint);
+                    double tfast = calc.findClosestPrecise(realPoint);
                     colorVector += getColor(tfast);
 				}
 			}

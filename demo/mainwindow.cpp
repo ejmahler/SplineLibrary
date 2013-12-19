@@ -18,6 +18,8 @@
 #include "graphicscontroller.h"
 #include "settingswidget.h"
 
+#include "spline-source/quintic_cr_spline.h"
+#include "spline-source/looping_quintic_cr_spline.h"
 #include "spline-source/catmullromspline.h"
 #include "spline-source/splineinverter.h"
 
@@ -50,8 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
 	points.push_back(Vector3D(500,400,0));
 	points.push_back(Vector3D(300,600,0));
 	points.push_back(Vector3D(300,300,0));
-	points.push_back(Vector3D(100,200,0));
-	points.push_back(Vector3D(100,100,0));
+    points.push_back(Vector3D(100,200,0));
 
 	rebuildSpline(points);
 }
@@ -153,16 +154,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 		{
 			//change the point's position
 			std::vector<Vector3D> points = spline->getPoints();
-			points[draggedObject] = realPos;
-
-			//if this is a loop and we're dragging the first or last point, make sure to move both
-            if(spline->isLoop() && (draggedObject == 0 || draggedObject == int(points.size() - 1)))
-			{
-				if(draggedObject == 0)
-					points[points.size() - 1] = realPos;
-				else
-					points[0] = realPos;
-			}
+            points[draggedObject] = realPos;
 
 			//rebuild the spline
 			rebuildSpline(points);
@@ -196,26 +188,43 @@ void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 
 void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
 {
-	
-	bool isLoop = settingsWidget->getOption("cubicHermite_isLoop").toBool();
+    QString splineType = settingsWidget->getOption("main_splineType").toString();
 
-	//if this spline should be a loop, make sure the first and last points are equal
-	if(isLoop && pointList.at(0) != pointList.at(pointList.size() - 1))
-	{
-		pointList.push_back(pointList.at(0));
-	}
+    if(splineType == "Cubic Catmull-Rom Spline")
+    {
+        //rebuild the spline
+        float alpha = settingsWidget->getOption("cubicHermite_alpha").toFloat() / 10;
 
-	//if this is not a loop and the last point is identical to the first, delete the last
-	else if((!isLoop) && pointList.at(0) == pointList.at(pointList.size() - 1))
-	{
-		pointList.pop_back();
-	}
-
-	//rebuild the spline
-	float alpha = settingsWidget->getOption("cubicHermite_alpha").toFloat() / 10;
-	spline = std::shared_ptr<Spline>(
-		new CatmullRomSpline(pointList,alpha)
-		);
+        bool isLoop = settingsWidget->getOption("cubicHermite_isLoop").toBool();
+        if(isLoop)
+        {
+            spline = std::shared_ptr<Spline>(
+                new CatmullRomSpline(pointList, alpha)
+                );
+        }
+        else
+        {
+            spline = std::shared_ptr<Spline>(
+                new CatmullRomSpline(pointList, alpha)
+                );
+        }
+    }
+    else
+    {
+        bool isLoop = settingsWidget->getOption("quinticHermite_isLoop").toBool();
+        if(isLoop)
+        {
+            spline = std::shared_ptr<Spline>(
+                new LoopingQuinticCRSpline(pointList)
+                );
+        }
+        else
+        {
+            spline = std::shared_ptr<Spline>(
+                new QuinticCRSpline(pointList)
+                );
+        }
+    }
 
 	splineInverter = std::shared_ptr<SplineInverter>(new SplineInverter(spline, 100));
 
@@ -269,8 +278,7 @@ void MainWindow::deleteVertex(void)
 	//remove the object
 	points.erase(points.begin() + selectedObject);
 
-	//return the "previous" index. if the current
-    selectedObject;
+    //return the "previous" index. if the current
     if(selectedObject > points.size())
         selectedObject = points.size() - 1;
 

@@ -101,22 +101,39 @@ QString SettingsWidget::getSettingName(const QString &objectName)
 
 void SettingsWidget::loadSettings(void)
 {
-	//go through all line edits
-	foreach(QLineEdit *x, findChildren<QLineEdit*>())
-	{
-		QString category = getSettingCategory(x->objectName());
-		QString name = getSettingName(x->objectName());
+    //go through all line edits
+    foreach(QLineEdit *x, findChildren<QLineEdit*>())
+    {
+        QString category = getSettingCategory(x->objectName());
+        QString name = getSettingName(x->objectName());
 
-		if(category != "qt" && Settings::hasSetting(category,name))
-		{
-			x->setText(Settings::getSetting(category,name).toString());
-			options[x->objectName()] = Settings::getSetting(category,name);
-		}
-		else
-		{
-			options[x->objectName()] = x->text();
-		}
-	}
+        if(category != "qt" && Settings::hasSetting(category,name))
+        {
+            x->setText(Settings::getSetting(category,name).toString());
+            options[x->objectName()] = Settings::getSetting(category,name);
+        }
+        else
+        {
+            options[x->objectName()] = x->text();
+        }
+    }
+
+    //go through all combo boxes
+    foreach(QComboBox *x, findChildren<QComboBox*>())
+    {
+        QString category = getSettingCategory(x->objectName());
+        QString name = getSettingName(x->objectName());
+
+        if(category != "qt" && Settings::hasSetting(category,name))
+        {
+            x->setCurrentText(Settings::getSetting(category,name).toString());
+            options[x->objectName()] = Settings::getSetting(category,name);
+        }
+        else
+        {
+            options[x->objectName()] = x->currentText();
+        }
+    }
 
 	//go through all checkboxes
 	foreach(QRadioButton *x, findChildren<QRadioButton*>())
@@ -206,16 +223,27 @@ void SettingsWidget::loadSettings(void)
 
 void SettingsWidget::setSignals(void)
 {
-	//connect all line edits
-	foreach(QLineEdit *x, findChildren<QLineEdit*>())
-	{
-		connect(
-			x,
-			SIGNAL(textChanged(const QString&)),
-			this,
-			SLOT(on_lineEdit_changed(const QString&))
-			);
-	}
+    //connect all line edits
+    foreach(QLineEdit *x, findChildren<QLineEdit*>())
+    {
+        connect(
+            x,
+            SIGNAL(textChanged(const QString&)),
+            this,
+            SLOT(on_lineEdit_changed(const QString&))
+            );
+    }
+
+    //connect all combo boxes
+    foreach(QComboBox *x, findChildren<QComboBox*>())
+    {
+        connect(
+            x,
+            SIGNAL(currentTextChanged(const QString&)),
+            this,
+            SLOT(on_lineEdit_changed(const QString&))
+            );
+    }
 
 	//connect all radio buttons
 	foreach(QRadioButton *x, findChildren<QRadioButton*>())
