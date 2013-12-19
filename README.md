@@ -2,6 +2,8 @@ SplineLibrary
 =============
 A C++ library to collect many useful spline functions into one place.
 
+A spline is a formula for smoothly transitioning from one data point to the next in a data set. For example, you could create a spline containing ten colors (each stored as R, G, and B values) to create a color gradient that smoothly transitions from one color to the next (This project's demo actually does this!)
+
 Features
 -------------
 * Interpolation of standard catmull-rom splines
@@ -10,9 +12,10 @@ Features
     * To make a looped spline, add a final point to the data set that is exactly equal to the first
 * Interpolation of chordal and centripetal catmull-rom splines
     * Set the "alpha" parameter in the constructor of CatmullRomSpline
-    * 0.5 for a centripetal catmull-rom spline (default)
+    * 0 for a standard catmull-rom spline (default)
+    * 0.5 for a centripetal catmull-rom spline
     * 1 for a chordal catmull-rom spline
-    * 0 for a standard catmull-rom spline
+    * Any number is allowed, not just these three. The demo allows you to set this freely, so feel free to experiment. For most use cases you will want either standard or centripetal.
 * Interpolation of the first and second derivatives of the spline
     * For lack of a better name, the first derivative is called the "velocity" - this is how quickly and in what direction the interpolated position is changing, per T
     * For lack of a better name, the second derivative is called the "acceleration" - this is how quickly and in what direction the interpolated velocity is changing, per T
@@ -20,7 +23,11 @@ Features
     * Given a data point that may or may not be on the spline, what T value brings the spline closest to that data point?
     * Create a SplineInverter object and call either its findClosestFast or findClosestPrecise method
 
-The actual code is in the spline-source directory. A Qt Creator demo project is available in the demo directory.
+Project Layout
+-------------
+The root of the repository is a Qt Creator project that demonstrates some uses of the library. The source for the spline code itself is in the "spline-source" directory, and the code to set up the demo is in the "demo" directory.
+
+The demo project requires Qt, but the spline-source code has no third-party dependencies.
 
 License
 -------------
