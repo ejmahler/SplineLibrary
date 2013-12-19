@@ -2,14 +2,15 @@ SplineLibrary
 =============
 A C++ library to collect many useful spline functions into one place.
 
-A spline is a formula for smoothly transitioning from one data point to the next in a data set. For example, you could create a spline containing ten colors (each stored as R, G, and B values) to create a color gradient that smoothly transitions from one color to the next (This project's demo actually does this!)
+A spline is a formula for smoothly transitioning from one data point to the next in a data set. For example, you could create a spline containing ten colors (each stored as R, G, and B values) to create a color gradient that smoothly transitions from one color to the next.
 
 Features
 -------------
 * Interpolation of standard catmull-rom splines
-    * Simply create a CatmullRomSpline object and call its getPosition method.
+    * Include `spline_source/cr_spline.h`, create a `CRSpline` object, and call its `getPosition` method.
 * Looped Splines
-    * To make a looped spline, add a final point to the data set that is exactly equal to the first
+    * To make a looped catmull-rom spline, include `spline_source/looping_cr_spline.h` and create a `LoopingCRSpline` object instead.
+    * Every spline has a looped variant.
 * Interpolation of chordal and centripetal catmull-rom splines
     * Set the "alpha" parameter in the constructor of CatmullRomSpline
     * 0 for a standard catmull-rom spline (default)
