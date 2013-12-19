@@ -20,7 +20,8 @@
 
 #include "spline-source/quintic_cr_spline.h"
 #include "spline-source/looping_quintic_cr_spline.h"
-#include "spline-source/catmullromspline.h"
+#include "spline-source/cr_spline.h"
+#include "spline-source/looping_cr_spline.h"
 #include "spline-source/splineinverter.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -199,13 +200,13 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
         if(isLoop)
         {
             spline = std::shared_ptr<Spline>(
-                new CatmullRomSpline(pointList, alpha)
+                new LoopingCRSpline(pointList, alpha)
                 );
         }
         else
         {
             spline = std::shared_ptr<Spline>(
-                new CatmullRomSpline(pointList, alpha)
+                new CRSpline(pointList, alpha)
                 );
         }
     }

@@ -9,7 +9,8 @@
 #include <algorithm>
 
 #include "spline-source/splineinverter.h"
-#include "spline-source/catmullromspline.h"
+#include "spline-source/cr_spline.h"
+#include "spline-source/looping_cr_spline.h"
 
 GraphicsController::GraphicsController(QWidget *parent)
 	: QGLWidget(parent), 
@@ -236,9 +237,9 @@ void GraphicsController::createDistanceField(const QString &filename)
 			double(qrand()) / RAND_MAX));
 	}
 	if(spline->isLoop())
-		colorList[colorList.size() - 1] = colorList.at(0);
-
-	colorSpline = std::shared_ptr<Spline>(new CatmullRomSpline(colorList));
+        colorSpline = std::shared_ptr<Spline>(new LoopingCRSpline(colorList));
+    else
+        colorSpline = std::shared_ptr<Spline>(new CRSpline(colorList));
 
 	painter.fillRect(0,0,output.width(),output.height(),Qt::white);
 

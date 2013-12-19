@@ -9,7 +9,6 @@ protected: //methods
 	struct InterpolationData;
 
     inline Vector3D computePosition(double t, const InterpolationData &segment) const;
-    Vector3D computePosition2(double t, const InterpolationData &segment) const;
 	inline Vector3D computeTangent(double t, const InterpolationData &segment) const;
 	inline Vector3D computeCurvature(double t, const InterpolationData &segment) const;
 
