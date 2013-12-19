@@ -18,8 +18,8 @@ Features
     * 1 for a chordal catmull-rom spline
     * Any number is allowed, not just these three. The demo allows you to set this freely, so feel free to experiment. For most use cases you will want either standard or centripetal.
 * Interpolation of the first and second derivatives of the spline
-    * For lack of a better name, the first derivative is called the "velocity" - this is how quickly and in what direction the interpolated position is changing, per T
-    * For lack of a better name, the second derivative is called the "acceleration" - this is how quickly and in what direction the interpolated velocity is changing, per T
+    * The first derivative is called the "tangent" - this is how quickly and in what direction the interpolated position is changing, per T
+    * The second derivative is called the "curvature" - this is how quickly and in what direction the interpolated tangent is changing, per T
 * Compute the inverse of the spline
     * Given a data point that may or may not be on the spline, what T value brings the spline closest to that data point?
     * Create a SplineInverter object and call either its findClosestFast or findClosestPrecise method
