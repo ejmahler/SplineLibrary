@@ -9,7 +9,7 @@ Features
 * Interpolation of standard catmull-rom splines
     * Include `spline_source/cr_spline.h`, create a `CRSpline` object, and call its `getPosition` method.
 * Looped Splines
-    * To make a looped catmull-rom spline, include `spline_source/looped_cr_spline.h` and create a `LoopedCRSpline` object instead.
+    * To make a looped catmull-rom spline, include `spline_source/looping_cr_spline.h` and create a `LoopingCRSpline` object instead.
     * Every spline has a looped variant.
 * Interpolation of chordal and centripetal catmull-rom splines
     * Set the "alpha" parameter in the constructor of CatmullRomSpline
