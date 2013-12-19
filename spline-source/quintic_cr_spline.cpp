@@ -130,25 +130,25 @@ Vector3D QuinticCRSpline::getPosition(double x) const
     return computePosition(t, segment);
 }
 
-InterpolatedPV QuinticCRSpline::getPositionVelocity(double x) const
+InterpolatedPT QuinticCRSpline::getTangent(double x) const
 {
     //find the interpolation data for this t value
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
     double t = (x - segment.t0) * segment.tDistanceInverse;
 
-    return InterpolatedPV(
+    return InterpolatedPT(
         computePosition(t, segment),
 		computeTangent(t, segment)
 		);
 }
 
-InterpolatedPVA QuinticCRSpline::getPositionVelocityAcceleration(double x) const
+InterpolatedPTC QuinticCRSpline::getCurvature(double x) const
 {
     //find the interpolation data for this t value
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
     double t = (x - segment.t0) * segment.tDistanceInverse;
 
-    return InterpolatedPVA(
+    return InterpolatedPTC(
         computePosition(t, segment),
         computeTangent(t, segment),
 		computeCurvature(t, segment)

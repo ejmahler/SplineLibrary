@@ -5,24 +5,24 @@
 #include <vector>
 #include "vector3d.h"
 
-struct InterpolatedPV
+struct InterpolatedPT
 {
 	Vector3D position;
-	Vector3D velocity;
+    Vector3D tangent;
 
-	InterpolatedPV(const Vector3D &p, const Vector3D &v)
-		:position(p),velocity(v)
+    InterpolatedPT(const Vector3D &p, const Vector3D &t)
+        :position(p),tangent(t)
 	{}
 };
 
-struct InterpolatedPVA
+struct InterpolatedPTC
 {
 	Vector3D position;
-	Vector3D velocity;
-	Vector3D acceleration;
+    Vector3D tangent;
+    Vector3D curvature;
 
-	InterpolatedPVA(const Vector3D &p, const Vector3D &v, const Vector3D &a)
-		:position(p),velocity(v),acceleration(a)
+    InterpolatedPTC(const Vector3D &p, const Vector3D &t, const Vector3D &c)
+        :position(p),tangent(t),curvature(c)
 	{}
 };
 
@@ -30,8 +30,8 @@ class Spline
 {
 public:
 	virtual Vector3D getPosition(double x) const = 0;
-	virtual InterpolatedPV getPositionVelocity(double x) const = 0;
-	virtual InterpolatedPVA getPositionVelocityAcceleration(double x) const = 0;
+    virtual InterpolatedPT getTangent(double x) const = 0;
+    virtual InterpolatedPTC getCurvature(double x) const = 0;
 
 	virtual double getT(int index) const = 0;
 	virtual double getMaxT(void) const = 0;

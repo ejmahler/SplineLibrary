@@ -111,7 +111,7 @@ Vector3D LoopingCRSpline::getPosition(double x) const
     return computePosition(t, segment);
 }
 
-InterpolatedPV LoopingCRSpline::getPositionVelocity(double x) const
+InterpolatedPT LoopingCRSpline::getTangent(double x) const
 {
     //use modular arithmetic to bring x into an acceptable range
     x = fmod(x, numSegments);
@@ -122,13 +122,13 @@ InterpolatedPV LoopingCRSpline::getPositionVelocity(double x) const
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
     double t = (x - segment.t0) * segment.tDistanceInverse;
 
-    return InterpolatedPV(
+    return InterpolatedPT(
         computePosition(t, segment),
         computeTangent(t, segment)
         );
 }
 
-InterpolatedPVA LoopingCRSpline::getPositionVelocityAcceleration(double x) const
+InterpolatedPTC LoopingCRSpline::getCurvature(double x) const
 {
     //use modular arithmetic to bring x into an acceptable range
     x = fmod(x, numSegments);
@@ -139,7 +139,7 @@ InterpolatedPVA LoopingCRSpline::getPositionVelocityAcceleration(double x) const
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
     double t = (x - segment.t0) * segment.tDistanceInverse;
 
-    return InterpolatedPVA(
+    return InterpolatedPTC(
         computePosition(t, segment),
         computeTangent(t, segment),
         computeCurvature(t, segment)

@@ -13,8 +13,8 @@ public:
     ~LoopingQuinticCRSpline();
 
     Vector3D getPosition(double x) const;
-    InterpolatedPV getPositionVelocity(double x) const;
-    InterpolatedPVA getPositionVelocityAcceleration(double x) const;
+    InterpolatedPT getTangent(double x) const;
+    InterpolatedPTC getCurvature(double x) const;
 
     double getT(int index) const;
     double getMaxT(void) const;

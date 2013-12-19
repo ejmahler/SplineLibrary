@@ -265,8 +265,8 @@ double SplineInverter::circleProjectionMethod(const Vector3D &queryPoint, double
 	//there are more accurate calculation methods like the bisection method,
 	//but this is a reasonable approximation and way faster
 
-	auto lowerResult = spline->getPositionVelocity(lowerBound);
-    auto upperResult = spline->getPositionVelocity(upperBound);
+    auto lowerResult = spline->getTangent(lowerBound);
+    auto upperResult = spline->getTangent(upperBound);
 
     Vector3D sampleDisplacement = upperResult.position - lowerResult.position;
     Vector3D queryDisplacement = queryPoint - lowerResult.position;
@@ -278,13 +278,13 @@ double SplineInverter::circleProjectionMethod(const Vector3D &queryPoint, double
     double projection = Vector3D::dotProduct(sampleDirection, queryDisplacement);
 
     //compute the angle between the before and after velocities
-    Vector3D lowerVelocityDirection = lowerResult.velocity.normalized();
-    Vector3D upperVelocityDirection = upperResult.velocity.normalized();
-    double cosVelocityAngle = Vector3D::dotProduct(upperVelocityDirection, lowerVelocityDirection);
+    Vector3D lowerTangentDirection = lowerResult.tangent.normalized();
+    Vector3D upperTangentDirection = upperResult.tangent.normalized();
+    double cosTangentAngle = Vector3D::dotProduct(upperTangentDirection, lowerTangentDirection);
 
     //if the cos(angle) between the velocities is almost 1, there is essentially a straight line between the two points
     //if that's the case, we should just project the point onto that line
-    if(cosVelocityAngle > .99999)
+    if(cosTangentAngle > .99999)
     {
         double percent = projection / sampleLength;
         return lowerBound + percent * (upperBound - lowerBound);
@@ -295,17 +295,17 @@ double SplineInverter::circleProjectionMethod(const Vector3D &queryPoint, double
         Vector3D queryRejection = queryDisplacement - projection * sampleDirection;
 
         //find the dot product between the rejection and the average acceleration, both non-normalized
-        Vector3D averageAcceleration = upperResult.velocity - lowerResult.velocity;
-        double accelerationDot = Vector3D::dotProduct(averageAcceleration,queryRejection);
+        Vector3D averageCurvature = upperResult.tangent - lowerResult.tangent;
+        double curvatureDot = Vector3D::dotProduct(averageCurvature,queryRejection);
 
 
 
         //construct an isoceles tringle whose base is the sample displacement, and whose opposite angle is the velocity angle
-        double arcAngle = acos(cosVelocityAngle);
+        double arcAngle = acos(cosTangentAngle);
         double h = sampleLength * 0.5 / tan(arcAngle * 0.5);
 
         //find the apex point
-        Vector3D apex = (lowerResult.position + upperResult.position) * 0.5 + queryRejection.normalized() * h * sign(accelerationDot);
+        Vector3D apex = (lowerResult.position + upperResult.position) * 0.5 + queryRejection.normalized() * h * sign(curvatureDot);
 
         //find the vectors that go from apex to the sample point, and from apex to the query point
         Vector3D sampleVector = lowerResult.position - apex;
@@ -359,11 +359,11 @@ int SplineInverter::findSampleIndex(double xValue) const
 
 double SplineInverter::getDistanceSlope(const Vector3D &queryPoint, double t) const
 {
-	auto result = spline->getPositionVelocity(t);
+    auto result = spline->getTangent(t);
 
 	//get the displacement from the spline at T to the query point
 	Vector3D displacement = result.position - queryPoint;
 
 	//find projection of spline velocity onto displacement
-	return Vector3D::dotProduct(displacement.normalized(), result.velocity);
+    return Vector3D::dotProduct(displacement.normalized(), result.tangent);
 }
