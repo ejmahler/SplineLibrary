@@ -10,9 +10,9 @@ Features
     * Include `spline_source/cr_spline.h`, create a `CRSpline` object, and call its `getPosition` method.
 * Looped Splines
     * To make a looped catmull-rom spline, include `spline_source/looping_cr_spline.h` and create a `LoopingCRSpline` object instead.
-    * Every spline has a looped variant.
+    * Every spline type has both looping and non-looping variants
 * Interpolation of chordal and centripetal catmull-rom splines
-    * Set the "alpha" parameter in the constructor of CatmullRomSpline
+    * Set the "alpha" parameter in the constructor of CRSpline
     * 0 for a standard catmull-rom spline (default)
     * 0.5 for a centripetal catmull-rom spline
     * 1 for a chordal catmull-rom spline
@@ -21,7 +21,7 @@ Features
     * The first derivative is called the "tangent" - this is how quickly and in what direction the interpolated position is changing, per T
     * The second derivative is called the "curvature" - this is how quickly and in what direction the interpolated tangent is changing, per T
 * Compute the inverse of the spline
-    * Given a data point that may or may not be on the spline, what T value brings the spline closest to that data point?
+    * Given a data point (not necessarily on the spline, or even close to it), what T value brings the spline closest to that data point?
     * Create a SplineInverter object and call either its findClosestFast or findClosestPrecise method
 
 Project Layout
