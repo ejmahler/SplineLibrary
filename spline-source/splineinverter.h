@@ -10,7 +10,7 @@ class Spline;
 class SplineInverter
 {
 public:
-	SplineInverter(const std::shared_ptr<Spline> &spline, int samplesPerT);
+	SplineInverter(const std::shared_ptr<Spline> &spline, int samplesPerT = 10);
 	~SplineInverter();
 
 	double findClosestFast(const Vector3D &queryPoint) const;
