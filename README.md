@@ -28,7 +28,7 @@ Project Layout
 -------------
 The root of the repository is a Qt Creator project that demonstrates some uses of the library. The source for the spline code itself is in the "spline-source" directory, and the code to set up the demo is in the "demo" directory.
 
-The demo project requires Qt, but the spline-source code has no third-party dependencies.
+The demo project requires Qt 5, but the spline-source code has no third-party dependencies.
 
 License
 -------------
