@@ -206,8 +206,8 @@ double SplineInverter::findClosestSample(const Vector3D &queryPoint) const
 
 double SplineInverter::bisectionMethod(const Vector3D &queryPoint, double lowerBound, double upperBound) const
 {
-	//we need to use the bisection method until acceleration at both the uper bound and lower bound are positive
-	//otherwise it's not guaranteed to converge on a result, and if it does it'll probably be wrong D:
+	//we need to use the bisection method until the slope of the distance is 0.
+        //when this happens we have found a local minimum or global minimum
 	double lowerValue = getDistanceSlope(queryPoint, lowerBound);
 	double upperValue = getDistanceSlope(queryPoint, upperBound);
 
