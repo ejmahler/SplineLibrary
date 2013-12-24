@@ -1,4 +1,4 @@
-#include "cubichermitespline.h"
+#include "cubic_hermite_spline.h"
 
 int CubicHermiteSpline::getSegmentIndex(double x) const
 {

@@ -1,4 +1,4 @@
-#include "quintichermitespline.h"
+#include "quintic_hermite_spline.h"
 
 /*
 Vector3D QuinticHermiteSpline::computePosition2(double t, const InterpolationData &segment) const

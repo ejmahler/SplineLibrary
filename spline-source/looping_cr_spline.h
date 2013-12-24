@@ -4,7 +4,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "cubichermitespline.h"
+#include "cubic_hermite_spline.h"
 
 class LoopingCRSpline : public CubicHermiteSpline
 {

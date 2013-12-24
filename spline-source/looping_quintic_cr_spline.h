@@ -4,7 +4,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "quintichermitespline.h"
+#include "quintic_hermite_spline.h"
 
 class LoopingQuinticCRSpline : public QuinticHermiteSpline
 {
