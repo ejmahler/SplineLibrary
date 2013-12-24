@@ -20,8 +20,8 @@
 
 #include "spline-source/quintic_cr_spline.h"
 #include "spline-source/looping_quintic_cr_spline.h"
-#include "spline-source/cr_spline.h"
-#include "spline-source/looping_cr_spline.h"
+#include "spline-source/cubic_hermite/cr_spline.h"
+#include "spline-source/cubic_hermite/looping_cr_spline.h"
 #include "spline-source/splineinverter.h"
 
 MainWindow::MainWindow(QWidget *parent)
