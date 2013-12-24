@@ -1,10 +1,25 @@
 #ifndef QUINTICHERMITESPLINE_H
 #define QUINTICHERMITESPLINE_H
 
+#include <unordered_map>
+
 #include "spline.h"
 
 class QuinticHermiteSpline : public Spline
 {
+public:
+    virtual Vector3D getPosition(double x) const;
+    virtual InterpolatedPT getTangent(double x) const;
+    virtual InterpolatedPTC getCurvature(double x) const;
+
+    virtual double getT(int index) const;
+    virtual double getMaxT(void) const;
+    virtual int getNumSegments(void) const;
+
+    virtual const std::vector<Vector3D> &getPoints(void) const;
+
+    virtual bool isLooping(void) const;
+
 protected: //methods
 	struct InterpolationData;
 
@@ -21,7 +36,13 @@ protected: //data
 	int numSegments;
     std::vector<InterpolationData> segmentData;
 
+    double maxT;
 
+    //original point data
+    std::vector<Vector3D> points;
+
+    //map from index to t value. it's a map and not an array so we can store negative indexes
+    std::unordered_map<int,double> indexToT;
 };
 
 struct QuinticHermiteSpline::InterpolationData {

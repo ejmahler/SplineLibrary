@@ -9,7 +9,6 @@
 class CRSpline final: public CubicHermiteSpline
 {
 public:
-
     CRSpline(const std::vector<Vector3D> &points, double alpha = 0.0);
 };
 

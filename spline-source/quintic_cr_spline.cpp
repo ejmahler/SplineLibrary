@@ -5,16 +5,17 @@
 #include <cassert>
 
 QuinticCRSpline::QuinticCRSpline(const std::vector<Vector3D> &points)
-    :points(points)
 {
     assert(points.size() >= 6);
+
+    this->points = points;
 
 	//i would love to be able to support changing alphas for quintic catmull rom splines!
 	//but there's no literature whatsoever on how to choose tangents when t values are unevenly spaced
 	//if you know how to do it, let me know or make a pull request :D
 	//until then we're just going to hardcode alpha to 0 and make sure nothing in the code
-	//besides tangent selection assumes t values are unevenly spaced
-	float alpha = 0;
+    //besides tangent selection assumes t values are evenly spaced
+    double alpha = 0;
 
     std::unordered_map<int, double> indexToT_Raw;
     std::unordered_map<int, Vector3D> pointMap;
@@ -23,6 +24,7 @@ QuinticCRSpline::QuinticCRSpline(const std::vector<Vector3D> &points)
 
     numSegments = numTotalPoints - 5;
 
+    //set up various important indexes
     int firstTangent = 1;
     int firstCurvature = 2;
 	int lastCurvature = numTotalPoints - 2;
@@ -114,69 +116,4 @@ QuinticCRSpline::QuinticCRSpline(const std::vector<Vector3D> &points)
 
         segmentData.push_back(segment);
     }
-}
-
-QuinticCRSpline::~QuinticCRSpline()
-{
-
-}
-
-Vector3D QuinticCRSpline::getPosition(double x) const
-{
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
-
-    return computePosition(t, segment);
-}
-
-InterpolatedPT QuinticCRSpline::getTangent(double x) const
-{
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
-
-    return InterpolatedPT(
-        computePosition(t, segment),
-		computeTangent(t, segment)
-		);
-}
-
-InterpolatedPTC QuinticCRSpline::getCurvature(double x) const
-{
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
-
-    return InterpolatedPTC(
-        computePosition(t, segment),
-        computeTangent(t, segment),
-		computeCurvature(t, segment)
-		);
-}
-
-double QuinticCRSpline::getT(int index) const
-{
-    return indexToT.at(index);
-}
-
-double QuinticCRSpline::getMaxT(void) const
-{
-    return maxT;
-}
-
-int QuinticCRSpline::getNumSegments(void) const
-{
-    return numSegments;
-}
-
-const std::vector<Vector3D> &QuinticCRSpline::getPoints(void) const
-{
-    return points;
-}
-
-
-bool QuinticCRSpline::isLooping(void) const
-{
-    return false;
 }

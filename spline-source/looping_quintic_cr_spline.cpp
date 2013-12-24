@@ -5,9 +5,10 @@
 #include <cassert>
 
 LoopingQuinticCRSpline::LoopingQuinticCRSpline(const std::vector<Vector3D> &points)
-    :points(points)
 {
     assert(points.size() >= 6);
+
+    this->points = points;
 
 	//i would love to be able to support changing alphas for quintic catmull rom splines!
 	//but there's no literature whatsoever on how to choose tangents when t values are unevenly spaced
@@ -104,85 +105,4 @@ LoopingQuinticCRSpline::LoopingQuinticCRSpline(const std::vector<Vector3D> &poin
 
         segmentData.push_back(segment);
     }
-}
-
-LoopingQuinticCRSpline::~LoopingQuinticCRSpline()
-{
-
-}
-
-Vector3D LoopingQuinticCRSpline::getPosition(double x) const
-{
-	//use modular arithmetic to bring x into an acceptable range
-	x = fmod(x, numSegments);
-	if(x < 0)
-		x += numSegments;
-
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
-
-    return computePosition(t, segment);
-}
-
-InterpolatedPT LoopingQuinticCRSpline::getTangent(double x) const
-{
-	//use modular arithmetic to bring x into an acceptable range
-	x = fmod(x, numSegments);
-	if(x < 0)
-		x += numSegments;
-
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
-
-    return InterpolatedPT(
-        computePosition(t, segment),
-		computeTangent(t, segment)
-		);
-}
-
-InterpolatedPTC LoopingQuinticCRSpline::getCurvature(double x) const
-{
-	//use modular arithmetic to bring x into an acceptable range
-	x = fmod(x, numSegments);
-	if(x < 0)
-		x += numSegments;
-
-
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
-
-    return InterpolatedPTC(
-        computePosition(t, segment),
-        computeTangent(t, segment),
-		computeCurvature(t, segment)
-		);
-}
-
-double LoopingQuinticCRSpline::getT(int index) const
-{
-    return indexToT.at(index);
-}
-
-double LoopingQuinticCRSpline::getMaxT(void) const
-{
-    return maxT;
-}
-
-int LoopingQuinticCRSpline::getNumSegments(void) const
-{
-    return numSegments;
-}
-
-const std::vector<Vector3D> &LoopingQuinticCRSpline::getPoints(void) const
-{
-    return points;
-}
-
-
-bool LoopingQuinticCRSpline::isLooping(void) const
-{
-    return true;
 }

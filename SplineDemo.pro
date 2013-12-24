@@ -22,7 +22,8 @@ SOURCES += \
     spline-source/cubic_hermite/looping_cubic_hermite_spline.cpp \
     spline-source/cubic_hermite/looping_cr_spline.cpp \
     spline-source/cubic_hermite/cubic_hermite_spline.cpp \
-    spline-source/cubic_hermite/cr_spline.cpp
+    spline-source/cubic_hermite/cr_spline.cpp \
+    spline-source/looping_quintic_hermite_spline.cpp
 
 HEADERS  += \
     demo/settingswidget.h \
@@ -38,7 +39,8 @@ HEADERS  += \
     spline-source/cubic_hermite/looping_cubic_hermite_spline.h \
     spline-source/cubic_hermite/looping_cr_spline.h \
     spline-source/cubic_hermite/cubic_hermite_spline.h \
-    spline-source/cubic_hermite/cr_spline.h
+    spline-source/cubic_hermite/cr_spline.h \
+    spline-source/looping_quintic_hermite_spline.h
 
 FORMS    += \
     demo/settingswidget.ui \
