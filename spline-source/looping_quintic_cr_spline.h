@@ -22,7 +22,7 @@ public:
 
     const std::vector<Vector3D> &getPoints(void) const;
 
-    bool isLoop(void) const;
+    bool isLooping(void) const;
 
 private: //data
 

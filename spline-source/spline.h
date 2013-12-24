@@ -38,6 +38,6 @@ public:
 	virtual int getNumSegments(void) const = 0;
 
 	virtual const std::vector<Vector3D> &getPoints(void) const = 0;
-	virtual bool isLoop(void) const = 0;
+    virtual bool isLooping(void) const = 0;
 };
 #endif // SPLINE_H

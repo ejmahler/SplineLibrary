@@ -154,7 +154,7 @@ const std::vector<Vector3D> &CRSpline::getPoints(void) const
 	return points;
 }
 
-bool CRSpline::isLoop() const
+bool CRSpline::isLooping() const
 {
     return false;
 }

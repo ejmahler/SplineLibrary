@@ -182,7 +182,7 @@ const std::vector<Vector3D> &LoopingQuinticCRSpline::getPoints(void) const
 }
 
 
-bool LoopingQuinticCRSpline::isLoop(void) const
+bool LoopingQuinticCRSpline::isLooping(void) const
 {
     return true;
 }
