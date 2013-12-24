@@ -9,7 +9,7 @@
 class Spline;
 class Vector3D;
 
-namespace Ui {class MainWindow;};
+namespace Ui {class MainWindow;}
 
 class GraphicsController;
 class Graph;

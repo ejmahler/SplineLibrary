@@ -8,9 +8,10 @@
 #include <ctime>
 #include <algorithm>
 
-#include "spline-source/splineinverter.h"
-#include "spline-source/cubic_hermite/cr_spline.h"
-#include "spline-source/cubic_hermite/looping_cr_spline.h"
+#include "spline_library/vector3d.h"
+#include "spline_library/splineinverter.h"
+#include "spline_library/cubic_hermite/cr_spline.h"
+#include "spline_library/cubic_hermite/looping_cr_spline.h"
 
 GraphicsController::GraphicsController(QWidget *parent)
 	: QGLWidget(parent), 

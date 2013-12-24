@@ -5,7 +5,7 @@
 
 #include <QGLWidget>
 
-#include "spline-source/vector3d.h"
+class Vector3D;
 
 class Spline;
 
