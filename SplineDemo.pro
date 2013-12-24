@@ -16,14 +16,14 @@ SOURCES += \
     spline-source/vector3d.cpp \
     spline-source/splineinverter.cpp \
     spline-source/spline.cpp \
-    spline-source/quintic_cr_spline.cpp \
-    spline-source/looping_quintic_cr_spline.cpp \
-    spline-source/quintic_hermite_spline.cpp \
     spline-source/cubic_hermite/looping_cubic_hermite_spline.cpp \
     spline-source/cubic_hermite/looping_cr_spline.cpp \
     spline-source/cubic_hermite/cubic_hermite_spline.cpp \
     spline-source/cubic_hermite/cr_spline.cpp \
-    spline-source/looping_quintic_hermite_spline.cpp
+    spline-source/quintic_hermite/quintic_hermite_spline.cpp \
+    spline-source/quintic_hermite/quintic_cr_spline.cpp \
+    spline-source/quintic_hermite/looping_quintic_hermite_spline.cpp \
+    spline-source/quintic_hermite/looping_quintic_cr_spline.cpp
 
 HEADERS  += \
     demo/settingswidget.h \
@@ -33,14 +33,14 @@ HEADERS  += \
     spline-source/vector3d.h \
     spline-source/splineinverter.h \
     spline-source/spline.h \
-    spline-source/looping_quintic_cr_spline.h \
-    spline-source/quintic_cr_spline.h \
-    spline-source/quintic_hermite_spline.h \
     spline-source/cubic_hermite/looping_cubic_hermite_spline.h \
     spline-source/cubic_hermite/looping_cr_spline.h \
     spline-source/cubic_hermite/cubic_hermite_spline.h \
     spline-source/cubic_hermite/cr_spline.h \
-    spline-source/looping_quintic_hermite_spline.h
+    spline-source/quintic_hermite/looping_quintic_cr_spline.h \
+    spline-source/quintic_hermite/quintic_hermite_spline.h \
+    spline-source/quintic_hermite/quintic_cr_spline.h \
+    spline-source/quintic_hermite/looping_quintic_hermite_spline.h
 
 FORMS    += \
     demo/settingswidget.ui \

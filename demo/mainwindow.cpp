@@ -18,8 +18,8 @@
 #include "graphicscontroller.h"
 #include "settingswidget.h"
 
-#include "spline-source/quintic_cr_spline.h"
-#include "spline-source/looping_quintic_cr_spline.h"
+#include "spline-source/quintic_hermite/quintic_cr_spline.h"
+#include "spline-source/quintic_hermite/looping_quintic_cr_spline.h"
 #include "spline-source/cubic_hermite/cr_spline.h"
 #include "spline-source/cubic_hermite/looping_cr_spline.h"
 #include "spline-source/splineinverter.h"
