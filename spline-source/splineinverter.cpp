@@ -30,7 +30,7 @@ SplineInverter::SplineInverter(const std::shared_ptr<Spline> &spline, int sample
 
 	//if the spline isn't a loop and the final t value isn't very very close to maxT, we have to add a sample for maxT
 	double lastT = splineSamples.at(splineSamples.size() - 1).t;
-	if(!spline->isLoop() && abs(lastT / maxT - 1) > .0001)
+    if(!spline->isLooping() && abs(lastT / maxT - 1) > .0001)
 	{
 		auto sampledPoint = spline->getPosition(maxT);
 		SplineSample sample;
@@ -58,7 +58,7 @@ double SplineInverter::findClosestFast(const Vector3D &queryPoint) const
 		return closestSampleT;
 
 	//if the spline is not a loop there are a few special cases to account for
-	if(!spline->isLoop())
+    if(!spline->isLooping())
 	{
 		//if closest sample T is 0, we are on an end. so if the slope is positive, we have to just return the end
 		if(abs(closestSampleT) < .0001 && sampleDistanceSlope > 0)
@@ -105,7 +105,7 @@ double SplineInverter::findClosestPrecise(const Vector3D &queryPoint) const
 		return closestSampleT;
 
 	//if the spline is not a loop there are a few special cases to account for
-	if(!spline->isLoop())
+    if(!spline->isLooping())
 	{
 		//if closest sample T is 0, we are on an end. so if the slope is positive, we have to just return the end
 		if(abs(closestSampleT) < .0001 && sampleDistanceSlope > 0)

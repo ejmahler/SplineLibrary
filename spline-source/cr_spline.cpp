@@ -5,9 +5,10 @@
 #include <cassert>
 
 CRSpline::CRSpline(const std::vector<Vector3D> &points, double alpha)
-	:points(points)
 {
     assert(points.size() >= 4);
+
+    this->points = points;
 
     std::unordered_map<int, double> indexToT_Raw;
     std::unordered_map<int, Vector3D> pointMap;
@@ -23,7 +24,7 @@ CRSpline::CRSpline(const std::vector<Vector3D> &points, double alpha)
     indexToT_Raw[1] = 0;
     pointMap[1] = points[1];
 
-    //loop backwards from 2 to give the earlier points negative t values
+    //loop backwards from 0 to give the earlier points negative t values
     for(int i = 0; i >= 0; i--)
     {
         //points[1] is a control point, so give it a negative t value, so that the first actual point can have a t value of 0
@@ -96,65 +97,4 @@ CRSpline::CRSpline(const std::vector<Vector3D> &points, double alpha)
 
         segmentData.push_back(segment);
     }
-}
-
-CRSpline::~CRSpline()
-{
-
-}
-
-Vector3D CRSpline::getPosition(double x) const
-{
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
-
-    return computePosition(t, segment);
-}
-
-InterpolatedPT CRSpline::getTangent(double x) const
-{
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
-
-    return InterpolatedPT(
-                computePosition(t, segment),
-                computeTangent(t, segment)
-                );
-}
-
-InterpolatedPTC CRSpline::getCurvature(double x) const
-{
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
-
-    return InterpolatedPTC(
-                computePosition(t, segment),
-                computeTangent(t, segment),
-                computeCurvature(t, segment)
-                );
-}
-
-double CRSpline::getT(int index) const
-{
-	return indexToT.at(index);
-} 
-
-double CRSpline::getMaxT(void) const
-{
-	return maxT;
-}
-
-int CRSpline::getNumSegments(void) const
-{
-	return numSegments;
-}
-
-const std::vector<Vector3D> &CRSpline::getPoints(void) const
-{
-	return points;
-}
-
-bool CRSpline::isLooping() const
-{
-    return false;
 }

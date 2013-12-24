@@ -236,7 +236,7 @@ void GraphicsController::createDistanceField(const QString &filename)
 			double(qrand()) / RAND_MAX,
 			double(qrand()) / RAND_MAX));
 	}
-	if(spline->isLoop())
+    if(spline->isLooping())
         colorSpline = std::shared_ptr<Spline>(new LoopingCRSpline(colorList));
     else
         colorSpline = std::shared_ptr<Spline>(new CRSpline(colorList));
@@ -307,7 +307,7 @@ void GraphicsController::createDistanceField(const QString &filename)
 	//draw control points on top of line
 	//if this is a loop, don't draw the final point
 	int pointLimit;
-	if(spline->isLoop())
+    if(spline->isLooping())
 		pointLimit = points.size() - 1;
 	else
 		pointLimit = points.size();

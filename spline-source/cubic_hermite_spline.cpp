@@ -1,5 +1,36 @@
 #include "cubic_hermite_spline.h"
 
+Vector3D CubicHermiteSpline::getPosition(double x) const
+{
+    InterpolationData segment = segmentData.at(getSegmentIndex(x));
+    double t = (x - segment.t0) * segment.tDistanceInverse;
+
+    return computePosition(t, segment);
+}
+
+InterpolatedPT CubicHermiteSpline::getTangent(double x) const
+{
+    InterpolationData segment = segmentData.at(getSegmentIndex(x));
+    double t = (x - segment.t0) * segment.tDistanceInverse;
+
+    return InterpolatedPT(
+                computePosition(t, segment),
+                computeTangent(t, segment)
+                );
+}
+
+InterpolatedPTC CubicHermiteSpline::getCurvature(double x) const
+{
+    InterpolationData segment = segmentData.at(getSegmentIndex(x));
+    double t = (x - segment.t0) * segment.tDistanceInverse;
+
+    return InterpolatedPTC(
+                computePosition(t, segment),
+                computeTangent(t, segment),
+                computeCurvature(t, segment)
+                );
+}
+
 int CubicHermiteSpline::getSegmentIndex(double x) const
 {
     //we want to find the segment whos t0 and t1 values bound x
@@ -33,4 +64,29 @@ int CubicHermiteSpline::getSegmentIndex(double x) const
         currentIndex = (currentMin + currentMax) / 2;
     }
     return currentIndex;
+}
+
+double CubicHermiteSpline::getT(int index) const
+{
+    return indexToT.at(index);
+}
+
+double CubicHermiteSpline::getMaxT(void) const
+{
+    return maxT;
+}
+
+int CubicHermiteSpline::getNumSegments(void) const
+{
+    return numSegments;
+}
+
+const std::vector<Vector3D> &CubicHermiteSpline::getPoints(void) const
+{
+    return points;
+}
+
+bool CubicHermiteSpline::isLooping(void) const
+{
+    return false;
 }

@@ -5,9 +5,10 @@
 #include <cassert>
 
 LoopingCRSpline::LoopingCRSpline(const std::vector<Vector3D> &points, double alpha)
-    :points(points)
 {
     assert(points.size() >= 6);
+
+    this->points = points;
 
     std::unordered_map<int, double> indexToT_Raw;
     std::unordered_map<int, Vector3D> pointMap;
@@ -90,84 +91,4 @@ LoopingCRSpline::LoopingCRSpline(const std::vector<Vector3D> &points, double alp
 
         segmentData.push_back(segment);
     }
-}
-
-LoopingCRSpline::~LoopingCRSpline()
-{
-
-}
-
-Vector3D LoopingCRSpline::getPosition(double x) const
-{
-    //use modular arithmetic to bring x into an acceptable range
-    x = fmod(x, numSegments);
-    if(x < 0)
-        x += numSegments;
-
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
-
-    return computePosition(t, segment);
-}
-
-InterpolatedPT LoopingCRSpline::getTangent(double x) const
-{
-    //use modular arithmetic to bring x into an acceptable range
-    x = fmod(x, numSegments);
-    if(x < 0)
-        x += numSegments;
-
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
-
-    return InterpolatedPT(
-        computePosition(t, segment),
-        computeTangent(t, segment)
-        );
-}
-
-InterpolatedPTC LoopingCRSpline::getCurvature(double x) const
-{
-    //use modular arithmetic to bring x into an acceptable range
-    x = fmod(x, numSegments);
-    if(x < 0)
-        x += numSegments;
-
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
-
-    return InterpolatedPTC(
-        computePosition(t, segment),
-        computeTangent(t, segment),
-        computeCurvature(t, segment)
-        );
-}
-
-double LoopingCRSpline::getT(int index) const
-{
-    return indexToT.at(index);
-}
-
-double LoopingCRSpline::getMaxT(void) const
-{
-    return maxT;
-}
-
-int LoopingCRSpline::getNumSegments(void) const
-{
-    return numSegments;
-}
-
-const std::vector<Vector3D> &LoopingCRSpline::getPoints(void) const
-{
-    return points;
-}
-
-
-bool LoopingCRSpline::isLooping(void) const
-{
-    return true;
 }
