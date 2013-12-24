@@ -6,7 +6,7 @@
 
 #include "looping_cubic_hermite_spline.h"
 
-class LoopingCRSpline : public LoopingCubicHermiteSpline
+class LoopingCRSpline final: public LoopingCubicHermiteSpline
 {
 public:
     LoopingCRSpline(const std::vector<Vector3D> &points, double alpha = 0.0);

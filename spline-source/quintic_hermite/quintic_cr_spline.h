@@ -6,7 +6,7 @@
 
 #include "quintic_hermite_spline.h"
 
-class QuinticCRSpline : public QuinticHermiteSpline
+class QuinticCRSpline final: public QuinticHermiteSpline
 {
 public:
     QuinticCRSpline(const std::vector<Vector3D> &points);

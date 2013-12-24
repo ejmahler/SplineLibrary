@@ -6,7 +6,7 @@
 
 LoopingCRSpline::LoopingCRSpline(const std::vector<Vector3D> &points, double alpha)
 {
-    assert(points.size() >= 6);
+    assert(points.size() >= 4);
 
     this->points = points;
 

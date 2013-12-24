@@ -6,7 +6,7 @@
 
 #include "looping_quintic_hermite_spline.h"
 
-class LoopingQuinticCRSpline : public LoopingQuinticHermiteSpline
+class LoopingQuinticCRSpline final: public LoopingQuinticHermiteSpline
 {
 public:
     LoopingQuinticCRSpline(const std::vector<Vector3D> &points);

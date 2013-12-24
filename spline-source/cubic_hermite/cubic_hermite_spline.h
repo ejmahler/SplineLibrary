@@ -7,6 +7,12 @@
 
 class CubicHermiteSpline : public Spline
 {
+//constructors
+public:
+    CubicHermiteSpline(const std::vector<Vector3D> &points, const std::vector<Vector3D> &tangents, double alpha = 0.0);
+protected:
+    //you're only allowed to create one of these without point data if a subclass is providing the point data
+    CubicHermiteSpline();
 
 //methods
 public:

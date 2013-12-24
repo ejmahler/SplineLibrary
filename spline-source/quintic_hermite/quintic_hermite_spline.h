@@ -7,6 +7,17 @@
 
 class QuinticHermiteSpline : public Spline
 {
+//constructors
+public:
+    QuinticHermiteSpline(const std::vector<Vector3D> &points,
+                                const std::vector<Vector3D> &tangents,
+                                const std::vector<Vector3D> &curvatures
+                                );
+protected:
+    //you're only allowed to create one of these without point data if a subclass is providing the point data
+    QuinticHermiteSpline();
+
+//methods
 public:
     virtual Vector3D getPosition(double x) const;
     virtual InterpolatedPT getTangent(double x) const;
@@ -20,7 +31,7 @@ public:
 
     virtual bool isLooping(void) const;
 
-protected: //methods
+protected:
 	struct InterpolationData;
 
     inline Vector3D computePosition(double t, const InterpolationData &segment) const;
@@ -29,7 +40,8 @@ protected: //methods
 
 	int getSegmentIndex(double x) const;
 
-protected: //data
+//data
+protected:
 	//a vector containing pre-computed datasets, one per segment
     //there will be lots of duplication of data here,
     //but precomputing this really speeds up the interpolation
