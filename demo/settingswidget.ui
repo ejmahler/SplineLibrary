@@ -29,13 +29,13 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
        <string>Spline Type</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <widget class="QLabel" name="label_6">
          <property name="text">
@@ -44,28 +44,60 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_6">
-         <item>
-          <widget class="QComboBox" name="main_splineType">
-           <property name="frame">
-            <bool>true</bool>
-           </property>
-           <item>
+        <widget class="QFrame" name="frame_2">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QFormLayout" name="formLayout_2">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Cubic Catmull-Rom Spline</string>
+             <string>Looping</string>
             </property>
-           </item>
-           <item>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="splineType_isLooping">
             <property name="text">
-             <string>Quintic Catmull-Rom Spline</string>
+             <string/>
             </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Type</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="main_splineType">
+            <property name="frame">
+             <bool>true</bool>
+            </property>
+            <item>
+             <property name="text">
+              <string>Cubic Catmull-Rom Spline</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Quintic Catmull-Rom Spline</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_4">
+        <spacer name="verticalSpacer_3">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -163,20 +195,6 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_3">
-               <property name="text">
-                <string>Is Looped</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QCheckBox" name="cubicHermite_isLoop">
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
             </layout>
            </widget>
           </item>
@@ -192,93 +210,6 @@
           <size>
            <width>20</width>
            <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_2">
-      <attribute name="title">
-       <string>Quintic Hermite Spline</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
-        <widget class="QLabel" name="label_16">
-         <property name="text">
-          <string>Set constants for a quintic hermite spline here</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QWidget" name="widget_3" native="true">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QFrame" name="frame_2">
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-            <layout class="QFormLayout" name="formLayout_2">
-             <property name="fieldGrowthPolicy">
-              <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-             </property>
-             <item row="0" column="1">
-              <widget class="QLabel" name="label_5">
-               <property name="text">
-                <string>Spline Parameters</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_7">
-               <property name="text">
-                <string>Is Looped</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QCheckBox" name="quinticHermite_isLoop">
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>88</height>
           </size>
          </property>
         </spacer>

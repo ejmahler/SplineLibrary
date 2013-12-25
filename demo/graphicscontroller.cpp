@@ -78,11 +78,9 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	if(backgroundImage != nullptr)
 	{
 		painter.drawImage(0,0,*backgroundImage);
-	}
+    }
 	
-    //draw lines
-    std::vector<Vector3D> points = spline->getPoints();
-
+    //draw the spline
     double stepSize = 0.01;
     double currentStep = stepSize;
     double limit = spline->getMaxT();
@@ -102,6 +100,8 @@ void GraphicsController::paintEvent(QPaintEvent *event)
         currentStep += stepSize;
         previousPoint = currentData;
     }
+
+    std::vector<Vector3D> points = spline->getPoints();
 
     //draw control points on top of line
     for(int i = 0; i < points.size(); i++)

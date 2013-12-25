@@ -190,14 +190,14 @@ void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
 {
     QString splineType = settingsWidget->getOption("main_splineType").toString();
+    bool isLooping = settingsWidget->getOption("cubicHermite_isLooping").toBool();
 
     if(splineType == "Cubic Catmull-Rom Spline")
     {
         //rebuild the spline
         float alpha = settingsWidget->getOption("cubicHermite_alpha").toFloat() / 10;
 
-        bool isLoop = settingsWidget->getOption("cubicHermite_isLoop").toBool();
-        if(isLoop)
+        if(isLooping)
         {
             spline = std::shared_ptr<Spline>(
                 new LoopingCRSpline(pointList, alpha)
@@ -212,8 +212,7 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
     }
     else
     {
-        bool isLoop = settingsWidget->getOption("quinticHermite_isLoop").toBool();
-        if(isLoop)
+        if(isLooping)
         {
             spline = std::shared_ptr<Spline>(
                 new LoopingQuinticCRSpline(pointList)
