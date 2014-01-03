@@ -34,6 +34,7 @@ Features
         * `CRSpline` is a subclass of `CubicHermiteSpline` which automatically computes the tangent list based on the points
     * Quintic catmull-rom splines
         * Quintic version of the catmull-rom spline
+        * Useful if you need the 2nd derivative to be smooth and continuous
         * Import `spline_library/quintic_hermite/quintic_cr_spline.h` and create a `QuinticCRSpline` object
     * Raw quintic hermite splines
         * Import `spline_library/quintic_hermite/quintic_hermite_spline.h` and create a `QuinticHermiteSpline` object
