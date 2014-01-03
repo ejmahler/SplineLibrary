@@ -56,10 +56,6 @@ protected:
 };
 
 struct CubicHermiteSpline::InterpolationData {
-    //t values
-    double t0;
-    double t1;
-
     //points
     Vector3D p0;
     Vector3D p1;
@@ -67,6 +63,10 @@ struct CubicHermiteSpline::InterpolationData {
     //tangents
     Vector3D m0;
     Vector3D m1;
+
+    //t values
+    double t0;
+    double t1;
 
     //reciprocal of distance in T between p0 and p1
     double tDistanceInverse;
@@ -105,12 +105,16 @@ inline Vector3D CubicHermiteSpline::computeTangent(double t, const Interpolation
     double d_basis11 = t * (3 * t - 2);
     double d_basis01 = -d_basis00;
 
-    return
+    //tests and such have shown that we have to scale this by the inverse of the t distance, and i'm not sure why
+    //intuitively it would just be the derivative of the position function and nothing else
+    //if you know why please let me know
+    return (
             d_basis00 * segment.p0 +
             d_basis10 * segment.m0 +
 
             d_basis11 * segment.m1 +
-            d_basis01 * segment.p1;
+            d_basis01 * segment.p1
+            ) * segment.tDistanceInverse;
 }
 
 inline Vector3D CubicHermiteSpline::computeCurvature(double t, const InterpolationData &segment) const
@@ -123,12 +127,16 @@ inline Vector3D CubicHermiteSpline::computeCurvature(double t, const Interpolati
     double d2_basis11 = 2 * (3 * t - 1);
     double d2_basis01 = -d2_basis00;
 
-    return
+    //tests and such have shown that we have to scale this by the inverse of the t distance, and i'm not sure why
+    //intuitively it would just be the 2nd derivative of the position function and nothing else
+    //if you know why please let me know
+    return (
             d2_basis00 * segment.p0 +
             d2_basis10 * segment.m0 +
 
             d2_basis11 * segment.m1 +
-            d2_basis01 * segment.p1;
+            d2_basis01 * segment.p1
+            ) * segment.tDistanceInverse * segment.tDistanceInverse;
 }
 
 #endif // CUBICHERMITESPLINE_H
