@@ -22,6 +22,8 @@
 #include "spline_library/quintic_hermite/looping_quintic_cr_spline.h"
 #include "spline_library/cubic_hermite/cr_spline.h"
 #include "spline_library/cubic_hermite/looping_cr_spline.h"
+#include "spline_library/b_spline/cubic_b_spline.h"
+#include "spline_library/b_spline/looping_cubic_b_spline.h"
 #include "spline_library/splineinverter.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -167,7 +169,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
 			//redraw to highlight this new closest T
 			DisplayData d;
-			d.numSegments = settingsWidget->getOption("misc_segmentsPerPoint").toInt() * 5;
+            d.showConnectingLines = settingsWidget->getOption("misc_showConnectingLines").toBool();
 			d.draggedObject = draggedObject;
 			d.selectedObject = selectedObject;
 
@@ -190,7 +192,7 @@ void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
 {
     QString splineType = settingsWidget->getOption("main_splineType").toString();
-    bool isLooping = settingsWidget->getOption("cubicHermite_isLooping").toBool();
+    bool isLooping = settingsWidget->getOption("splineType_isLooping").toBool();
 
     if(splineType == "Cubic Catmull-Rom Spline")
     {
@@ -199,30 +201,33 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
 
         if(isLooping)
         {
-            spline = std::shared_ptr<Spline>(
-                new LoopingCRSpline(pointList, alpha)
-                );
+            spline = std::shared_ptr<Spline>(new LoopingCRSpline(pointList, alpha));
         }
         else
         {
-            spline = std::shared_ptr<Spline>(
-                new CRSpline(pointList, alpha)
-                );
+            spline = std::shared_ptr<Spline>(new CRSpline(pointList, alpha));
+        }
+    }
+    else if(splineType == "Cubic B-Spline")
+    {
+        if(isLooping)
+        {
+            spline = std::shared_ptr<Spline>(new LoopingCubicBSpline(pointList));
+        }
+        else
+        {
+            spline = std::shared_ptr<Spline>(new CubicBSpline(pointList));
         }
     }
     else
     {
         if(isLooping)
         {
-            spline = std::shared_ptr<Spline>(
-                new LoopingQuinticCRSpline(pointList)
-                );
+            spline = std::shared_ptr<Spline>(new LoopingQuinticCRSpline(pointList));
         }
         else
         {
-            spline = std::shared_ptr<Spline>(
-                new QuinticCRSpline(pointList)
-                );
+            spline = std::shared_ptr<Spline>(new QuinticCRSpline(pointList));
         }
     }
 
@@ -231,7 +236,7 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
 	graphicsController->setSpline(spline);
 
 	DisplayData d;
-	d.numSegments = settingsWidget->getOption("misc_segmentsPerPoint").toInt() * 5;
+    d.showConnectingLines = settingsWidget->getOption("misc_showConnectingLines").toBool();
 	d.draggedObject = draggedObject;
 	d.selectedObject = selectedObject;
 	d.imagePath = settingsWidget->getOption("misc_backgroundImagePath").toString();

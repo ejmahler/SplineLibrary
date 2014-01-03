@@ -11,7 +11,7 @@ class Spline;
 
 struct DisplayData
 {
-	int numSegments;
+    bool showConnectingLines;
 	int selectedObject;
 	int draggedObject;
 	bool highlightT;
@@ -19,7 +19,7 @@ struct DisplayData
 	QString imagePath;
 
 	DisplayData(void)
-        :numSegments(0), selectedObject(0), draggedObject(-1), highlightT(false), highlightedT(0),
+        :showConnectingLines(false), selectedObject(0), draggedObject(-1), highlightT(false), highlightedT(0),
          imagePath()
 	{}
 };

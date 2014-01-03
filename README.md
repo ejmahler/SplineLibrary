@@ -24,6 +24,10 @@ Features
     * 1 for a chordal catmull-rom spline
     * Any number is allowed, not just these three. The demo allows you to set this freely, so feel free to experiment. For most use cases you will want either standard or centripetal.
 * More spline types
+    * Cubic B-Splines
+        * Import `spline_library/b_spline/cubic_b_spline.h` and create a `CubicBSpline` object
+        * Just like the catmull-rom spline, provide just a list of points
+        * Unlike the catmull-rom spline, the interpolated B-Spline does not necessarily travel though the specified points.
     * Raw cubic hermite splines
         * Import `spline_library/cubic_hermite/cubic_hermite_spline.h` and create a `CubicHermiteSpline` object
         * In addition to a list of points, provide a corresponding list of tangents

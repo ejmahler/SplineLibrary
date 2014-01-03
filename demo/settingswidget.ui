@@ -91,6 +91,11 @@
               <string>Quintic Catmull-Rom Spline</string>
              </property>
             </item>
+            <item>
+             <property name="text">
+              <string>Cubic B-Spline</string>
+             </property>
+            </item>
            </widget>
           </item>
          </layout>
@@ -218,7 +223,7 @@
      </widget>
      <widget class="QWidget" name="performance_tab">
       <attribute name="title">
-       <string>Other</string>
+       <string>Display</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <property name="spacing">
@@ -255,32 +260,23 @@
              <enum>QFrame::Raised</enum>
             </property>
             <layout class="QFormLayout" name="formLayout_4">
+             <property name="fieldGrowthPolicy">
+              <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+             </property>
              <item row="0" column="0">
-              <widget class="QLabel" name="label_15">
+              <widget class="QLabel" name="label_7">
                <property name="text">
-                <string>Segments Per Point </string>
+                <string>Show Connecting Lines</string>
                </property>
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QSlider" name="misc_segmentsPerPoint">
-               <property name="minimum">
-                <number>1</number>
+              <widget class="QCheckBox" name="misc_showConnectingLines">
+               <property name="text">
+                <string/>
                </property>
-               <property name="maximum">
-                <number>10</number>
-               </property>
-               <property name="value">
-                <number>1</number>
-               </property>
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="tickPosition">
-                <enum>QSlider::TicksBelow</enum>
-               </property>
-               <property name="tickInterval">
-                <number>1</number>
+               <property name="checked">
+                <bool>true</bool>
                </property>
               </widget>
              </item>

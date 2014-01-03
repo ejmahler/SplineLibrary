@@ -79,6 +79,29 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	{
 		painter.drawImage(0,0,*backgroundImage);
     }
+
+    //draw straight lines connecting each control point
+    std::vector<Vector3D> points = spline->getPoints();
+    painter.setPen(qRgb(32,32,32));
+
+    if(displayData.showConnectingLines)
+    {
+        for(int i = 0; i < points.size() - 1; i++)
+        {
+            painter.drawLine(
+                        QPointF(points.at(i).x(),points.at(i).y()),
+                        QPointF(points.at(i + 1).x(),points.at(i + 1).y())
+                        );
+        }
+
+        if(spline->isLooping())
+        {
+            painter.drawLine(
+                        QPointF(points.at(0).x(),points.at(0).y()),
+                        QPointF(points.at(points.size() - 1).x(),points.at(points.size() - 1).y())
+                        );
+        }
+    }
 	
     //draw the spline
     double stepSize = 0.01;
@@ -100,8 +123,6 @@ void GraphicsController::paintEvent(QPaintEvent *event)
         currentStep += stepSize;
         previousPoint = currentData;
     }
-
-    std::vector<Vector3D> points = spline->getPoints();
 
     //draw control points on top of line
     for(int i = 0; i < points.size(); i++)
