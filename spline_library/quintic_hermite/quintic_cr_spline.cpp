@@ -4,18 +4,11 @@
 #include <cmath>
 #include <cassert>
 
-QuinticCRSpline::QuinticCRSpline(const std::vector<Vector3D> &points)
+QuinticCRSpline::QuinticCRSpline(const std::vector<Vector3D> &points, double alpha)
 {
     assert(points.size() >= 6);
 
     this->points = points;
-
-	//i would love to be able to support changing alphas for quintic catmull rom splines!
-	//but there's no literature whatsoever on how to choose tangents when t values are unevenly spaced
-	//if you know how to do it, let me know or make a pull request :D
-	//until then we're just going to hardcode alpha to 0 and make sure nothing in the code
-    //besides tangent selection assumes t values are evenly spaced
-    double alpha = 0;
 
     std::unordered_map<int, double> indexToT_Raw;
     std::unordered_map<int, Vector3D> pointMap;
@@ -67,27 +60,45 @@ QuinticCRSpline::QuinticCRSpline(const std::vector<Vector3D> &points)
     for(int i = firstTangent; i < lastTangent; i++)
     {
         double tPrev = indexToT.at(i - 1);
+        double tCurrent = indexToT.at(i);
         double tNext = indexToT.at(i + 1);
 
         Vector3D pPrev = pointMap.at(i - 1);
+        Vector3D pCurrent = pointMap.at(i);
         Vector3D pNext = pointMap.at(i + 1);
 
         //the tangent is the standard catmull-rom spline tangent calculation
-        tangentMap[i] = (pNext - pPrev) / (tNext - tPrev);
+        tangentMap[i] =
+                  pPrev * (tCurrent - tNext) / ((tNext - tPrev) * (tCurrent - tPrev))
+                + pNext * (tCurrent - tPrev) / ((tNext - tPrev) * (tNext - tCurrent))
+
+             //plus a little something extra - this is derived from the pyramid contruction
+             //when the t values are evenly spaced (ie when alpha is 0), this whole line collapses to 0,
+             //yielding the standard catmull-rom formula
+                - pCurrent * ((tCurrent - tPrev) - (tNext - tCurrent)) / ((tNext - tCurrent) * (tCurrent - tPrev));
     }
 
     //compute the curvatures
-    std::map<int, Vector3D> curves;
+    std::map<int, Vector3D> curveMap;
     for(int i = firstCurvature; i < lastCurvature; i++)
     {
         double tPrev = indexToT.at(i - 1);
+        double tCurrent = indexToT.at(i);
         double tNext = indexToT.at(i + 1);
 
-        Vector3D tangentPrev = tangentMap.at(i - 1);
-        Vector3D tangentNext = tangentMap.at(i + 1);
+        Vector3D pPrev = tangentMap.at(i - 1);
+        Vector3D pCurrent = tangentMap.at(i);
+        Vector3D pNext = tangentMap.at(i + 1);
 
-        //the curve uses the same formula as the tangent
-        curves[i] = (tangentNext - tangentPrev) / (tNext - tPrev);
+        //the tangent is the standard catmull-rom spline tangent calculation
+        curveMap[i] =
+                  pPrev * (tCurrent - tNext) / ((tNext - tPrev) * (tCurrent - tPrev))
+                + pNext * (tCurrent - tPrev) / ((tNext - tPrev) * (tNext - tCurrent))
+
+             //plus a little something extra - this is derived from the pyramid contruction
+             //when the t values are evenly spaced (ie when alpha is 0), this whole line collapses to 0,
+             //yielding the standard catmull-rom formula
+                - pCurrent * ((tCurrent - tPrev) - (tNext - tCurrent)) / ((tNext - tCurrent) * (tCurrent - tPrev));
 	}
 
 
@@ -111,8 +122,8 @@ QuinticCRSpline::QuinticCRSpline(const std::vector<Vector3D> &points)
         segment.m1 = tangentMap.at(i + 1) * tDistance;
 
         //we scale the tangents by this segment's t distance, because wikipedia says so
-        segment.c0 = curves.at(i) * tDistance;
-        segment.c1 = curves.at(i + 1) * tDistance * tDistance * tDistance;
+        segment.c0 = curveMap.at(i) * tDistance * tDistance;
+        segment.c1 = curveMap.at(i + 1) * tDistance * tDistance;
 
         segmentData.push_back(segment);
     }

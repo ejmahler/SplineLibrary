@@ -57,11 +57,8 @@ protected:
     std::unordered_map<int,double> indexToT;
 };
 
-struct QuinticHermiteSpline::InterpolationData {
-    //t values
-    double t0;
-    double t1;
-
+struct QuinticHermiteSpline::InterpolationData
+{
     //points
     Vector3D p0;
     Vector3D p1;
@@ -73,6 +70,10 @@ struct QuinticHermiteSpline::InterpolationData {
     //curvatures
     Vector3D c0;
     Vector3D c1;
+
+    //t values
+    double t0;
+    double t1;
 
     //reciprocal of distance in T between p0 and p1
     double tDistanceInverse;
@@ -124,13 +125,14 @@ inline Vector3D QuinticHermiteSpline::computeTangent(double t, const Interpolati
 	double basis11 = -t * t * (3 * t - 2) * (5 * t - 6);
     double basis01 = 30 * oneMinusT * oneMinusT * t * t;
     
-    return 
+    return (
 		basis00 * segment.p0 + 
 		basis10 * segment.m0 + 
 		basis20 * segment.c0 +
 		basis21 * segment.c1 + 
 		basis11 * segment.m1 +
-		basis01 * segment.p1;
+        basis01 * segment.p1
+            ) * segment.tDistanceInverse;
 }
 
 inline Vector3D QuinticHermiteSpline::computeCurvature(double t, const InterpolationData &segment) const
@@ -149,13 +151,14 @@ inline Vector3D QuinticHermiteSpline::computeCurvature(double t, const Interpola
 	double basis11 = 12 * oneMinusT * t * (5 * t - 2);
     double basis01 = -60 * oneMinusT * t * (2 * t - 1);
     
-    return 
-		basis00 * segment.p0 + 
-		basis10 * segment.m0 + 
-		basis20 * segment.c0 +
-		basis21 * segment.c1 + 
-		basis11 * segment.m1 +
-		basis01 * segment.p1;
+    return (
+        basis00 * segment.p0 +
+        basis10 * segment.m0 +
+        basis20 * segment.c0 +
+        basis21 * segment.c1 +
+        basis11 * segment.m1 +
+        basis01 * segment.p1
+            ) * (segment.tDistanceInverse * segment.tDistanceInverse);
 }
 
 #endif // QUINTICHERMITESPLINE_H

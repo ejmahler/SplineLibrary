@@ -55,7 +55,8 @@ protected:
     std::unordered_map<int,double> indexToT;
 };
 
-struct CubicHermiteSpline::InterpolationData {
+struct CubicHermiteSpline::InterpolationData
+{
     //points
     Vector3D p0;
     Vector3D p1;
@@ -136,7 +137,7 @@ inline Vector3D CubicHermiteSpline::computeCurvature(double t, const Interpolati
 
             d2_basis11 * segment.m1 +
             d2_basis01 * segment.p1
-            ) * segment.tDistanceInverse * segment.tDistanceInverse;
+            ) * (segment.tDistanceInverse * segment.tDistanceInverse);
 }
 
 #endif // CUBICHERMITESPLINE_H

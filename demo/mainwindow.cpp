@@ -193,12 +193,10 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
 {
     QString splineType = settingsWidget->getOption("main_splineType").toString();
     bool isLooping = settingsWidget->getOption("splineType_isLooping").toBool();
+    double alpha = settingsWidget->getOption("cubicHermite_alpha").toDouble() / 10;
 
     if(splineType == "Cubic Catmull-Rom Spline")
     {
-        //rebuild the spline
-        float alpha = settingsWidget->getOption("cubicHermite_alpha").toFloat() / 10;
-
         if(isLooping)
         {
             spline = std::shared_ptr<Spline>(new LoopingCRSpline(pointList, alpha));
@@ -223,11 +221,11 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
     {
         if(isLooping)
         {
-            spline = std::shared_ptr<Spline>(new LoopingQuinticCRSpline(pointList));
+            spline = std::shared_ptr<Spline>(new LoopingQuinticCRSpline(pointList, alpha));
         }
         else
         {
-            spline = std::shared_ptr<Spline>(new QuinticCRSpline(pointList));
+            spline = std::shared_ptr<Spline>(new QuinticCRSpline(pointList, alpha));
         }
     }
 
