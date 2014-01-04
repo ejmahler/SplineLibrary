@@ -111,7 +111,7 @@ QuinticHermiteSpline::QuinticHermiteSpline(
     }
 }
 
-inline int QuinticHermiteSpline::getSegmentIndex(double x) const
+int QuinticHermiteSpline::getSegmentIndex(double x) const
 {
     //we want to find the segment whos t0 and t1 values bound x
 
