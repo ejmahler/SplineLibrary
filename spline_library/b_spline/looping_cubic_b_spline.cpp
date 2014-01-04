@@ -79,7 +79,7 @@ Vector3D LoopingCubicBSpline::getPosition(double x) const
     return computePosition(t, segment);
 }
 
-InterpolatedPT LoopingCubicBSpline::getTangent(double x) const
+Spline::InterpolatedPT LoopingCubicBSpline::getTangent(double x) const
 {
     //use modular arithmetic to bring x into an acceptable range
     x = fmod(x, numSegments);
@@ -95,7 +95,7 @@ InterpolatedPT LoopingCubicBSpline::getTangent(double x) const
                 );
 }
 
-InterpolatedPTC LoopingCubicBSpline::getCurvature(double x) const
+Spline::InterpolatedPTC LoopingCubicBSpline::getCurvature(double x) const
 {
     //use modular arithmetic to bring x into an acceptable range
     x = fmod(x, numSegments);
@@ -109,6 +109,24 @@ InterpolatedPTC LoopingCubicBSpline::getCurvature(double x) const
                 computePosition(t, segment),
                 computeTangent(t, segment),
                 computeCurvature(t, segment)
+                );
+}
+
+Spline::InterpolatedPTCW LoopingCubicBSpline::getWiggle(double x) const
+{
+    //use modular arithmetic to bring x into an acceptable range
+    x = fmod(x, numSegments);
+    if(x < 0)
+        x += numSegments;
+
+    InterpolationData segment = segmentData.at(getSegmentIndex(x));
+    double t = x - segment.t1;
+
+    return InterpolatedPTCW(
+                computePosition(t, segment),
+                computeTangent(t, segment),
+                computeCurvature(t, segment),
+                computeWiggle(t, segment)
                 );
 }
 

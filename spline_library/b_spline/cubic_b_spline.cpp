@@ -84,7 +84,7 @@ Vector3D CubicBSpline::getPosition(double x) const
     return computePosition(t, segment);
 }
 
-InterpolatedPT CubicBSpline::getTangent(double x) const
+Spline::InterpolatedPT CubicBSpline::getTangent(double x) const
 {
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
     double t = x - segment.t1;
@@ -95,7 +95,7 @@ InterpolatedPT CubicBSpline::getTangent(double x) const
                 );
 }
 
-InterpolatedPTC CubicBSpline::getCurvature(double x) const
+Spline::InterpolatedPTC CubicBSpline::getCurvature(double x) const
 {
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
     double t = x - segment.t1;
@@ -104,6 +104,19 @@ InterpolatedPTC CubicBSpline::getCurvature(double x) const
                 computePosition(t, segment),
                 computeTangent(t, segment),
                 computeCurvature(t, segment)
+                );
+}
+
+Spline::InterpolatedPTCW CubicBSpline::getWiggle(double x) const
+{
+    InterpolationData segment = segmentData.at(getSegmentIndex(x));
+    double t = x - segment.t1;
+
+    return InterpolatedPTCW(
+                computePosition(t, segment),
+                computeTangent(t, segment),
+                computeCurvature(t, segment),
+                computeWiggle(t, segment)
                 );
 }
 

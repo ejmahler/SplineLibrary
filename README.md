@@ -11,9 +11,10 @@ Features
 * Compute the inverse of a spline
     * Given a data point (not necessarily on the spline, or even close to it), what T value brings the spline closest to that data point?
     * Create a SplineInverter object and call either its findClosestFast or findClosestPrecise method
-* Interpolation of the first and second derivatives of the spline
+* Interpolation of the first, second, and third derivatives of the spline
     * The first derivative is called the "tangent" - this is how quickly and in what direction the interpolated position is changing, per T
     * The second derivative is called the "curvature" - this is how quickly and in what direction the interpolated tangent is changing, per T
+    * The third derivative is called the "wiggle" - this is how quickly and in what direction the interpolated curvature is changing, per T
 * Looping Splines
     * To make a looping catmull-rom spline, include `spline_library/cubic_hermite/looping_cr_spline.h` and create a `LoopingCRSpline` object instead.
     * Every spline type has both looping and non-looping variants
@@ -34,7 +35,7 @@ Features
         * `CRSpline` is a subclass of `CubicHermiteSpline` which automatically computes the tangent list based on the points
     * Quintic catmull-rom splines
         * Quintic version of the catmull-rom spline
-        * Useful if you need the 2nd derivative to be smooth and continuous
+        * Useful if you need the 2nd or 3rd derivatives to be smooth and continuous
         * Import `spline_library/quintic_hermite/quintic_cr_spline.h` and create a `QuinticCRSpline` object
     * Raw quintic hermite splines
         * Import `spline_library/quintic_hermite/quintic_hermite_spline.h` and create a `QuinticHermiteSpline` object

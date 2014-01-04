@@ -21,6 +21,7 @@ protected:
     virtual Vector3D getPosition(double x) const;
     virtual InterpolatedPT getTangent(double x) const;
     virtual InterpolatedPTC getCurvature(double x) const;
+    virtual InterpolatedPTCW getWiggle(double x) const;
 
     virtual bool isLooping(void) const;
 };

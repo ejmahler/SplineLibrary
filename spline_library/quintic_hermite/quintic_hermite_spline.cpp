@@ -155,7 +155,7 @@ Vector3D QuinticHermiteSpline::getPosition(double x) const
     return computePosition(t, segment);
 }
 
-InterpolatedPT QuinticHermiteSpline::getTangent(double x) const
+Spline::InterpolatedPT QuinticHermiteSpline::getTangent(double x) const
 {
     //find the interpolation data for this t value
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
@@ -167,7 +167,7 @@ InterpolatedPT QuinticHermiteSpline::getTangent(double x) const
         );
 }
 
-InterpolatedPTC QuinticHermiteSpline::getCurvature(double x) const
+Spline::InterpolatedPTC QuinticHermiteSpline::getCurvature(double x) const
 {
     //find the interpolation data for this t value
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
@@ -178,6 +178,19 @@ InterpolatedPTC QuinticHermiteSpline::getCurvature(double x) const
         computeTangent(t, segment),
         computeCurvature(t, segment)
         );
+}
+
+Spline::InterpolatedPTCW QuinticHermiteSpline::getWiggle(double x) const
+{
+    InterpolationData segment = segmentData.at(getSegmentIndex(x));
+    double t = (x - segment.t0) * segment.tDistanceInverse;
+
+    return InterpolatedPTCW(
+                computePosition(t, segment),
+                computeTangent(t, segment),
+                computeCurvature(t, segment),
+                computeWiggle(t, segment)
+                );
 }
 
 double QuinticHermiteSpline::getT(int index) const

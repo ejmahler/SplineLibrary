@@ -22,6 +22,7 @@ public:
     virtual Vector3D getPosition(double x) const;
     virtual InterpolatedPT getTangent(double x) const;
     virtual InterpolatedPTC getCurvature(double x) const;
+    virtual InterpolatedPTCW getWiggle(double x) const;
 
     virtual double getT(int index) const;
     virtual double getMaxT(void) const;
@@ -36,7 +37,8 @@ protected:
 
     inline Vector3D computePosition(double t, const InterpolationData &segment) const;
 	inline Vector3D computeTangent(double t, const InterpolationData &segment) const;
-	inline Vector3D computeCurvature(double t, const InterpolationData &segment) const;
+    inline Vector3D computeCurvature(double t, const InterpolationData &segment) const;
+    inline Vector3D computeWiggle(double t, const InterpolationData &segment) const;
 
 	int getSegmentIndex(double x) const;
 
@@ -137,20 +139,20 @@ inline Vector3D QuinticHermiteSpline::computeTangent(double t, const Interpolati
 
 inline Vector3D QuinticHermiteSpline::computeCurvature(double t, const InterpolationData &segment) const
 {
-	//interpolate the second derivative of the given segment at t
+    //interpolate the second derivative of the given segment at t
 
-	double oneMinusT = 1 - t;
+    double oneMinusT = 1 - t;
 
-	//we're essentially computing the second derivative of the computePosition function with respect to t
-	//we can do this by computing the second derivatives of each of its basis functions.
-	//thankfully this can easily be done analytically since they're polynomials!
+    //we're essentially computing the second derivative of the computePosition function with respect to t
+    //we can do this by computing the second derivatives of each of its basis functions.
+    //thankfully this can easily be done analytically since they're polynomials!
     double basis00 = 60 * oneMinusT * t * (2 * t - 1);
     double basis10 = 12 * oneMinusT * t * (5 * t - 3);
-	double basis20 = t * (t * (-10 * t + 18) - 9) + 1;
-	double basis21 = t * (t * (10 * t - 12) + 3);
-	double basis11 = 12 * oneMinusT * t * (5 * t - 2);
+    double basis20 = t * (t * (-10 * t + 18) - 9) + 1;
+    double basis21 = t * (t * (10 * t - 12) + 3);
+    double basis11 = 12 * oneMinusT * t * (5 * t - 2);
     double basis01 = -60 * oneMinusT * t * (2 * t - 1);
-    
+
     return (
         basis00 * segment.p0 +
         basis10 * segment.m0 +
@@ -159,6 +161,26 @@ inline Vector3D QuinticHermiteSpline::computeCurvature(double t, const Interpola
         basis11 * segment.m1 +
         basis01 * segment.p1
             ) * (segment.tDistanceInverse * segment.tDistanceInverse);
+}
+
+inline Vector3D QuinticHermiteSpline::computeWiggle(double t, const InterpolationData &segment) const
+{
+    //we're essentially computing the third derivative of the computePosition function with respect to t
+    double basis00 = -60 * (6 * t * (t - 1) + 1);
+    double basis10 = -12 * (t * (15 * t - 16) + 3);
+    double basis20 = t * (36 - 30 * t) - 9;
+    double basis21 = t * (30 * t - 24) + 3;
+    double basis11 = -12 * (t * (15 * t - 14) + 2);
+    double basis01 = -basis00;
+
+    return (
+        basis00 * segment.p0 +
+        basis10 * segment.m0 +
+        basis20 * segment.c0 +
+        basis21 * segment.c1 +
+        basis11 * segment.m1 +
+        basis01 * segment.p1
+            ) * (segment.tDistanceInverse * segment.tDistanceInverse * segment.tDistanceInverse);
 }
 
 #endif // QUINTICHERMITESPLINE_H

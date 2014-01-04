@@ -75,7 +75,7 @@ Vector3D LoopingCubicHermiteSpline::getPosition(double x) const
     return computePosition(t, segment);
 }
 
-InterpolatedPT LoopingCubicHermiteSpline::getTangent(double x) const
+Spline::InterpolatedPT LoopingCubicHermiteSpline::getTangent(double x) const
 {
     //use modular arithmetic to bring x into an acceptable range
     x = fmod(x, numSegments);
@@ -92,7 +92,7 @@ InterpolatedPT LoopingCubicHermiteSpline::getTangent(double x) const
         );
 }
 
-InterpolatedPTC LoopingCubicHermiteSpline::getCurvature(double x) const
+Spline::InterpolatedPTC LoopingCubicHermiteSpline::getCurvature(double x) const
 {
     //use modular arithmetic to bring x into an acceptable range
     x = fmod(x, numSegments);
@@ -108,6 +108,24 @@ InterpolatedPTC LoopingCubicHermiteSpline::getCurvature(double x) const
         computeTangent(t, segment),
         computeCurvature(t, segment)
         );
+}
+
+Spline::InterpolatedPTCW LoopingCubicHermiteSpline::getWiggle(double x) const
+{
+    //use modular arithmetic to bring x into an acceptable range
+    x = fmod(x, numSegments);
+    if(x < 0)
+        x += numSegments;
+
+    InterpolationData segment = segmentData.at(getSegmentIndex(x));
+    double t = (x - segment.t0) * segment.tDistanceInverse;
+
+    return InterpolatedPTCW(
+                computePosition(t, segment),
+                computeTangent(t, segment),
+                computeCurvature(t, segment),
+                computeWiggle(t, segment)
+                );
 }
 
 bool LoopingCubicHermiteSpline::isLooping(void) const

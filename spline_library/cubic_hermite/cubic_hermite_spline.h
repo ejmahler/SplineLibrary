@@ -19,6 +19,7 @@ public:
     virtual Vector3D getPosition(double x) const;
     virtual InterpolatedPT getTangent(double x) const;
     virtual InterpolatedPTC getCurvature(double x) const;
+    virtual InterpolatedPTCW getWiggle(double x) const;
 
     virtual double getT(int index) const;
     virtual double getMaxT(void) const;
@@ -35,6 +36,7 @@ protected:
     inline Vector3D computePosition(double t, const InterpolationData &segment) const;
     inline Vector3D computeTangent(double t, const InterpolationData &segment) const;
     inline Vector3D computeCurvature(double t, const InterpolationData &segment) const;
+    inline Vector3D computeWiggle(double t, const InterpolationData &segment) const;
 
     int getSegmentIndex(double x) const;
 
@@ -138,6 +140,28 @@ inline Vector3D CubicHermiteSpline::computeCurvature(double t, const Interpolati
             d2_basis11 * segment.m1 +
             d2_basis01 * segment.p1
             ) * (segment.tDistanceInverse * segment.tDistanceInverse);
+}
+
+inline Vector3D CubicHermiteSpline::computeWiggle(double t, const InterpolationData &segment) const
+{
+    //calculate the 3rd derivative of the spline at t.
+    //ie just compute the second derivatives of all the basis functions
+    double d3_basis00 = 12;
+    double d3_basis10 = 6;
+
+    double d3_basis11 = 6;
+    double d3_basis01 = -12;
+
+    //tests and such have shown that we have to scale this by the inverse of the t distance, and i'm not sure why
+    //intuitively it would just be the 2nd derivative of the position function and nothing else
+    //if you know why please let me know
+    return (
+            d3_basis00 * segment.p0 +
+            d3_basis10 * segment.m0 +
+
+            d3_basis11 * segment.m1 +
+            d3_basis01 * segment.p1
+            ) * (segment.tDistanceInverse * segment.tDistanceInverse * segment.tDistanceInverse);
 }
 
 #endif // CUBICHERMITESPLINE_H

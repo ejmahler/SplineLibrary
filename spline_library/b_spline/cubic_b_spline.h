@@ -19,6 +19,7 @@ public:
     virtual Vector3D getPosition(double x) const;
     virtual InterpolatedPT getTangent(double x) const;
     virtual InterpolatedPTC getCurvature(double x) const;
+    virtual InterpolatedPTCW getWiggle(double x) const;
 
     virtual double getT(int index) const;
     virtual double getMaxT(void) const;
@@ -35,6 +36,7 @@ protected:
     inline Vector3D computePosition(double t, const InterpolationData &segment) const;
     inline Vector3D computeTangent(double t, const InterpolationData &segment) const;
     inline Vector3D computeCurvature(double t, const InterpolationData &segment) const;
+    inline Vector3D computeWiggle(double t, const InterpolationData &segment) const;
 
     int getSegmentIndex(double x) const;
 
@@ -91,6 +93,11 @@ inline Vector3D CubicBSpline::computeCurvature(double t, const InterpolationData
                 segment.p2 * (1 - 3 * t) +
                 segment.p3 * (t)
             );
+}
+
+inline Vector3D CubicBSpline::computeWiggle(double t, const InterpolationData &segment) const
+{
+    return 3 * (segment.p1 - segment.p2) + (segment.p3 - segment.p0);
 }
 
 #endif // B_SPLINE_H

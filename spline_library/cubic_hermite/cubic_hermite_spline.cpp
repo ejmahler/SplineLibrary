@@ -71,7 +71,7 @@ Vector3D CubicHermiteSpline::getPosition(double x) const
     return computePosition(t, segment);
 }
 
-InterpolatedPT CubicHermiteSpline::getTangent(double x) const
+Spline::InterpolatedPT CubicHermiteSpline::getTangent(double x) const
 {
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
     double t = (x - segment.t0) * segment.tDistanceInverse;
@@ -82,7 +82,7 @@ InterpolatedPT CubicHermiteSpline::getTangent(double x) const
                 );
 }
 
-InterpolatedPTC CubicHermiteSpline::getCurvature(double x) const
+Spline::InterpolatedPTC CubicHermiteSpline::getCurvature(double x) const
 {
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
     double t = (x - segment.t0) * segment.tDistanceInverse;
@@ -91,6 +91,20 @@ InterpolatedPTC CubicHermiteSpline::getCurvature(double x) const
                 computePosition(t, segment),
                 computeTangent(t, segment),
                 computeCurvature(t, segment)
+                );
+}
+
+Spline::InterpolatedPTCW CubicHermiteSpline::getWiggle(double x) const
+{
+    int index = getSegmentIndex(x);
+    InterpolationData segment = segmentData.at(index);
+    double t = (x - segment.t0) * segment.tDistanceInverse;
+
+    return InterpolatedPTCW(
+                computePosition(t, segment),
+                computeTangent(t, segment),
+                computeCurvature(t, segment),
+                computeWiggle(t, segment)
                 );
 }
 
