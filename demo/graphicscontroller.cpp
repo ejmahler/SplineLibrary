@@ -124,34 +124,6 @@ void GraphicsController::paintEvent(QPaintEvent *event)
         previousPoint = currentData;
     }
 
-    stepSize = 0.1;
-    currentStep = stepSize;
-    limit = spline->getMaxT();
-
-    painter.setPen(Qt::yellow);
-
-    double dt = .0001;
-
-    while(currentStep < limit)
-    {
-        auto currentData = spline->getWiggle(currentStep);
-
-        auto beforeData = spline->getCurvature(currentStep - dt);
-        auto afterData = spline->getCurvature(currentStep + dt);
-
-        Vector3D numericWiggle = (afterData.curvature - beforeData.curvature) / (2 * dt);
-        Vector3D diff = currentData.wiggle - numericWiggle;
-
-        Vector3D otherPoint = currentData.position + diff * 0.01;
-
-        painter.drawLine(
-            QPointF(otherPoint.x(),otherPoint.y()),
-            QPointF(currentData.position.x(),currentData.position.y())
-            );
-
-        currentStep += stepSize;
-    }
-
     //draw control points on top of line
     for(int i = 0; i < points.size(); i++)
 	{
