@@ -19,8 +19,12 @@ Features
     * The first derivative is called the "tangent" - this is how quickly and in what direction the interpolated position is changing, per T
     * The second derivative is called the "curvature" - this is how quickly and in what direction the interpolated tangent is changing, per T
     * The third derivative is called the "wiggle" - this is how quickly and in what direction the interpolated curvature is changing, per T
+    
 
-
+Documentation
+-------------
+[Spline class API](docs/SplineAPI.md) - API documentation of the `Spline` base class.
+[Spline Types](docs/SplineTypes.md) - complete list of all supported spline formulas
 
 Project Layout
 -------------
