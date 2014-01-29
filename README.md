@@ -24,6 +24,7 @@ Features
 Documentation
 -------------
 [Spline class API](docs/SplineAPI.md) - API documentation of the `Spline` base class.
+
 [Spline Types](docs/SplineTypes.md) - complete list of all supported spline formulas
 
 Project Layout
