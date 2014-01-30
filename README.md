@@ -8,6 +8,10 @@ Features
 -------------
 * Interpolation of standard catmull-rom splines
     * Include `spline_library/cubic_hermite/cr_spline.h`, create a `CRSpline` object, and call its `getPosition` method.
+    * Several more spline types. See [Spline Types](docs/SplineTypes.md) for the full list
+* Looping Splines
+    * To make a looping catmull-rom spline, include `spline_library/cubic_hermite/looping_cr_spline.h` and create a `LoopingCRSpline` object instead.
+    * Every spline type has both looping and non-looping variants
 * Compute the inverse of a spline
     * Given a data point (not necessarily on the spline, or even close to it), what T value brings the spline closest to that data point?
     * Create a SplineInverter object and call either its findClosestFast or findClosestPrecise method
@@ -15,34 +19,13 @@ Features
     * The first derivative is called the "tangent" - this is how quickly and in what direction the interpolated position is changing, per T
     * The second derivative is called the "curvature" - this is how quickly and in what direction the interpolated tangent is changing, per T
     * The third derivative is called the "wiggle" - this is how quickly and in what direction the interpolated curvature is changing, per T
-* Looping Splines
-    * To make a looping catmull-rom spline, include `spline_library/cubic_hermite/looping_cr_spline.h` and create a `LoopingCRSpline` object instead.
-    * Every spline type has both looping and non-looping variants
-* Centripetal catmull-rom splines
-    * Set the "alpha" parameter in the constructor of CRSpline
-    * 0 for a standard catmull-rom spline (default)
-    * 0.5 for a centripetal catmull-rom spline
-    * 1 for a chordal catmull-rom spline
-    * Any number is allowed, not just these three. The demo allows you to set this freely, so feel free to experiment. For most use cases you will want either standard or centripetal.
-* More spline types
-    * Cubic B-Splines
-        * Import `spline_library/b_spline/cubic_b_spline.h` and create a `CubicBSpline` object
-        * Just like the catmull-rom spline, provide just a list of points
-        * Unlike the catmull-rom spline, the interpolated B-Spline does not necessarily travel though the specified points.
-    * Raw cubic hermite splines
-        * Import `spline_library/cubic_hermite/cubic_hermite_spline.h` and create a `CubicHermiteSpline` object
-        * In addition to a list of points, provide a corresponding list of tangents
-        * `CRSpline` is a subclass of `CubicHermiteSpline` which automatically computes the tangent list based on the points
-    * Quintic catmull-rom splines
-        * Quintic version of the catmull-rom spline
-        * Useful if you need the 2nd or 3rd derivatives to be smooth and continuous
-        * Import `spline_library/quintic_hermite/quintic_cr_spline.h` and create a `QuinticCRSpline` object
-    * Raw quintic hermite splines
-        * Import `spline_library/quintic_hermite/quintic_hermite_spline.h` and create a `QuinticHermiteSpline` object
-        * In addition to a list of points, provide a corresponding list of tangents and a corresponding list of curvatures
-        * `QuinticCRSpline` is a subclass of `QuinticHermiteSpline` which automatically computes the tangent list and curvature list based on the points
+    
 
+Documentation
+-------------
+[Spline class API](docs/SplineAPI.md) - API documentation of the `Spline` base class.
 
+[Spline Types](docs/SplineTypes.md) - complete list of all supported spline formulas
 
 Project Layout
 -------------
