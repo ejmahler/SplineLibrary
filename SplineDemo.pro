@@ -6,6 +6,7 @@ TARGET = SplineDemo
 TEMPLATE = app
 
 CONFIG += c++11
+#LIBS += "/usr/lib/libarmadillo.so"
 
 SOURCES += \
     demo/settingswidget.cpp \
@@ -25,7 +26,11 @@ SOURCES += \
     spline_library/quintic_hermite/looping_quintic_hermite_spline.cpp \
     spline_library/quintic_hermite/looping_quintic_cr_spline.cpp \
     spline_library/b_spline/cubic_b_spline.cpp \
-    spline_library/b_spline/looping_cubic_b_spline.cpp
+    spline_library/b_spline/looping_cubic_b_spline.cpp \
+    spline_library/natural_spline/natural_spline.cpp \
+    spline_library/utils/linearsolver.cpp \
+    spline_library/natural_spline/looping_natural_spline.cpp \
+    spline_library/utils/t_calculator.cpp
 
 HEADERS  += \
     demo/settingswidget.h \
@@ -44,7 +49,11 @@ HEADERS  += \
     spline_library/quintic_hermite/looping_quintic_hermite_spline.h \
     spline_library/quintic_hermite/looping_quintic_cr_spline.h \
     spline_library/b_spline/cubic_b_spline.h \
-    spline_library/b_spline/looping_cubic_b_spline.h
+    spline_library/b_spline/looping_cubic_b_spline.h \
+    spline_library/natural_spline/natural_spline.h \
+    spline_library/utils/linearsolver.h \
+    spline_library/natural_spline/looping_natural_spline.h \
+    spline_library/utils/t_calculator.h
 
 FORMS    += \
     demo/settingswidget.ui \

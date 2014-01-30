@@ -24,6 +24,8 @@
 #include "spline_library/cubic_hermite/looping_cr_spline.h"
 #include "spline_library/b_spline/cubic_b_spline.h"
 #include "spline_library/b_spline/looping_cubic_b_spline.h"
+#include "spline_library/natural_spline/natural_spline.h"
+#include "spline_library/natural_spline/looping_natural_spline.h"
 #include "spline_library/splineinverter.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -215,6 +217,17 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
         else
         {
             spline = std::shared_ptr<Spline>(new CubicBSpline(pointList));
+        }
+    }
+    else if(splineType == "Cubic Natural Spline")
+    {
+        if(isLooping)
+        {
+            spline = std::shared_ptr<Spline>(new LoopingNaturalSpline(pointList, alpha));
+        }
+        else
+        {
+            spline = std::shared_ptr<Spline>(new NaturalSpline(pointList, false, alpha));
         }
     }
     else

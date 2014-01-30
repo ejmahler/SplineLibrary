@@ -102,6 +102,48 @@ void GraphicsController::paintEvent(QPaintEvent *event)
                         );
         }
     }
+
+
+    std::vector<Vector3D> curveColors;
+    curveColors.push_back(Vector3D(1,0,0));
+    curveColors.push_back(Vector3D(1,0.5,0));
+    curveColors.push_back(Vector3D(1,1,1));
+    curveColors.push_back(Vector3D(0,1,1));
+    curveColors.push_back(Vector3D(0,0,1));
+
+    std::shared_ptr<Spline> curveSpline(new CRSpline(curveColors));
+
+    //draw control points on top of line
+    for(int i = 0; i < points.size(); i++)
+    {
+        painter.save();
+
+        Vector3D position = points.at(i);
+
+        painter.translate(position.x(),position.y());
+
+        QColor color;
+        if(displayData.draggedObject == i)
+        {
+            color = QColor(qRgb(255,128,64));
+        }
+        else if(displayData.selectedObject == i)
+        {
+            color = Qt::cyan;
+        }
+        else
+        {
+            color = Qt::white;
+        }
+        painter.setPen(color);
+        painter.setBrush(color);
+
+        float size = pointRadius;
+        QRectF pieRect(-size/2,-size/2,size,size);
+        painter.drawPie(pieRect,0,5760);
+
+        painter.restore();
+    }
 	
     //draw the spline
     double stepSize = 0.01;
@@ -113,48 +155,26 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 
     while(currentStep <= limit)
     {
-        auto currentData = spline->getPosition(currentStep);
+        auto currentData = spline->getWiggle(currentStep);
+
+        double curvatureDot = Vector3D::dotProduct(currentData.curvature.normalized(), currentData.wiggle.normalized());
+        Vector3D currentColorVector = curveSpline->getPosition(1 - curvatureDot);
+
+
+        QRgb actualColor = qRgb(qBound(0.0,currentColorVector.x() * 255,255.0),
+                                qBound(0.0,currentColorVector.y() * 255,255.0),
+                                qBound(0.0,currentColorVector.z() * 255,255.0));
+
+        painter.setPen(Qt::blue);
 
         painter.drawLine(
             QPointF(previousPoint.x(),previousPoint.y()),
-            QPointF(currentData.x(),currentData.y())
+            QPointF(currentData.position.x(),currentData.position.y())
             );
 
         currentStep += stepSize;
-        previousPoint = currentData;
+        previousPoint = currentData.position;
     }
-
-    //draw control points on top of line
-    for(int i = 0; i < points.size(); i++)
-	{
-		painter.save();
-
-		Vector3D position = points.at(i);
-
-		painter.translate(position.x(),position.y());
-
-		QColor color;
-		if(displayData.draggedObject == i)
-		{
-			color = QColor(qRgb(255,128,64));
-		}
-		else if(displayData.selectedObject == i)
-		{
-			color = Qt::cyan;
-		}
-		else
-		{
-			color = Qt::white;
-		}
-		painter.setPen(color);
-		painter.setBrush(color);
-
-		float size = pointRadius;
-		QRectF pieRect(-size/2,-size/2,size,size);
-		painter.drawPie(pieRect,0,5760);
-
-		painter.restore();
-	}
 
 	//draw the highlighted point if it exists
 	if(displayData.highlightT)
@@ -178,10 +198,6 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 
 	
 	painter.restore();
-
-
-
-
 
 	//draw container for diagnostic data
 	painter.setOpacity(0.75);
