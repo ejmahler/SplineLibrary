@@ -144,23 +144,11 @@ inline Vector3D CubicHermiteSpline::computeCurvature(double t, const Interpolati
 
 inline Vector3D CubicHermiteSpline::computeWiggle(double t, const InterpolationData &segment) const
 {
-    //calculate the 3rd derivative of the spline at t.
-    //ie just compute the second derivatives of all the basis functions
-    double d3_basis00 = 12;
-    double d3_basis10 = 6;
-
-    double d3_basis11 = 6;
-    double d3_basis01 = -12;
-
     //tests and such have shown that we have to scale this by the inverse of the t distance, and i'm not sure why
     //intuitively it would just be the 2nd derivative of the position function and nothing else
     //if you know why please let me know
     return (
-            d3_basis00 * segment.p0 +
-            d3_basis10 * segment.m0 +
-
-            d3_basis11 * segment.m1 +
-            d3_basis01 * segment.p1
+                12 * (segment.p0 - segment.p1) + 6 * (segment.m0 + segment.m1)
             ) * (segment.tDistanceInverse * segment.tDistanceInverse * segment.tDistanceInverse);
 }
 
