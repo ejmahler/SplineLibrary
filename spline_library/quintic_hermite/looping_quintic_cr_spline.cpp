@@ -6,7 +6,7 @@
 
 LoopingQuinticCRSpline::LoopingQuinticCRSpline(const std::vector<Vector3D> &points, double alpha)
 {
-    assert(points.size() >= 6);
+    assert(points.size() >= 3);
 
     this->points = points;
 
