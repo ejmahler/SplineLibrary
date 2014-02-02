@@ -1,5 +1,7 @@
 #include "quintic_hermite_spline.h"
 
+#include "../utils/t_calculator.h"
+
 #include <cassert>
 #include <cmath>
 
@@ -58,32 +60,13 @@ QuinticHermiteSpline::QuinticHermiteSpline(
     //besides tangent selection assumes t values are evenly spaced
     double alpha = 0;
 
-    std::unordered_map<int, double> indexToT_Raw;
+    int size = points.size();
+    int padding = 0;
+    numSegments = size - 1;
 
-    int numTotalPoints = points.size();
-
-    numSegments = numTotalPoints - 1;
-
-    //we know points[2] will have a t value of 0
-    indexToT_Raw[0] = 0;
-
-    //compute the t values of the other points
-    for(int i = 1; i < numTotalPoints; i++)
-    {
-        double distance = (points.at(i) - points.at(i - 1)).length();
-        indexToT_Raw[i] = indexToT_Raw[i - 1] + pow(distance, alpha);
-    }
-
-    //we want to know the t value of the last segment so that we can normalize them all
-    float maxTRaw = indexToT_Raw.at(numSegments);
-
-    //now that we have all ouf our t values and indexes figured out, normalize the t values by dividing tem by maxT
-    for(auto it = indexToT_Raw.begin(); it != indexToT_Raw.end(); it++)
-    {
-        indexToT[it->first] = numSegments * it->second / maxTRaw;
-    }
+    //compute the T values for each point
+    indexToT = TCalculator::computeTValues(points, alpha, padding);
     maxT = indexToT.at(numSegments);
-
 
     //pre-arrange the data needed for interpolation
     for(int i = 0; i < numSegments; i++)

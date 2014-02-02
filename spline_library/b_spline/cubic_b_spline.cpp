@@ -1,5 +1,6 @@
 #include "cubic_b_spline.h"
 
+#include "../utils/t_calculator.h"
 
 #include <cmath>
 #include <cassert>
@@ -16,61 +17,26 @@ CubicBSpline::CubicBSpline(const std::vector<Vector3D> &points)
 
     this->points = points;
 
-    std::unordered_map<int, double> indexToT_Raw;
-    std::unordered_map<int, Vector3D> pointMap;
-
     int size = points.size();
-
+    int padding = 1;
     numSegments = size - 3;
 
-    int firstSegment = 1;
-    int lastSegment = firstSegment + numSegments;
-
-    //we know points[1] will have a t value of 0
-    indexToT_Raw[1] = 0;
-    pointMap[1] = points[1];
-
-    //loop backwards from 0 to give the earlier points negative t values
-    for(int i = 0; i >= 0; i--)
-    {
-        //points[1] is a control point, so give it a negative t value, so that the first actual point can have a t value of 0
-        double distance = (points.at(i) - points.at(i + 1)).length();
-        indexToT_Raw[i] = indexToT_Raw[i + 1] - pow(distance, alpha);
-        pointMap[i] = points[i];
-    }
-
-    //compute the t values of the other points
-    for(int i = 2; i < size; i++)
-    {
-        double distance = (points.at(i) - points.at(i - 1)).length();
-        indexToT_Raw[i] = indexToT_Raw[i - 1] + pow(distance, alpha);
-
-        pointMap[i] = points.at(i);
-    }
-
-    //we want to know the t value of the last segment so that we can normalize them all
-    float maxTRaw = indexToT_Raw.at(lastSegment);
-
-    //now that we have all of our t values and indexes figured out, normalize the t values by dividing tem by maxT
-    for(auto it = indexToT_Raw.begin(); it != indexToT_Raw.end(); it++)
-    {
-        indexToT[it->first] = numSegments * it->second / maxTRaw;
-    }
-    maxT = indexToT.at(lastSegment);
-
+    //compute the T values for each point
+    indexToT = TCalculator::computeTValues(points, alpha, padding);
+    maxT = indexToT.at(padding + numSegments);
 
     //pre-arrange the data needed for interpolation
-    for(int i = firstSegment; i < lastSegment; i++)
+    for(int i = padding; i < padding + numSegments; i++)
     {
         InterpolationData segment;
 
         segment.t1 = indexToT.at(i);
         segment.t2 = indexToT.at(i + 1);
 
-        segment.p0 = pointMap.at(i - 1);
-        segment.p1 = pointMap.at(i);
-        segment.p2 = pointMap.at(i + 1);
-        segment.p3 = pointMap.at(i + 2);
+        segment.p0 = points.at(i - 1);
+        segment.p1 = points.at(i);
+        segment.p2 = points.at(i + 1);
+        segment.p3 = points.at(i + 2);
 
         segmentData.push_back(segment);
     }
