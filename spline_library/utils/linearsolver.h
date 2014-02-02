@@ -16,8 +16,6 @@ public:
     //in other words, assume that the matrix is symmetric
     template<class T>
     static std::vector<T> solveSymmetricTridiagonal(const std::vector<double> &mainDiagonal, const std::vector<double> &secondaryDiagonal, const std::vector<T> &inputVector);
-    template<class T>
-    static std::vector<T> solveSymmetricTridiagonal2(const std::vector<double> &mainDiagonal, const std::vector<double> &secondaryDiagonal, const std::vector<T> &inputVector);
 
     //solve the given cyclic tridiagonal matrix system, with the assumption that the lower diagonal and upper diagonal (ie secondaryDiagonal) are identical
     //in other words, assume that the matrix is symmetric
