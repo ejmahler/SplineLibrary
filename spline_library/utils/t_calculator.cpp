@@ -12,7 +12,7 @@ std::unordered_map<int, double> TCalculator::computeTValues(const std::vector<Ve
 
     int size = points.size();
     int endPaddingIndex = size - 1 - padding;
-    int unpaddedSize = size - 2 * padding;
+    int desiredMaxT = size - 2 * padding - 1;
 
     //we know points[padding] will have a t value of 0
     indexToT_Raw[padding] = 0;
@@ -38,7 +38,7 @@ std::unordered_map<int, double> TCalculator::computeTValues(const std::vector<Ve
     //now that we have all ouf our t values and indexes figured out, normalize the t values by dividing tem by maxT
     for(auto it = indexToT_Raw.begin(); it != indexToT_Raw.end(); it++)
     {
-        indexToT[it->first] = unpaddedSize * it->second / maxTRaw;
+        indexToT[it->first] = desiredMaxT * it->second / maxTRaw;
     }
 
     return indexToT;
