@@ -10,9 +10,10 @@ class QuinticHermiteSpline : public Spline
 //constructors
 public:
     QuinticHermiteSpline(const std::vector<Vector3D> &points,
-                                const std::vector<Vector3D> &tangents,
-                                const std::vector<Vector3D> &curvatures
-                                );
+                         const std::vector<Vector3D> &tangents,
+                         const std::vector<Vector3D> &curvatures,
+                         float alpha
+                         );
 protected:
     //you're only allowed to create one of these without point data if a subclass is providing the point data
     QuinticHermiteSpline();

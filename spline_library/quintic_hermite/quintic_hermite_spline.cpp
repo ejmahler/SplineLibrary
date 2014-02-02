@@ -44,7 +44,8 @@ QuinticHermiteSpline::QuinticHermiteSpline()
 QuinticHermiteSpline::QuinticHermiteSpline(
         const std::vector<Vector3D> &points,
         const std::vector<Vector3D> &tangents,
-        const std::vector<Vector3D> &curvatures
+        const std::vector<Vector3D> &curvatures,
+        float alpha
        )
 {
     assert(points.size() >= 2);
@@ -52,13 +53,6 @@ QuinticHermiteSpline::QuinticHermiteSpline(
     assert(points.size() == curvatures.size());
 
     this->points = points;
-
-    //i would love to be able to support changing alphas for quintic catmull rom splines!
-    //but there's no literature whatsoever on how to choose tangents when t values are unevenly spaced
-    //if you know how to do it, let me know or make a pull request :D
-    //until then we're just going to hardcode alpha to 0 and make sure nothing in the code
-    //besides tangent selection assumes t values are evenly spaced
-    double alpha = 0;
 
     int size = points.size();
     int padding = 0;
