@@ -29,7 +29,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -103,6 +103,35 @@
             </item>
            </widget>
           </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Alpha</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSlider" name="cubicHermite_alpha">
+            <property name="minimum">
+             <number>0</number>
+            </property>
+            <property name="maximum">
+             <number>10</number>
+            </property>
+            <property name="pageStep">
+             <number>5</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TicksBelow</enum>
+            </property>
+            <property name="tickInterval">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -123,7 +152,7 @@
      </widget>
      <widget class="QWidget" name="layout_tab">
       <attribute name="title">
-       <string>Cubic Hermite Spline</string>
+       <string>Natural Spline</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="spacing">
@@ -132,7 +161,7 @@
        <item>
         <widget class="QLabel" name="label_13">
          <property name="text">
-          <string>Set constants for a cubic hermite spline here</string>
+          <string>Set constants for a natural spline here</string>
          </property>
         </widget>
        </item>
@@ -169,39 +198,17 @@
              <property name="fieldGrowthPolicy">
               <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
              </property>
-             <item row="0" column="1">
-              <widget class="QLabel" name="label_4">
-               <property name="text">
-                <string>Spline Parameters</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
+             <item row="0" column="0">
               <widget class="QLabel" name="label">
                <property name="text">
-                <string>Alpha</string>
+                <string>Include Endpoints</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
-              <widget class="QSlider" name="cubicHermite_alpha">
-               <property name="minimum">
-                <number>0</number>
-               </property>
-               <property name="maximum">
-                <number>10</number>
-               </property>
-               <property name="pageStep">
-                <number>5</number>
-               </property>
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="tickPosition">
-                <enum>QSlider::TicksBelow</enum>
-               </property>
-               <property name="tickInterval">
-                <number>5</number>
+             <item row="0" column="1">
+              <widget class="QCheckBox" name="naturalSpline_includeEndpoints">
+               <property name="text">
+                <string/>
                </property>
               </widget>
              </item>

@@ -2,7 +2,6 @@
 #define LINEARSOLVER_H
 
 #include <vector>
-//#include <armadillo>
 
 class Vector3D;
 
@@ -17,6 +16,8 @@ public:
     //in other words, assume that the matrix is symmetric
     template<class T>
     static std::vector<T> solveSymmetricTridiagonal(const std::vector<double> &mainDiagonal, const std::vector<double> &secondaryDiagonal, const std::vector<T> &inputVector);
+    template<class T>
+    static std::vector<T> solveSymmetricTridiagonal2(const std::vector<double> &mainDiagonal, const std::vector<double> &secondaryDiagonal, const std::vector<T> &inputVector);
 
     //solve the given cyclic tridiagonal matrix system, with the assumption that the lower diagonal and upper diagonal (ie secondaryDiagonal) are identical
     //in other words, assume that the matrix is symmetric
@@ -24,14 +25,9 @@ public:
     static std::vector<T> solveCyclicSymmetricTridiagonal(const std::vector<double> &mainDiagonal, const std::vector<double> &secondaryDiagonal, const std::vector<T> &inputVector);
 
 private:
-    //dot product methods: we need to implement one of these for every "cyclic symmetric tridiagonal" input types, plus one for doubles
-
-    //given two arrays of doubles, compute the dot product of the two arrays
-    static double vectorDotProduct(const std::vector<double> &left, const std::vector<double> &right);
-
-    //given an array of doubles and an array of vectors, compute the dot product of the doubles with each of the components of the vectors
-    //ie, output.x will be inputDouble (dot) inputvector.x, output.y will be inputDouble (dot) inputvector.y, output.z will be inputDouble (dot) inputvector.z
-    static Vector3D vectorDotProduct(const std::vector<double> &left, const std::vector<Vector3D> &right);
+    //compute the dot product of the two arrays of data
+    template<class S, class T>
+    static S vectorDotProduct(const std::vector<S> &left, const std::vector<T> &right);
 };
 
 template<class T>
@@ -46,7 +42,7 @@ std::vector<T> LinearSolver::solveSymmetricTridiagonal(const std::vector<double>
     std::vector<T> inputVector(inputVectorReadOnly);
 
     //forward sweep
-    for(int i = 2; i < inputVector.size(); i++)
+    for(int i = 1; i < inputVector.size(); i++)
     {
         double m = secondaryDiagonalReadOnly.at(i - 1) / mainDiagonal.at(i - 1);
         mainDiagonal[i] -= m * secondaryDiagonalReadOnly.at(i - 1);
@@ -79,7 +75,7 @@ std::vector<T> LinearSolver::solveCyclicSymmetricTridiagonal(const std::vector<d
     double cornerValue = secondaryDiagonal.at(size - 1);
 
     //gamma value - doesn't affect actual output (the algorithm makes sure it cancels out), but a good choice for this value can reduce floating point errors
-    double gamma = -mainDiagonal[0]*100;
+    double gamma = -mainDiagonal[0];
 
     //corrective vector U: should be all 0, except for gamma in the first element, and cornerValue at the end
     std::vector<double> correctionInputU(size);
@@ -103,53 +99,27 @@ std::vector<T> LinearSolver::solveCyclicSymmetricTridiagonal(const std::vector<d
     std::vector<double> correctionOutput = solveSymmetricTridiagonal(modifiedMainDiagonal, secondaryDiagonal, correctionInputU);
 
     //compute the corrective T to apply to each initial output
-    T factor = vectorDotProduct(correctionV, initialOutput) / (1 + vectorDotProduct(correctionV, correctionOutput));
+    T factor = vectorDotProduct(initialOutput, correctionV) / (1 + vectorDotProduct(correctionV, correctionOutput));
 
-    //use the correction input and output to modify the result
+    //use the correction factor to modify the result
     for(int i = 0; i < size; i++)
     {
-        initialOutput[i] -= factor * correctionOutput[i];
+        initialOutput[i] -= factor * correctionOutput.at(i);
     }
-
-    /*
-    //since we know the algorithm is wrong, use armidillo to check the actual result against wat the algorithm has returned
-    arma::mat matrix(size, size);
-    matrix.fill(0);
-    for(int i = 0; i < size; i++)
-    {
-        matrix.at(i,i) = mainDiagonal.at(i);
-        matrix.at(i, (i + 1)%size) = secondaryDiagonal.at(i);
-        matrix.at((i + 1)%size, i) = secondaryDiagonal.at(i);
-    }
-
-    arma::vec xVector(size);
-    for(int i = 0; i < size; i++)
-    {
-        xVector.at(i) = inputVector.at(i).x();
-    }
-
-    arma::vec yVector(size);
-    for(int i = 0; i < size; i++)
-    {
-        yVector.at(i) = inputVector.at(i).y();
-    }
-
-    arma::mat inverse = matrix.i();
-    arma::vec xOutput = inverse * xVector;
-    arma::vec yOutput = inverse * yVector;
-
-    std::vector<T> outputVector2(size);
-    for(int i = 0; i < size; i++)
-    {
-        outputVector2[i] = T(xOutput.at(i), yOutput.at(i), 0);
-    }
-
-
-    T out1 = initialOutput[0];
-    T out2 = outputVector2[0];
-    */
 
     return initialOutput;
+}
+
+//given two arrays of doubles, compute the dot product of the two arrays
+template<class S, class T>
+S LinearSolver::vectorDotProduct(const std::vector<S> &left, const std::vector<T> &right)
+{
+    S sum = S();
+    for(int i = 0; i < left.size(); i++)
+    {
+        sum += left.at(i) * right.at(i);
+    }
+    return sum;
 }
 
 #endif // LINEARSOLVER_H

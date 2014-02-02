@@ -6,7 +6,6 @@ TARGET = SplineDemo
 TEMPLATE = app
 
 CONFIG += c++11
-#LIBS += "/usr/lib/libarmadillo.so"
 
 SOURCES += \
     demo/settingswidget.cpp \

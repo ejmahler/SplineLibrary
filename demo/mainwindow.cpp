@@ -227,7 +227,8 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
         }
         else
         {
-            spline = std::shared_ptr<Spline>(new NaturalSpline(pointList, false, alpha));
+            bool includeEndpoints = settingsWidget->getOption("naturalSpline_includeEndpoints").toBool();
+            spline = std::shared_ptr<Spline>(new NaturalSpline(pointList, includeEndpoints, alpha));
         }
     }
     else

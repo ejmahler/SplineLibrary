@@ -79,10 +79,16 @@ NaturalSpline::NaturalSpline(const std::vector<Vector3D> &points, bool includeEn
         inputVector.push_back(neighborDelta);
     }
 
+    //remove the first element of each vector, since it won't be used
+    diagonal.erase(diagonal.begin());
+    upperDiagonal.erase(upperDiagonal.begin());
+    inputVector.erase(inputVector.begin());
+
     //solve the tridiagonal system to get the curvature at each point
     std::vector<Vector3D> curvatures = LinearSolver::solveSymmetricTridiagonal(diagonal, upperDiagonal, inputVector);
 
-    //we didn't compute the final curvature, which will be 0
+    //we didn't compute the first or last curvature, which will be 0
+    curvatures.insert(curvatures.begin(), Vector3D());
     curvatures.push_back(Vector3D());
 
     //we now have 0 curvature for index 0 and n - 1, and the final (usually nonzero) curvature for every other point
