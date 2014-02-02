@@ -4,9 +4,25 @@ This page gives a breakdown of each spline type, how to use each one, and the ad
 
 Simple Types
 ------------- 
-If you're not sure which one to use, start with these.
+If you're not sure which one to use, start with these three.
+
+### Natural Spline
+The Natural Spline computes the curvature for each point, using a formula that involves every point in the input, then interpolates the spline based on the list of points and the corresponding list of curvatures.
+
+To use, import the appropriate header:
+`#include "spline_library/natural_spline/natural_spline.h"`
+
+Create a Natural Spline by passing a std::vector<Vector3D> to the constructor, containing a list of points to interpolate through:
+`std::shared_ptr<Spline> mySpline(new NaturalSpline(myPointList));`
+
+##### Advantages
+* Curvature is continuous
+
+##### Disadvantages
+* No local control (?), because the computation for each curvature involves every input point
 
 ### Catmull-Rom Spline
+A Catmull-Rom Spline computes the tangent for a point from the positions of the two closest points, then interpolates based on both the position and the tangent.
 
 To use, import the appropriate header:
 `#include "spline_library/cubic_hermite/cr_spline.h"`
@@ -19,7 +35,7 @@ Create a catmull-rom spline by passing a std::vector<Vector3D> to the constructo
 
 ##### Disadvantages
 * Curvature isn't continuous. For some use cases this isn't a problem, so I wouldn't worry about it unless you know you need it to be continuous.
-* You cannot create a spline where there is zero distance between two adjacent points
+* There **must** be a nonzero distance between each adjacent set of points
 * Non-looping variation requires an "extra" point on either end of the data set which will not be interpolated
 
 ### Cubic B-Spline
@@ -28,10 +44,10 @@ The B-Spline (Basis Spline) is very similar in concept to the Bezier Curve, and 
 It is possible to create B-Splines with arbitrary powers (as opposed to enforcing cubic) but enforcing cubic allows for much simpler formulas and better performance.
 
 To use, import the appropriate header:
-`#include "spline_library/b_spline/b_spline.h"`
+`#include "spline_library/b_spline/cubic_b_spline.h"`
 
 Create a Cubic B-Spline by passing a std::vector<Vector3D> to the constructor, containing a list of control points:
-`std::shared_ptr<Spline> mySpline(new BSpline(myPointList));`
+`std::shared_ptr<Spline> mySpline(new CubicBSpline(myPointList));`
 
 ##### Advantages
 * Local control (?)
