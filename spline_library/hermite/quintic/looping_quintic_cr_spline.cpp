@@ -1,6 +1,6 @@
 #include "looping_quintic_cr_spline.h"
 
-#include "../utils/t_calculator.h"
+#include "spline_library/utils/t_calculator.h"
 
 #include <cmath>
 #include <cassert>

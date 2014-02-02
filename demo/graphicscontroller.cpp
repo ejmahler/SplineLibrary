@@ -10,8 +10,8 @@
 
 #include "spline_library/vector3d.h"
 #include "spline_library/splineinverter.h"
-#include "spline_library/cubic_hermite/cr_spline.h"
-#include "spline_library/cubic_hermite/looping_cr_spline.h"
+#include "spline_library/hermite/cubic/cr_spline.h"
+#include "spline_library/hermite/cubic/looping_cr_spline.h"
 
 GraphicsController::GraphicsController(QWidget *parent)
 	: QGLWidget(parent), 
@@ -156,16 +156,6 @@ void GraphicsController::paintEvent(QPaintEvent *event)
     while(currentStep <= limit)
     {
         auto currentData = spline->getWiggle(currentStep);
-
-        double curvatureDot = Vector3D::dotProduct(currentData.curvature.normalized(), currentData.wiggle.normalized());
-        Vector3D currentColorVector = curveSpline->getPosition(1 - curvatureDot);
-
-
-        QRgb actualColor = qRgb(qBound(0.0,currentColorVector.x() * 255,255.0),
-                                qBound(0.0,currentColorVector.y() * 255,255.0),
-                                qBound(0.0,currentColorVector.z() * 255,255.0));
-
-        painter.setPen(Qt::blue);
 
         painter.drawLine(
             QPointF(previousPoint.x(),previousPoint.y()),

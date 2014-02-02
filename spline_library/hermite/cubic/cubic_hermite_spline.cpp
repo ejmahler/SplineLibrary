@@ -1,6 +1,6 @@
 #include "cubic_hermite_spline.h"
 
-#include "../utils/t_calculator.h"
+#include "spline_library/utils/t_calculator.h"
 
 #include <cmath>
 #include <cassert>

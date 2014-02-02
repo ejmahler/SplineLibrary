@@ -1,6 +1,6 @@
 #include "looping_cubic_b_spline.h"
 
-#include "../utils/t_calculator.h"
+#include "spline_library/utils/t_calculator.h"
 
 #include <cassert>
 #include <cmath>

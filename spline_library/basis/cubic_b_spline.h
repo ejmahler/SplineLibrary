@@ -1,7 +1,7 @@
 #ifndef B_SPLINE_H
 #define B_SPLINE_H
 
-#include "../spline.h"
+#include "spline_library/spline.h"
 
 #include <unordered_map>
 

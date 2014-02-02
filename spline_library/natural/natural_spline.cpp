@@ -3,8 +3,8 @@
 #include <cassert>
 #include <cmath>
 
-#include "../utils/linearsolver.h"
-#include "../utils/t_calculator.h"
+#include "spline_library/utils/linearsolver.h"
+#include "spline_library/utils/t_calculator.h"
 
 NaturalSpline::NaturalSpline()
 {

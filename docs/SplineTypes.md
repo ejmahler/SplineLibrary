@@ -10,7 +10,7 @@ If you're not sure which one to use, start with these three.
 The Natural Spline computes the curvature for each point, using a formula that involves every point in the input, then interpolates the spline based on the list of points and the corresponding list of curvatures.
 
 To use, import the appropriate header:
-`#include "spline_library/natural_spline/natural_spline.h"`
+`#include "spline_library/natural/natural_spline.h"`
 
 Create a Natural Spline by passing a std::vector<Vector3D> to the constructor, containing a list of points to interpolate through:
 `std::shared_ptr<Spline> mySpline(new NaturalSpline(myPointList));`
@@ -25,7 +25,7 @@ Create a Natural Spline by passing a std::vector<Vector3D> to the constructor, c
 A Catmull-Rom Spline computes the tangent for a point from the positions of the two closest points, then interpolates based on both the position and the tangent.
 
 To use, import the appropriate header:
-`#include "spline_library/cubic_hermite/cr_spline.h"`
+`#include "spline_library/hermite/cubic/cr_spline.h"`
 
 Create a catmull-rom spline by passing a std::vector<Vector3D> to the constructor, containing a list of points to interpolate through:
 `std::shared_ptr<Spline> mySpline(new CRSpline(myPointList));`
@@ -44,7 +44,7 @@ The B-Spline (Basis Spline) is very similar in concept to the Bezier Curve, and 
 It is possible to create B-Splines with arbitrary powers (as opposed to enforcing cubic) but enforcing cubic allows for much simpler formulas and better performance.
 
 To use, import the appropriate header:
-`#include "spline_library/b_spline/cubic_b_spline.h"`
+`#include "spline_library/basis/cubic_b_spline.h"`
 
 Create a Cubic B-Spline by passing a std::vector<Vector3D> to the constructor, containing a list of control points:
 `std::shared_ptr<Spline> mySpline(new CubicBSpline(myPointList));`
@@ -72,7 +72,7 @@ It has been proven mathematically that the centripetal variation avoids certain 
 * Proven to avoid self-intersections and overshoots when there are large variations in distance between adjacent points.
 
 ##### Disadvantages (compared to CRSpline)
-* Modifies T valuies of points - points that are close together will have a smaller T distance and vice versa. This may be a problem if the points are keyframes for an animation, for example, or any other data series where the T values have some external meaning
+* Modifies T values of points - points that are close together will have a smaller T distance and vice versa. This may be a problem if the points are keyframes for an animation, for example, or any other data series where the T values have some external meaning
 
 ### Cubic Hermite Spline
 The Cubic Hermite Spline takes a list of points, and a corresponding list of tangents for each point. The Catmull-Rom Spline is a subclass of the Cubic Hermite Spline which automatically computes the tangents, rather than expecting the user to supply them.
@@ -80,7 +80,7 @@ The Cubic Hermite Spline takes a list of points, and a corresponding list of tan
 An example use case for this spline type is for physical simulation time series data, where spline->getPosition(t) returns the object's position at time T. If you know the object's velocity in addition to its position, you can make the interpolation more accurate by providing that velocity as the tangent.
 
 To use, import the appropriate header:
-`#include "spline_library/cubic_hermite/cubic_hermite_spline.h"`
+`#include "spline_library/hermite/cubic/cubic_hermite_spline.h"`
 
 Create a Cubic Hermite Spline by passing two equal-length std::vector<Vector3D> to the constructor, one containing a list of points to interpolate through, and the other containing the corresponding tangent for each point:
 `std::shared_ptr<Spline> mySpline(new CubicHermiteSpline(myPointList, myTangentList));`
@@ -100,7 +100,7 @@ The Quintic Hermite Spline takes a list of points, a corresponding list of tange
 An example use case for this spline type is for physical simulation time series data, where spline->getPosition(t) returns the object's position at time T. If you know the object's acceleration in addition to its velocity and position, you can make the interpolation more accurate by providing that acceleration for the curvature.
 
 To use, import the appropriate header:
-`#include "spline_library/quintic_hermite/quintic_hermite_spline.h"`
+`#include "spline_library/hermite/quintic/quintic_hermite_spline.h"`
 
 Create a Quintic Hermite Spline by passing three equal-length std::vector<Vector3D> to the constructor, one containing a list of points to interpolate through, another containing the corresponding tangent for each point, and a third containing the corresponding curvature for each point:
 `std::shared_ptr<Spline> mySpline(new QuinticHermiteSpline(myPointList, myTangentList, myCurvatureList));`

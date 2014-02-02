@@ -1,7 +1,7 @@
 #ifndef NATURALSPLINE_H
 #define NATURALSPLINE_H
 
-#include "../spline.h"
+#include "spline_library/spline.h"
 
 #include <unordered_map>
 

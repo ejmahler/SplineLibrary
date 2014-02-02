@@ -18,14 +18,14 @@
 #include "graphicscontroller.h"
 #include "settingswidget.h"
 
-#include "spline_library/quintic_hermite/quintic_cr_spline.h"
-#include "spline_library/quintic_hermite/looping_quintic_cr_spline.h"
-#include "spline_library/cubic_hermite/cr_spline.h"
-#include "spline_library/cubic_hermite/looping_cr_spline.h"
-#include "spline_library/b_spline/cubic_b_spline.h"
-#include "spline_library/b_spline/looping_cubic_b_spline.h"
-#include "spline_library/natural_spline/natural_spline.h"
-#include "spline_library/natural_spline/looping_natural_spline.h"
+#include "spline_library/hermite/quintic/quintic_cr_spline.h"
+#include "spline_library/hermite/quintic/looping_quintic_cr_spline.h"
+#include "spline_library/hermite/cubic/cr_spline.h"
+#include "spline_library/hermite/cubic/looping_cr_spline.h"
+#include "spline_library/basis/cubic_b_spline.h"
+#include "spline_library/basis/looping_cubic_b_spline.h"
+#include "spline_library/natural/natural_spline.h"
+#include "spline_library/natural/looping_natural_spline.h"
 #include "spline_library/splineinverter.h"
 
 MainWindow::MainWindow(QWidget *parent)

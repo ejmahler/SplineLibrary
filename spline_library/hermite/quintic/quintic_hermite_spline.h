@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 
-#include "../spline.h"
+#include "spline_library/spline.h"
 
 class QuinticHermiteSpline : public Spline
 {
