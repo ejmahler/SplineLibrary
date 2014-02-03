@@ -180,11 +180,6 @@ double QuinticHermiteSpline::getMaxT(void) const
     return maxT;
 }
 
-int QuinticHermiteSpline::getNumSegments(void) const
-{
-    return numSegments;
-}
-
 const std::vector<Vector3D> &QuinticHermiteSpline::getPoints(void) const
 {
     return points;

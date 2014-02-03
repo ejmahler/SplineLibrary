@@ -207,11 +207,6 @@ double NaturalSpline::getMaxT(void) const
     return maxT;
 }
 
-int NaturalSpline::getNumSegments(void) const
-{
-    return numSegments;
-}
-
 const std::vector<Vector3D> &NaturalSpline::getPoints(void) const
 {
     return points;

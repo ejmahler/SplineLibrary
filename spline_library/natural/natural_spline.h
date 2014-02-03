@@ -23,7 +23,6 @@ class NaturalSpline : public Spline
 
         virtual double getT(int index) const;
         virtual double getMaxT(void) const;
-        virtual int getNumSegments(void) const;
 
         virtual const std::vector<Vector3D> &getPoints(void) const;
 

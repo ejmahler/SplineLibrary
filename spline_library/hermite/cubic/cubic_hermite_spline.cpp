@@ -137,11 +137,6 @@ double CubicHermiteSpline::getMaxT(void) const
     return maxT;
 }
 
-int CubicHermiteSpline::getNumSegments(void) const
-{
-    return numSegments;
-}
-
 const std::vector<Vector3D> &CubicHermiteSpline::getPoints(void) const
 {
     return points;

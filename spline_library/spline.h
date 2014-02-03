@@ -18,8 +18,7 @@ public:
     virtual InterpolatedPTCW getWiggle(double x) const = 0;
 
 	virtual double getT(int index) const = 0;
-	virtual double getMaxT(void) const = 0;
-	virtual int getNumSegments(void) const = 0;
+    virtual double getMaxT(void) const = 0;
 
 	virtual const std::vector<Vector3D> &getPoints(void) const = 0;
     virtual bool isLooping(void) const = 0;

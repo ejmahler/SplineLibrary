@@ -131,11 +131,6 @@ double CubicBSpline::getMaxT(void) const
     return maxT;
 }
 
-int CubicBSpline::getNumSegments(void) const
-{
-    return numSegments;
-}
-
 const std::vector<Vector3D> &CubicBSpline::getPoints(void) const
 {
     return points;
