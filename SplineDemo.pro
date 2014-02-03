@@ -29,8 +29,7 @@ SOURCES += \
     spline_library/hermite/quintic/looping_quintic_cr_spline.cpp \
     spline_library/hermite/quintic/looping_quintic_hermite_spline.cpp \
     spline_library/hermite/quintic/quintic_cr_spline.cpp \
-    spline_library/hermite/quintic/quintic_hermite_spline.cpp \
-    spline_library/basis/generic_b_spline.cpp
+    spline_library/hermite/quintic/quintic_hermite_spline.cpp
 
 HEADERS  += \
     demo/settingswidget.h \
@@ -53,8 +52,7 @@ HEADERS  += \
     spline_library/hermite/quintic/looping_quintic_cr_spline.h \
     spline_library/hermite/quintic/looping_quintic_hermite_spline.h \
     spline_library/hermite/quintic/quintic_cr_spline.h \
-    spline_library/hermite/quintic/quintic_hermite_spline.h \
-    spline_library/basis/generic_b_spline.h
+    spline_library/hermite/quintic/quintic_hermite_spline.h
 
 FORMS    += \
     demo/settingswidget.ui \

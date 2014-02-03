@@ -53,11 +53,5 @@ All spline types normalize T values so that the maximum T value is equal to the 
 
 The minimum T value is always 0.
 
-#### int getNumSegments() const
-All splines are built by combining multiple functions piecewise, with each function being called a "segment". Each input point marks the boundary of a segment. This function returns the number of segments in the current spline.
-
-* For non-looping splines, the number of segments depends on the spline type, but is generally equal to the number of points that were actually used, minus one. For example, a non-looping Catmull-Rom spline uses `size - 2` points internally - the other two are used only to calculate tangents. In this case, the number of segments will be `size - 3`.
-* For looping splines, the number of segments is always equal to the size of the input vector of points.
-
 #### bool isLooping() const
 Returns true if this spline is a looping spline, and false if this is a non-looping spline.
