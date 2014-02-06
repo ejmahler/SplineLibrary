@@ -38,6 +38,8 @@ private: //methods
 	void mouseDoubleClickEvent(QMouseEvent *event);
 	
 	void rebuildSpline(std::vector<Vector3D> pointList);
+    std::shared_ptr<Spline> createSpline(const std::vector<Vector3D> &pointList, const QString &splineType, bool looping, float alpha, bool includeEndpoints);
+
 	void redraw(void);
 
 	void addVertex(void);
@@ -49,7 +51,8 @@ private: //methods
 private: //data
 	Ui::MainWindow *ui;
 
-	std::shared_ptr<Spline> spline;
+    std::shared_ptr<Spline> mainSpline;
+    std::shared_ptr<Spline> secondarySpline;
 	std::shared_ptr<SplineInverter> splineInverter;
 
 	SettingsWidget *settingsWidget;

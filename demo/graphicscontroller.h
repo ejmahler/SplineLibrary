@@ -25,6 +25,7 @@ struct DisplayData
 };
 
 class Graph;
+class QPainter;
 
 class GraphicsController : public QGLWidget
 {
@@ -34,7 +35,9 @@ public:
 	GraphicsController(QWidget *parent);
 	~GraphicsController();
 
-    void setSpline(const std::shared_ptr<Spline> &s);
+    void setMainSpline(const std::shared_ptr<Spline> &s);
+    void setSecondarySpline(const std::shared_ptr<Spline> &s);
+
 	void draw(const DisplayData &d);
 
 	QPoint convertPoint(const Vector3D &point);
@@ -49,6 +52,9 @@ protected:
 
 private:
 
+    void drawSpline(QPainter &painter, const std::shared_ptr<Spline> &s, const QColor &color);
+    void drawPoints(QPainter &painter, const std::vector<Vector3D> &points);
+
 	void drawControlText(QPainter &painter, int top, 
 		const QString &labelText,const QString &valueText);
 
@@ -59,7 +65,9 @@ private:
 private:
 
 	QMap<QString,QStaticText> staticText;
-	std::shared_ptr<Spline> spline;
+
+    std::shared_ptr<Spline> mainSpline;
+    std::shared_ptr<Spline> secondarySpline;
 
 	DisplayData displayData;
 

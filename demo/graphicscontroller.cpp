@@ -16,7 +16,7 @@
 GraphicsController::GraphicsController(QWidget *parent)
 	: QGLWidget(parent), 
 	
-	spline(nullptr),
+    mainSpline(nullptr),
 	displayControls(false),
 	pointRadius(10),
 	backgroundImagePath()
@@ -29,9 +29,14 @@ GraphicsController::~GraphicsController()
 
 }
 
-void GraphicsController::setSpline(const std::shared_ptr<Spline> &s)
+void GraphicsController::setMainSpline(const std::shared_ptr<Spline> &s)
 {
-	spline = s;
+    mainSpline = s;
+}
+
+void GraphicsController::setSecondarySpline(const std::shared_ptr<Spline> &s)
+{
+    secondarySpline = s;
 }
 
 void GraphicsController::draw(const DisplayData &d)
@@ -79,99 +84,16 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	{
 		painter.drawImage(0,0,*backgroundImage);
     }
-
-    //draw straight lines connecting each control point
-    std::vector<Vector3D> points = spline->getPoints();
-    painter.setPen(qRgb(32,32,32));
-
-    if(displayData.showConnectingLines)
-    {
-        for(int i = 0; i < points.size() - 1; i++)
-        {
-            painter.drawLine(
-                        QPointF(points.at(i).x(),points.at(i).y()),
-                        QPointF(points.at(i + 1).x(),points.at(i + 1).y())
-                        );
-        }
-
-        if(spline->isLooping())
-        {
-            painter.drawLine(
-                        QPointF(points.at(0).x(),points.at(0).y()),
-                        QPointF(points.at(points.size() - 1).x(),points.at(points.size() - 1).y())
-                        );
-        }
-    }
-
-
-    std::vector<Vector3D> curveColors;
-    curveColors.push_back(Vector3D(1,0,0));
-    curveColors.push_back(Vector3D(1,0.5,0));
-    curveColors.push_back(Vector3D(1,1,1));
-    curveColors.push_back(Vector3D(0,1,1));
-    curveColors.push_back(Vector3D(0,0,1));
-
-    std::shared_ptr<Spline> curveSpline(new CRSpline(curveColors));
-
-    //draw control points on top of line
-    for(int i = 0; i < points.size(); i++)
-    {
-        painter.save();
-
-        Vector3D position = points.at(i);
-
-        painter.translate(position.x(),position.y());
-
-        QColor color;
-        if(displayData.draggedObject == i)
-        {
-            color = QColor(qRgb(255,128,64));
-        }
-        else if(displayData.selectedObject == i)
-        {
-            color = Qt::cyan;
-        }
-        else
-        {
-            color = Qt::white;
-        }
-        painter.setPen(color);
-        painter.setBrush(color);
-
-        float size = pointRadius;
-        QRectF pieRect(-size/2,-size/2,size,size);
-        painter.drawPie(pieRect,0,5760);
-
-        painter.restore();
-    }
 	
-    //draw the spline
-    double stepSize = 0.01;
-    double currentStep = stepSize;
-    double limit = spline->getMaxT();
-    Vector3D previousPoint = spline->getPosition(0);
-
-    painter.setPen(Qt::blue);
-
-    while(currentStep <= limit)
-    {
-        auto currentData = spline->getWiggle(currentStep);
-
-        painter.drawLine(
-            QPointF(previousPoint.x(),previousPoint.y()),
-            QPointF(currentData.position.x(),currentData.position.y())
-            );
-
-        currentStep += stepSize;
-        previousPoint = currentData.position;
-    }
+    //draw points
+    drawPoints(painter, mainSpline->getPoints());
 
 	//draw the highlighted point if it exists
 	if(displayData.highlightT)
 	{
 		painter.save();
 
-		Vector3D result = spline->getPosition(displayData.highlightedT);
+        Vector3D result = mainSpline->getPosition(displayData.highlightedT);
 
 		painter.translate(result.x(),result.y());
 
@@ -186,6 +108,12 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 		painter.restore();
 	}
 
+    //draw the spline itself
+    drawSpline(painter, mainSpline, Qt::red);
+    if(secondarySpline != nullptr)
+    {
+        drawSpline(painter, secondarySpline, Qt::blue);
+    }
 	
 	painter.restore();
 
@@ -193,14 +121,11 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	painter.setOpacity(0.75);
 	QColor bgColor(qRgb(32,32,32));
 	painter.setPen(bgColor);
-	painter.setBrush(bgColor);
-	//painter.drawRect(0,0,250,120);
+    painter.setBrush(bgColor);
 
 	//draw text for diagnostic data
 	painter.setOpacity(1);
-	painter.setPen(Qt::white);
-	//drawDiagnosticText(painter, 5, "Graphics FPS:", QString::number(d.graphicsFps,'f',2));
-
+    painter.setPen(Qt::white);
 
 	//draw container for control data
     int controlBoxWidth = 225;
@@ -208,12 +133,10 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	if(!displayControls)
 		controlBoxHeight = 25;
 
-
 	painter.setOpacity(0.75);
 	painter.setPen(bgColor);
 	painter.setBrush(bgColor);
 	painter.drawRect(width() - controlBoxWidth, 0, controlBoxWidth, controlBoxHeight);
-
 
 	//draw text for control data
 	painter.setOpacity(1);
@@ -257,21 +180,21 @@ void GraphicsController::createDistanceField(const QString &filename)
 	qsrand(time(0));
 
 	std::vector<Vector3D> colorList;
-	for(int i = 0; i < spline->getPoints().size(); i++)
+    for(int i = 0; i < mainSpline->getPoints().size(); i++)
 	{
 		colorList.push_back(Vector3D(
 			double(qrand()) / RAND_MAX,
 			double(qrand()) / RAND_MAX,
 			double(qrand()) / RAND_MAX));
 	}
-    if(spline->isLooping())
+    if(mainSpline->isLooping())
         colorSpline = std::shared_ptr<Spline>(new LoopingCRSpline(colorList));
     else
         colorSpline = std::shared_ptr<Spline>(new CRSpline(colorList));
 
 	painter.fillRect(0,0,output.width(),output.height(),Qt::white);
 
-	SplineInverter calc(spline, 40);
+    SplineInverter calc(mainSpline, 40);
 
 	//supersampling amount - 1 is no supersampling
     int supersampling = 4;
@@ -307,20 +230,22 @@ void GraphicsController::createDistanceField(const QString &filename)
 		}
 	}
 
+    //draw points
+    drawPoints(painter, mainSpline->getPoints());
+
 	//draw lines
-	painter.setPen(Qt::red);
-	std::vector<Vector3D> points = spline->getPoints();
+    painter.setPen(Qt::red);
 
 	double stepSize = 1.0 / 100;
 	double currentStep = stepSize;
-	double limit = spline->getMaxT();
-	Vector3D previousPoint = spline->getPosition(0);
+    double limit = mainSpline->getMaxT();
+    Vector3D previousPoint = mainSpline->getPosition(0);
 
 	painter.setPen(Qt::red);
 
 	while(currentStep <= limit)
 	{
-		Vector3D currentPoint = spline->getPosition(currentStep);
+        Vector3D currentPoint = mainSpline->getPosition(currentStep);
 
 		painter.drawLine(
 			QPointF(previousPoint.x(),previousPoint.y()),
@@ -330,40 +255,14 @@ void GraphicsController::createDistanceField(const QString &filename)
 
 		currentStep += stepSize;
 		previousPoint = currentPoint;
-	}
-
-	//draw control points on top of line
-	//if this is a loop, don't draw the final point
-	int pointLimit;
-    if(spline->isLooping())
-		pointLimit = points.size() - 1;
-	else
-		pointLimit = points.size();
-	for(int i = 0; i < pointLimit; i++)
-	{
-		painter.save();
-
-		Vector3D position = points.at(i);
-
-		painter.translate(position.x(),position.y());
-
-		QColor color = Qt::white;
-		painter.setPen(color);
-		painter.setBrush(color);
-
-		float size = pointRadius/2 + 1;
-		QRectF pieRect(-size/2,-size/2,size,size);
-		painter.drawPie(pieRect,0,5760);
-
-		painter.restore();
-	}
+    }
 
 	output.save(filename);
 }
 
 int GraphicsController::pickVertex(const QPoint &screenPoint)
 {
-	std::vector<Vector3D> points = spline->getPoints();
+    std::vector<Vector3D> points = mainSpline->getPoints();
 
 	//convert this point to world coordinates and then just loop through every vertex
 	Vector3D convertedPoint = convertPoint(screenPoint);
@@ -435,5 +334,86 @@ Vector3D GraphicsController::getColor(float t) const
 		qBound(0.0,value.x() * 255,255.0),
 		qBound(0.0,value.y() * 255,255.0),
 		qBound(0.0,value.z() * 255,255.0));
+}
+
+void GraphicsController::drawSpline(QPainter &painter, const std::shared_ptr<Spline> &s, const QColor &color)
+{
+    //draw the spline
+    double stepSize = 0.01;
+    double currentStep = stepSize;
+    double limit = s->getMaxT();
+    Vector3D previousPoint = s->getPosition(0);
+
+    painter.setPen(color);
+
+    while(currentStep <= limit)
+    {
+        Vector3D currentPoint = s->getPosition(currentStep);
+
+        painter.drawLine(
+            QPointF(previousPoint.x(),previousPoint.y()),
+            QPointF(currentPoint.x(),currentPoint.y())
+            );
+
+        currentStep += stepSize;
+        previousPoint = currentPoint;
+    }
+}
+
+void GraphicsController::drawPoints(QPainter &painter, const std::vector<Vector3D> &points)
+{
+    //draw straight lines connecting each control point
+    painter.setPen(qRgb(32,32,32));
+
+    if(displayData.showConnectingLines)
+    {
+        for(int i = 0; i < points.size() - 1; i++)
+        {
+            painter.drawLine(
+                        QPointF(points.at(i).x(),points.at(i).y()),
+                        QPointF(points.at(i + 1).x(),points.at(i + 1).y())
+                        );
+        }
+
+        if(mainSpline->isLooping())
+        {
+            painter.drawLine(
+                        QPointF(points.at(0).x(),points.at(0).y()),
+                        QPointF(points.at(points.size() - 1).x(),points.at(points.size() - 1).y())
+                        );
+        }
+    }
+
+    //draw control points on top of lines
+    for(int i = 0; i < points.size(); i++)
+    {
+        painter.save();
+
+        Vector3D position = points.at(i);
+
+        painter.translate(position.x(),position.y());
+
+        QColor color;
+        if(displayData.draggedObject == i)
+        {
+            color = QColor(qRgb(255,128,64));
+        }
+        else if(displayData.selectedObject == i)
+        {
+            color = Qt::cyan;
+        }
+        else
+        {
+            color = Qt::white;
+        }
+        painter.setPen(color);
+        painter.setBrush(color);
+
+        float size = pointRadius;
+        QRectF pieRect(-size/2,-size/2,size,size);
+        painter.drawPie(pieRect,0,5760);
+
+        painter.restore();
+    }
 }
 
