@@ -53,6 +53,8 @@ protected:
 private:
 
     void drawSpline(QPainter &painter, const std::shared_ptr<Spline> &s, const QColor &color);
+    void drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline> &s, double beginT, double endT, double thresholdAngle);
+
     void drawPoints(QPainter &painter, const std::vector<Vector3D> &points);
 
 	void drawControlText(QPainter &painter, int top, 
@@ -73,7 +75,7 @@ private:
 
 	bool displayControls;
 
-	int pointRadius;
+    int pointRadius;
 
 	std::shared_ptr<QImage> backgroundImage;
 	QString backgroundImagePath;

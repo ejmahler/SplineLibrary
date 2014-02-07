@@ -339,24 +339,60 @@ Vector3D GraphicsController::getColor(float t) const
 void GraphicsController::drawSpline(QPainter &painter, const std::shared_ptr<Spline> &s, const QColor &color)
 {
     //draw the spline
-    double stepSize = 0.01;
+    double stepSize = 0.25;
     double currentStep = stepSize;
-    double limit = s->getMaxT();
-    Vector3D previousPoint = s->getPosition(0);
+    double limit = s->getMaxT() + 0.01;
+
+    double thresholdAngle = 0.996;
 
     painter.setPen(color);
 
     while(currentStep <= limit)
     {
-        Vector3D currentPoint = s->getPosition(currentStep);
-
-        painter.drawLine(
-            QPointF(previousPoint.x(),previousPoint.y()),
-            QPointF(currentPoint.x(),currentPoint.y())
-            );
-
+        drawSplineSegment(painter, s,currentStep - stepSize, currentStep, thresholdAngle);
         currentStep += stepSize;
-        previousPoint = currentPoint;
+    }
+}
+
+void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline> &s, double beginT, double endT, double thresholdAngle)
+{
+    auto beginData = s->getCurvature(beginT);
+    auto endData = s->getCurvature(endT);
+
+    Vector3D beginNormalizedTangent = beginData.tangent.normalized();
+    Vector3D endNormalizedTangent = endData.tangent.normalized();
+
+    //compute the angle between the two tangents
+    double cosAngle = Vector3D::dotProduct(beginNormalizedTangent, endNormalizedTangent);
+
+    //if the angle is too low, subdivide this segment into two segments
+    if(cosAngle < thresholdAngle)
+    {
+        //we dont want the exact middle, give a bias to the end whose curvature rejected against the tangent is longer
+        //if one side's curvature rejection is larger, it means that side is turning faster, so we can reduce the number of segments
+        //by making the segment division closer to that side
+        //not completely necessary or practical here but it shows off a potential use of the tangent and curvature
+        double beginProjection = Vector3D::dotProduct(beginNormalizedTangent, beginData.curvature);
+        double endProjection = Vector3D::dotProduct(endNormalizedTangent, endData.curvature);
+
+        Vector3D beginRejection = beginData.curvature - beginNormalizedTangent * beginProjection;
+        Vector3D endRejection = endData.curvature - endNormalizedTangent * endProjection;
+
+        double beginRejectionLength = beginRejection.length();
+        double endRejectionLength = endRejection.length();
+
+        double beginPercent = beginRejectionLength / (beginRejectionLength + endRejectionLength);
+
+        double middle = beginT + (endT - beginT) * (1 - beginPercent);
+        drawSplineSegment(painter, s, beginT, middle, thresholdAngle);
+        drawSplineSegment(painter, s, middle, endT, thresholdAngle);
+    }
+    else
+    {
+        painter.drawLine(
+            QPointF(beginData.position.x(),beginData.position.y()),
+            QPointF(endData.position.x(),endData.position.y())
+            );
     }
 }
 
