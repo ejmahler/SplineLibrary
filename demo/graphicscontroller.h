@@ -57,6 +57,8 @@ private:
 
     void drawPoints(QPainter &painter, const std::vector<Vector3D> &points);
 
+    void drawDiagnosticText(QPainter &painter, int top,
+            const QString &labelText,const QString &valueText);
 	void drawControlText(QPainter &painter, int top, 
 		const QString &labelText,const QString &valueText);
 

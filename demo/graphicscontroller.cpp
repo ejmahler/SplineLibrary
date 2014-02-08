@@ -10,6 +10,7 @@
 
 #include "spline_library/vector3d.h"
 #include "spline_library/splineinverter.h"
+#include "spline_library/splinelengthcalculator.h"
 #include "spline_library/hermite/cubic/cr_spline.h"
 #include "spline_library/hermite/cubic/looping_cr_spline.h"
 
@@ -117,15 +118,24 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	
 	painter.restore();
 
+    SplineLengthCalculator lengthCalc(mainSpline);
+
 	//draw container for diagnostic data
 	painter.setOpacity(0.75);
 	QColor bgColor(qRgb(32,32,32));
 	painter.setPen(bgColor);
     painter.setBrush(bgColor);
 
+    int diagonsticBoxWidth = 200;
+    int diagnosticBoxHeight = 100;
+    painter.drawRect(0, 0, diagonsticBoxWidth, diagnosticBoxHeight);
+
 	//draw text for diagnostic data
 	painter.setOpacity(1);
     painter.setPen(Qt::white);
+
+    drawDiagnosticText(painter, 5, "Precise Length", QString::number(lengthCalc.findLengthPrecise(0, mainSpline->getMaxT())));
+    drawDiagnosticText(painter, 25, "Fast Length", QString::number(lengthCalc.findLengthFast(0, mainSpline->getMaxT())));
 
 	//draw container for control data
     int controlBoxWidth = 225;
@@ -279,6 +289,31 @@ int GraphicsController::pickVertex(const QPoint &screenPoint)
 	return -1;
 }
 
+void GraphicsController::drawDiagnosticText(QPainter &painter, int top,
+    const QString &labelText,const QString &valueText)
+{
+    int labelLeft = 5;
+    int labelWidth = 140;
+    int valueLeft = labelLeft + labelWidth + 5;
+    int valueWidth = 60;
+
+    if(!staticText.contains(labelText))
+    {
+        QStaticText t(labelText);
+        t.setPerformanceHint(QStaticText::AggressiveCaching);
+        t.setTextFormat(Qt::PlainText);
+        t.setTextWidth(labelWidth);
+        t.setTextOption(QTextOption(Qt::AlignRight));
+
+        staticText.insert(labelText,t);
+    }
+
+    painter.drawStaticText(labelLeft,top,staticText.value(labelText));
+
+    //don't use static text for the actual numbers, since they change every frame
+    painter.drawText(QRect(valueLeft, top, valueWidth, 20), valueText, QTextOption(Qt::AlignRight));
+}
+
 void GraphicsController::drawControlText(QPainter &painter, int top, 
 	const QString &labelText,const QString &valueText)
 {
@@ -381,7 +416,9 @@ void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_
         double beginRejectionLength = beginRejection.length();
         double endRejectionLength = endRejection.length();
 
-        double beginPercent = beginRejectionLength / (beginRejectionLength + endRejectionLength);
+        double lengthSum = (beginRejectionLength + endRejectionLength) * 0.05;
+
+        double beginPercent = (beginRejectionLength + lengthSum) / (lengthSum * 2 + beginRejectionLength + endRejectionLength);
 
         double middle = beginT + (endT - beginT) * (1 - beginPercent);
         drawSplineSegment(painter, s, beginT, middle, thresholdAngle);
