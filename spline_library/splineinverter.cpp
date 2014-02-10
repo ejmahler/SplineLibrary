@@ -145,10 +145,12 @@ double SplineInverter::findClosestPrecise(const Vector3D &queryPoint) const
 double SplineInverter::findClosestSample(const Vector3D &queryPoint) const
 {
 	//find the index of the lower bound of the query point, by x value
-	int lower = findSampleIndex(queryPoint.x());
+    int lower = findSampleIndex(queryPoint.x());
 	
 	//find the index of the upper bound of x
-	int upper = lower + 1;
+    int upper = lower + 1;
+
+    int size = splineSamples.size();
 
 	auto data = splineSamples.data();
 
@@ -179,7 +181,7 @@ double SplineInverter::findClosestSample(const Vector3D &queryPoint) const
 	}
 
 	//we want to perform the same search in the +x direction too
-	while(upper < splineSamples.size())
+    while(upper < size)
 	{
 		double t = data[upper].t;
 		double x = data[upper].position.x();

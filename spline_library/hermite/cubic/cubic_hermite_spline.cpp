@@ -88,7 +88,7 @@ Spline::InterpolatedPTCW CubicHermiteSpline::getWiggle(double x) const
                 computePosition(t, segment),
                 computeTangent(t, segment),
                 computeCurvature(t, segment),
-                computeWiggle(t, segment)
+                computeWiggle(segment)
                 );
 }
 

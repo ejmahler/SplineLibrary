@@ -35,7 +35,7 @@ class NaturalSpline : public Spline
         inline Vector3D computePosition(double t, const InterpolationData &segment) const;
         inline Vector3D computeTangent(double t, const InterpolationData &segment) const;
         inline Vector3D computeCurvature(double t, const InterpolationData &segment) const;
-        inline Vector3D computeWiggle(double t, const InterpolationData &segment) const;
+        inline Vector3D computeWiggle(const InterpolationData &segment) const;
 
         int getSegmentIndex(double x) const;
 
@@ -89,7 +89,7 @@ inline Vector3D NaturalSpline::computeCurvature(double t, const InterpolationDat
     return 2 * segment.c + (6 * t) * segment.d;
 }
 
-inline Vector3D NaturalSpline::computeWiggle(double t, const InterpolationData &segment) const
+inline Vector3D NaturalSpline::computeWiggle(const InterpolationData &segment) const
 {
     //compute the 3rd derivative of the position function
     return 6 * segment.d;

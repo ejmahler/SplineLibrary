@@ -29,7 +29,7 @@ LoopingNaturalSpline::LoopingNaturalSpline(const std::vector<Vector3D> &points, 
 
     //create an array of the differences in T between one point and the next
     std::vector<double> upperDiagonal;
-    for(int i = 0; i < points.size(); i++)
+    for(size_t i = 0; i < points.size(); i++)
     {
         double delta = indexToT.at(i + 1) - indexToT.at(i);
         upperDiagonal.push_back(delta);
@@ -38,7 +38,7 @@ LoopingNaturalSpline::LoopingNaturalSpline(const std::vector<Vector3D> &points, 
     //create an array that stores 2 * (deltaT.at(i - 1) + deltaT.at(i))
     //when i = 0, wrap i - 1 back around to the end of the list
     std::vector<double> diagonal;
-    for(int i = 0; i < points.size(); i++)
+    for(size_t i = 0; i < points.size(); i++)
     {
         double neighborDelta = 2 * (upperDiagonal.at((i - 1 + size)%size) + upperDiagonal.at(i));
         diagonal.push_back(neighborDelta);
@@ -46,7 +46,7 @@ LoopingNaturalSpline::LoopingNaturalSpline(const std::vector<Vector3D> &points, 
 
     //create an array of displacement between each point, divided by delta t
     std::vector<Vector3D> deltaPoint;
-    for(int i = 0; i < points.size(); i++)
+    for(size_t i = 0; i < points.size(); i++)
     {
         Vector3D displacement = points.at((i + 1)%size) - points.at(i);
         deltaPoint.push_back(displacement / upperDiagonal.at(i));
@@ -55,7 +55,7 @@ LoopingNaturalSpline::LoopingNaturalSpline(const std::vector<Vector3D> &points, 
     //create an array that stores 3 * (deltaPoint(i - 1) + deltaPoint(i))
     //when i = 0, wrap i - 1 back around to the end of the list
     std::vector<Vector3D> inputVector;
-    for(int i = 0; i < points.size(); i++)
+    for(size_t i = 0; i < points.size(); i++)
     {
         Vector3D neighborDelta = 3 * (deltaPoint.at(i) - deltaPoint.at((i - 1 + size) % size));
         inputVector.push_back(neighborDelta);
@@ -131,7 +131,7 @@ Spline::InterpolatedPTCW LoopingNaturalSpline::getWiggle(double x) const
                 computePosition(t, segment),
                 computeTangent(t, segment),
                 computeCurvature(t, segment),
-                computeWiggle(t, segment)
+                computeWiggle(segment)
                 );
 }
 

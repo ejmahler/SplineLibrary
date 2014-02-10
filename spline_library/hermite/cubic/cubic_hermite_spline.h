@@ -35,7 +35,7 @@ protected:
     inline Vector3D computePosition(double t, const InterpolationData &segment) const;
     inline Vector3D computeTangent(double t, const InterpolationData &segment) const;
     inline Vector3D computeCurvature(double t, const InterpolationData &segment) const;
-    inline Vector3D computeWiggle(double t, const InterpolationData &segment) const;
+    inline Vector3D computeWiggle(const InterpolationData &segment) const;
 
     int getSegmentIndex(double x) const;
 
@@ -141,7 +141,7 @@ inline Vector3D CubicHermiteSpline::computeCurvature(double t, const Interpolati
             ) * (segment.tDistanceInverse * segment.tDistanceInverse);
 }
 
-inline Vector3D CubicHermiteSpline::computeWiggle(double t, const InterpolationData &segment) const
+inline Vector3D CubicHermiteSpline::computeWiggle(const InterpolationData &segment) const
 {
     //tests and such have shown that we have to scale this by the inverse of the t distance, and i'm not sure why
     //intuitively it would just be the 2nd derivative of the position function and nothing else

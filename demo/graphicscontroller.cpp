@@ -190,7 +190,7 @@ void GraphicsController::createDistanceField(const QString &filename)
 	qsrand(time(0));
 
 	std::vector<Vector3D> colorList;
-    for(int i = 0; i < mainSpline->getPoints().size(); i++)
+    for(size_t i = 0; i < mainSpline->getPoints().size(); i++)
 	{
 		colorList.push_back(Vector3D(
 			double(qrand()) / RAND_MAX,
@@ -276,7 +276,7 @@ int GraphicsController::pickVertex(const QPoint &screenPoint)
 
 	//convert this point to world coordinates and then just loop through every vertex
 	Vector3D convertedPoint = convertPoint(screenPoint);
-	for(int i = 0; i < points.size(); i++)
+    for(size_t i = 0; i < points.size(); i++)
 	{
 		Vector3D position = points[i];
 
@@ -435,12 +435,14 @@ void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_
 
 void GraphicsController::drawPoints(QPainter &painter, const std::vector<Vector3D> &points)
 {
+    int size = points.size();
+
     //draw straight lines connecting each control point
     painter.setPen(qRgb(32,32,32));
 
     if(displayData.showConnectingLines)
     {
-        for(int i = 0; i < points.size() - 1; i++)
+        for(size_t i = 0; i < points.size() - 1; i++)
         {
             painter.drawLine(
                         QPointF(points.at(i).x(),points.at(i).y()),
@@ -458,7 +460,7 @@ void GraphicsController::drawPoints(QPainter &painter, const std::vector<Vector3
     }
 
     //draw control points on top of lines
-    for(int i = 0; i < points.size(); i++)
+    for(int i = 0; i < size; i++)
     {
         painter.save();
 
