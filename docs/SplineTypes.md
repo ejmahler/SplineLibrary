@@ -16,10 +16,10 @@ Create a Natural Spline by passing a std::vector<Vector3D> to the constructor, c
 `std::shared_ptr<Spline> mySpline(new NaturalSpline(myPointList));`
 
 ##### Advantages
-* Curvature is continuous
+* Curvature is continuous [(?)](Glossary.md#continuous-curvature)
 
 ##### Disadvantages
-* No local control (?), because the computation for each curvature involves every input point
+* No local control [(?)](Glossary.md#local-control)
 
 ### Catmull-Rom Spline
 A Catmull-Rom Spline computes the tangent for a point from the positions of the two closest points, then interpolates based on both the position and the tangent.
@@ -31,10 +31,10 @@ Create a catmull-rom spline by passing a std::vector<Vector3D> to the constructo
 `std::shared_ptr<Spline> mySpline(new CRSpline(myPointList));`
 
 ##### Advantages
-* Local control (?)
+* Local control [(?)](Glossary.md#local-control)
 
 ##### Disadvantages
-* Curvature isn't continuous. For some use cases this isn't a problem, so I wouldn't worry about it unless you know you need it to be continuous.
+* Curvature isn't continuous [(?)](Glossary.md#continuous-curvature). For some use cases this isn't a problem, so I wouldn't worry about it unless you know you need it to be continuous.
 * There **must** be a nonzero distance between each adjacent set of points
 * Non-looping variation requires an "extra" point on either end of the data set which will not be interpolated
 
@@ -50,8 +50,8 @@ Create a Cubic B-Spline by passing a std::vector<Vector3D> to the constructor, c
 `std::shared_ptr<Spline> mySpline(new CubicBSpline(myPointList));`
 
 ##### Advantages
-* Local control (?)
-* Curvature is continuous
+* Local control [(?)](Glossary.md#local-control)
+* Curvature is continuous [(?)](Glossary.md#continuous-curvature)
 
 ##### Disadvantages
 * The interpolated line does not necessarily pass through the specified points
@@ -86,11 +86,11 @@ Create a Cubic Hermite Spline by passing two equal-length std::vector<Vector3D> 
 `std::shared_ptr<Spline> mySpline(new CubicHermiteSpline(myPointList, myTangentList));`
 
 ##### Advantages
-* Local control (?)
+* Local control [(?)](Glossary.md#local-control)
 * Easily control the tangent at each point
 
 ##### Disadvantages
-* Curvature isn't continuous. For some use cases this isn't a problem, so I wouldn't worry about it unless you know you need it to be continuous.
+* Curvature isn't continuous [(?)](Glossary.md#continuous-curvature). For some use cases this isn't a problem, so I wouldn't worry about it unless you know you need it to be continuous.
 * You cannot create a spline where there is zero distance between two adjacent points
 * Cannot be used if you don't know the desired tangent for each point
 
@@ -106,9 +106,9 @@ Create a Quintic Hermite Spline by passing three equal-length std::vector<Vector
 `std::shared_ptr<Spline> mySpline(new QuinticHermiteSpline(myPointList, myTangentList, myCurvatureList));`
 
 ##### Advantages
-* Local control (?)
+* Local control [(?)](Glossary.md#local-control)
 * Easily control the tangent and curvature at each point
-* Curvature is continuous
+* Curvature is continuous [(?)](Glossary.md#continuous-curvature)
 
 ##### Disadvantages
 * You cannot create a spline where there is zero distance between two adjacent points
