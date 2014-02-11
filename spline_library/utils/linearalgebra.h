@@ -5,10 +5,10 @@
 
 class Vector3D;
 
-class LinearSolver
+class LinearAlgebra
 {
 private:
-    LinearSolver();
+    LinearAlgebra();
 
 public:
 
@@ -29,7 +29,7 @@ private:
 };
 
 template<class T>
-std::vector<T> LinearSolver::solveSymmetricTridiagonal(const std::vector<double> &mainDiagonalReadOnly, const std::vector<double> &secondaryDiagonalReadOnly, const std::vector<T> &inputVectorReadOnly)
+std::vector<T> LinearAlgebra::solveSymmetricTridiagonal(const std::vector<double> &mainDiagonalReadOnly, const std::vector<double> &secondaryDiagonalReadOnly, const std::vector<T> &inputVectorReadOnly)
 {
     //use the thomas algorithm to solve the tridiagonal matrix
     // http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
@@ -59,7 +59,7 @@ std::vector<T> LinearSolver::solveSymmetricTridiagonal(const std::vector<double>
 }
 
 template<class T>
-std::vector<T> LinearSolver::solveCyclicSymmetricTridiagonal(const std::vector<double> &mainDiagonal, const std::vector<double> &secondaryDiagonal, const std::vector<T> &inputVector)
+std::vector<T> LinearAlgebra::solveCyclicSymmetricTridiagonal(const std::vector<double> &mainDiagonal, const std::vector<double> &secondaryDiagonal, const std::vector<T> &inputVector)
 {
     //apply the sherman-morrison algorithm to the cyclic tridiagonal matrix so that we can use the standard tridiagonal algorithm
     //we're getting this algorithm from http://www.cs.princeton.edu/courses/archive/fall11/cos323/notes/cos323_f11_lecture06_linsys2.pdf
@@ -110,7 +110,7 @@ std::vector<T> LinearSolver::solveCyclicSymmetricTridiagonal(const std::vector<d
 
 //given two arrays of doubles, compute the dot product of the two arrays
 template<class S, class T>
-S LinearSolver::vectorDotProduct(const std::vector<S> &left, const std::vector<T> &right)
+S LinearAlgebra::vectorDotProduct(const std::vector<S> &left, const std::vector<T> &right)
 {
     S sum = S();
     for(int i = 0; i < left.size(); i++)

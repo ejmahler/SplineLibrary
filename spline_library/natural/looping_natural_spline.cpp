@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cmath>
 
-#include "spline_library/utils/linearsolver.h"
+#include "spline_library/utils/linearalgebra.h"
 #include "spline_library/utils/t_calculator.h"
 
 LoopingNaturalSpline::LoopingNaturalSpline(const std::vector<Vector3D> &points, double alpha)
@@ -62,7 +62,7 @@ LoopingNaturalSpline::LoopingNaturalSpline(const std::vector<Vector3D> &points, 
     }
 
     //solve the cyclic tridiagonal system to get the curvature at each point
-    std::vector<Vector3D> curvatures = LinearSolver::solveCyclicSymmetricTridiagonal(diagonal, upperDiagonal, inputVector);
+    std::vector<Vector3D> curvatures = LinearAlgebra::solveCyclicSymmetricTridiagonal(diagonal, upperDiagonal, inputVector);
 
     //we now have the curvature for every point
     //use this curvature to determine a,b,c,and d to build each segment

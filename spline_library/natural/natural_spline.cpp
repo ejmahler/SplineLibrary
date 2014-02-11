@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cmath>
 
-#include "spline_library/utils/linearsolver.h"
+#include "spline_library/utils/linearalgebra.h"
 #include "spline_library/utils/t_calculator.h"
 
 NaturalSpline::NaturalSpline()
@@ -85,7 +85,7 @@ NaturalSpline::NaturalSpline(const std::vector<Vector3D> &points, bool includeEn
     inputVector.erase(inputVector.begin());
 
     //solve the tridiagonal system to get the curvature at each point
-    std::vector<Vector3D> curvatures = LinearSolver::solveSymmetricTridiagonal(diagonal, upperDiagonal, inputVector);
+    std::vector<Vector3D> curvatures = LinearAlgebra::solveSymmetricTridiagonal(diagonal, upperDiagonal, inputVector);
 
     //we didn't compute the first or last curvature, which will be 0
     curvatures.insert(curvatures.begin(), Vector3D());

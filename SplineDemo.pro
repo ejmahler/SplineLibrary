@@ -16,7 +16,6 @@ SOURCES += \
     spline_library/vector3d.cpp \
     spline_library/splineinverter.cpp \
     spline_library/spline.cpp \
-    spline_library/utils/linearsolver.cpp \
     spline_library/utils/t_calculator.cpp \
     spline_library/basis/cubic_b_spline.cpp \
     spline_library/basis/looping_cubic_b_spline.cpp \
@@ -30,7 +29,8 @@ SOURCES += \
     spline_library/hermite/quintic/looping_quintic_hermite_spline.cpp \
     spline_library/hermite/quintic/quintic_cr_spline.cpp \
     spline_library/hermite/quintic/quintic_hermite_spline.cpp \
-    spline_library/splinelengthcalculator.cpp
+    spline_library/splinelengthcalculator.cpp \
+    spline_library/utils/linearalgebra.cpp
 
 HEADERS  += \
     demo/settingswidget.h \
@@ -40,7 +40,6 @@ HEADERS  += \
     spline_library/vector3d.h \
     spline_library/splineinverter.h \
     spline_library/spline.h \
-    spline_library/utils/linearsolver.h \
     spline_library/utils/t_calculator.h \
     spline_library/basis/cubic_b_spline.h \
     spline_library/basis/looping_cubic_b_spline.h \
@@ -54,7 +53,8 @@ HEADERS  += \
     spline_library/hermite/quintic/looping_quintic_hermite_spline.h \
     spline_library/hermite/quintic/quintic_cr_spline.h \
     spline_library/hermite/quintic/quintic_hermite_spline.h \
-    spline_library/splinelengthcalculator.h
+    spline_library/splinelengthcalculator.h \
+    spline_library/utils/linearalgebra.h
 
 FORMS    += \
     demo/settingswidget.ui \
