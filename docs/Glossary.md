@@ -19,7 +19,7 @@ In the context of a spline, the first derivative answers the question "in what d
 The derivative of a function is itself a function, so we can logically extend the idea of a derivative to this function too. When we take the derivative of a derivative, we obtain a "second derivative" - that is, the rate of change of the first derivative. In the context of a spline, this answers the questions "Is the spline speeding up or slowing down at `t`? Is it turning left or turning right?" and is called the "curvature".
 
 ### Continuous
-In layman's terma, a function is said to be "continuous" if there are no "breaks" or "jumps" in the function. An informal mathematical definition might be `if the limit of f(x) - f(x + h) as h goes to 0 is equal to 0 for all x, then f is continuous`.
+In layman's terma, a function is said to be "continuous" if there are no "breaks" or "jumps" in the function. An informal mathematical definition might be `f is continuous if and only if, for all x, the limit of f(x) - f(x + h) as h goes to 0 is equal to 0`.
 
 In the context of the spline, we can easily verify that the spline is continous, because it doesn't stop at one point and suddenly start up again somewhere else, with a gap in between. It is always possible to trace a path with our finger from the start of a spline to the end of a spline without lifting our finger.
 
@@ -33,6 +33,6 @@ Second derivatives can also be continuous or non-continous, but this is not a pr
 ### Local Control
 Local control is an optional property of splines that is very desirable for many applications. For a spline with local control, moving a data point will only affect the spline segments near to that point, leaving all others affected. This can be seen in the demo when looking at a `CRSpline`, which has local control: If we move one data point, two segments to the left and to segments to the right will move, but all other parts of the spline will remain untouched.
 
-Conversely, the `NaturalSpline` is an example if a spline that does not have local control. If we move a data point in the demo, every single spline segment is affected, rather than just the ones near the data point.
+Conversely, the `NaturalSpline` is an example of a spline that does not have local control. If we move a data point in the demo, every single spline segment is affected, rather than just the ones near the data point.
 
 It is useful to point out here that the Natural Spline has a continuous curvature, while the Catmull-Rom Spline does not, this highlighting the fact that choosing a spline type is about balancing tradeoffs between different features of each type. 
