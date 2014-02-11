@@ -42,3 +42,10 @@ The spline_library code has no third-party dependencies, so it's safe to drop th
 License
 -------------
 This code is available under the terms of the Mozilla Public License v2.0 http://mozilla.org/MPL/2.0/
+
+To-Do
+-------------
+* Implement a Generic B-Sline type that supports arbitrary powers, in addition to the cubic-only version. The generic one would almost certainly have worse performance and numerical stability than the cubic-only version, so it's worth keeping both.
+* Add support for arbitrary T value differences in the Cubic B-Spline
+* Integrate a spatial index library to replace the sweep-and-prune algorithm currently used by the SplineInverter
+
