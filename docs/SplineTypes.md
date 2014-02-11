@@ -2,6 +2,10 @@ Spline Types
 =============
 This page gives a breakdown of each spline type, how to use each one, and the advantages/disadvantages of each type.
 
+Tl;dr
+-------------
+If you need the spline to pass through the input points, start with a [Catmull-Rom Spline](#catmull-rom-spline). If you don't, start with a [Cubic B-Spline](#cubic-b-spline).
+
 Simple Types
 ------------- 
 If you're not sure which one to use, start with these three.

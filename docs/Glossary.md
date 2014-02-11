@@ -19,7 +19,7 @@ In the context of a spline, the first derivative answers the question "in what d
 The derivative of a function is itself a function, so we can logically extend the idea of a derivative to this function too. When we take the derivative of a derivative, we obtain a "second derivative" - that is, the rate of change of the first derivative. In the context of a spline, this answers the questions "Is the spline speeding up or slowing down at `t`? Is it turning left or turning right?" and is called the "curvature".
 
 ### Continuous
-In layman's terma, a function is said to be "continuous" if there are no "breaks" or "jumps" in the function. An informal mathematical definition might be `f is continuous if and only if, for all x, the limit of f(x) - f(x + h) as h goes to 0 is equal to 0`.
+In layman's terms, a function is said to be "continuous" if there are no "breaks" or "jumps" in the function. An informal mathematical definition might be `f is continuous if and only if, for all x, the limit of f(x) - f(x + h) as h goes to 0 is equal to 0`.
 
 In the context of the spline, we can easily verify that the spline is continous, because it doesn't stop at one point and suddenly start up again somewhere else, with a gap in between. It is always possible to trace a path with our finger from the start of a spline to the end of a spline without lifting our finger.
 

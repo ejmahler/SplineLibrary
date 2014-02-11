@@ -27,7 +27,9 @@ Documentation
 
 [Spline class API](docs/SplineAPI.md) - API documentation of the `Spline` base class.
 
-[Spline Types](docs/SplineTypes.md) - complete list of all supported spline formulas
+[Spline Types](docs/SplineTypes.md) - Complete list of all supported spline formulas
+
+[Spline Utilities](docs/SplineUtilities.md) - Documentation of some utility classes for splines, including `SplineInverter` and `SplineLengthCalculator`.
 
 Project Layout
 -------------
