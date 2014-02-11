@@ -23,6 +23,8 @@ Features
 
 Documentation
 -------------
+[Glossary](docs/Glossary.md) - Glossary of important terms for understanding splines.
+
 [Spline class API](docs/SplineAPI.md) - API documentation of the `Spline` base class.
 
 [Spline Types](docs/SplineTypes.md) - complete list of all supported spline formulas
