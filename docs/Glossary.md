@@ -14,7 +14,7 @@ A spline is said to be piecewise because it is not composed of one single mathem
 ### Derivative
 The derivative comes from calculus - it describes the rate of change of a function. It answers the question "Given a mathematical formula, how does that formula's output change?"
 
-In the context of a spline, the first derivative answers the question "in what direction is the spline moving in at the `t`?". We call this the "tangent".
+In the context of a spline, the first derivative answers the question "in what direction is the spline moving at `t`?". We call this the "tangent".
 
 The derivative of a function is itself a function, so we can logically extend the idea of a derivative to this function too. When we take the derivative of a derivative, we obtain a "second derivative" - that is, the rate of change of the first derivative. In the context of a spline, this answers the questions "Is the spline speeding up or slowing down at `t`? Is it turning left or turning right?" and is called the "curvature".
 
