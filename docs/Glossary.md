@@ -28,7 +28,7 @@ Derivatives of a function can be continuous or non-continous as well. As said be
 We can verify that a spline's derivative is continuous in the demo. If a spline's derivative wasn't continuous, the spline would appear to sharply change direction, rather than forming a smooth curve.
 
 ### Continuous Curvature
-Second derivatives can also be continuous or non-continous, but this is not a priority for many spline types. It is much harder to visually verify that a spline's curvature is continuous, but it can be a useful property for some applications, so the spline type page lists whether or not the curvature is continuous for each type.
+Second derivatives can also be continuous or non-continous, but this is not a priority for many spline types. It is much harder to visually verify that a spline's curvature is continuous, but it can be a useful property for some applications, so the [Spline Types](SplineTypes.md) page lists whether or not the curvature is continuous for each type.
 
 ### Local Control
 Local control is an optional property of splines that is very desirable for many applications. For a spline with local control, moving a data point will only affect the spline segments near to that point, leaving all others affected. This can be seen in the demo when looking at a `CRSpline`, which has local control: If we move one data point, two segments to the left and to segments to the right will move, but all other parts of the spline will remain untouched.
