@@ -54,7 +54,9 @@ HEADERS  += \
     spline_library/hermite/quintic/quintic_cr_spline.h \
     spline_library/hermite/quintic/quintic_hermite_spline.h \
     spline_library/splinelengthcalculator.h \
-    spline_library/utils/linearalgebra.h
+    spline_library/utils/linearalgebra.h \
+    spline_library/utils/nanoflann.hpp \
+    spline_library/utils/splinesample_adaptor.h
 
 FORMS    += \
     demo/settingswidget.ui \

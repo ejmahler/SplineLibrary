@@ -113,6 +113,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 		if(objectId >= 0)
 		{
 			draggedObject = objectId;
+            rebuildSpline(mainSpline->getPoints());
 		}
 	}
 	else if(event->button() == Qt::RightButton)
@@ -127,10 +128,11 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
 		if(objectId >= 0)
 		{
-			selectedObject = objectId;
+            selectedObject = objectId;
+            rebuildSpline(mainSpline->getPoints());
 		}
 	}
-	rebuildSpline(mainSpline->getPoints());
+
 }
 
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
@@ -167,7 +169,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 		else 
 		{
 			//if we're not currently dragging an object, get the current T to the mouse position
-			float closest = splineInverter->findClosestFast(realPos);
+            double closest = splineInverter->findClosestFast(realPos);
 
 			//redraw to highlight this new closest T
 			DisplayData d;

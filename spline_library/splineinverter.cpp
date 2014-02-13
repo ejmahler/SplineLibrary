@@ -1,6 +1,8 @@
 #include "splineinverter.h"
 
 #include "spline.h"
+#include "spline_library/utils/splinesample_adaptor.h"
+#include "spline_library/utils/nanoflann.hpp"
 
 #include <algorithm>
 
@@ -10,9 +12,49 @@ template <typename T> int sign(T val) {
     return (T(0) < val) - (val < T(0));
 }
 
-SplineInverter::SplineInverter(const std::shared_ptr<Spline> &spline, int samplesPerT)
-	:spline(spline), sampleStep(1 / double(samplesPerT)), slopeTolerance(0.01)
+//inner class used to provide an abstraction between the spline inverter and nanoflann
+class SplineInverter::SampleTree
 {
+    typedef SplineSampleAdaptor<SplineSamples3D> AdaptorType;
+    typedef nanoflann::KDTreeSingleIndexAdaptor<
+            nanoflann::L2_Simple_Adaptor<double, AdaptorType>,
+            AdaptorType, 3>
+        TreeType;
+
+public:
+    SampleTree(const SplineSamples3D &samples)
+        :adaptor(samples), tree(3, adaptor)
+    {
+        tree.buildIndex();
+    }
+
+    double findClosestSample(const Vector3D &queryPoint) const
+    {
+        //build a query point
+        double queryPointArray[3] = {queryPoint.x(), queryPoint.y(), queryPoint.z()};
+
+        // do a knn search
+        const size_t num_results = 1;
+        size_t ret_index;
+        double out_dist_sqr;
+        nanoflann::KNNResultSet<double> resultSet(num_results);
+        resultSet.init(&ret_index, &out_dist_sqr );
+        tree.findNeighbors(resultSet, &queryPointArray[0], nanoflann::SearchParams());
+
+        return adaptor.derived().pts.at(ret_index).t;
+    }
+
+private:
+    AdaptorType adaptor;
+    TreeType tree;
+
+};
+
+SplineInverter::SplineInverter(const std::shared_ptr<Spline> &spline, int samplesPerT)
+    :spline(spline), sampleStep(1.0 / double(samplesPerT)), slopeTolerance(0.01)
+{
+    SplineSamples3D samples;
+
 	//first step is to populate the splineSamples map
 	//we're going to have sampled T values sorted by x coordinate
 	double currentT = 0;
@@ -20,26 +62,26 @@ SplineInverter::SplineInverter(const std::shared_ptr<Spline> &spline, int sample
 	while(currentT < maxT)
 	{
 		auto sampledPoint = spline->getPosition(currentT);
-		SplineSample sample;
-		sample.position = sampledPoint;
-		sample.t = currentT;
-		splineSamples.push_back(sample);
+        int test1 = samples.pts.size();
+
+        SplineSamples3D::Point3D currentSample(sampledPoint.x(), sampledPoint.y(), sampledPoint.z(), currentT);
+        samples.pts.push_back(currentSample);
 
 		currentT += sampleStep;
 	}
 
 	//if the spline isn't a loop and the final t value isn't very very close to maxT, we have to add a sample for maxT
-	double lastT = splineSamples.at(splineSamples.size() - 1).t;
+    double lastT = samples.pts.at(samples.pts.size() - 1).t;
     if(!spline->isLooping() && abs(lastT / maxT - 1) > .0001)
 	{
 		auto sampledPoint = spline->getPosition(maxT);
-		SplineSample sample;
-		sample.position = sampledPoint;
-		sample.t = maxT;
-		splineSamples.push_back(sample);
-	}
 
-	std::sort(splineSamples.begin(), splineSamples.end());
+        SplineSamples3D::Point3D currentSample(sampledPoint.x(), sampledPoint.y(), sampledPoint.z(), maxT);
+        samples.pts.push_back(currentSample);
+    }
+
+    //populate the sample kd-tree
+    sampleTree = std::unique_ptr<SampleTree>(new SampleTree(samples));
 }
 
 SplineInverter::~SplineInverter()
@@ -49,7 +91,7 @@ SplineInverter::~SplineInverter()
 
 double SplineInverter::findClosestFast(const Vector3D &queryPoint) const
 {
-	double closestSampleT = findClosestSample(queryPoint);
+    double closestSampleT = sampleTree->findClosestSample(queryPoint);
 
 	double sampleDistanceSlope = getDistanceSlope(queryPoint, closestSampleT);
 
@@ -96,7 +138,7 @@ double SplineInverter::findClosestFast(const Vector3D &queryPoint) const
 
 double SplineInverter::findClosestPrecise(const Vector3D &queryPoint) const
 {
-	double closestSampleT = findClosestSample(queryPoint);
+    double closestSampleT = sampleTree->findClosestSample(queryPoint);
 
 	double sampleDistanceSlope = getDistanceSlope(queryPoint, closestSampleT);
 
@@ -139,71 +181,6 @@ double SplineInverter::findClosestPrecise(const Vector3D &queryPoint) const
 	//we know that the actual closest point is now between littleT and bigT
 	//use the circle projection method to find the actual closest point, using the Ts as bounds
 	return bisectionMethod(queryPoint, littleT, bigT);
-}
-
-
-double SplineInverter::findClosestSample(const Vector3D &queryPoint) const
-{
-	//find the index of the lower bound of the query point, by x value
-    int lower = findSampleIndex(queryPoint.x());
-	
-	//find the index of the upper bound of x
-    int upper = lower + 1;
-
-    int size = splineSamples.size();
-
-	auto data = splineSamples.data();
-
-	//use the sweep and prune algorithm to find the closest point in euclidean distance
-	double closestT = data[lower].t;
-	double minimumDistanceSq = (queryPoint - data[lower].position).lengthSquared();
-
-	//keep searching for closer entries with a smaller X value than closestT until
-	//we hit the beginning of the list, or until the x distance is larger than the closest total distance
-	while(--lower >= 0)
-	{
-		double t = data[lower].t;
-		double x = data[lower].position.x();
-
-		//if the x distance between these two points is larger than the distance between the two closest points
-		//then we cannot possibly find a closer point, so break
-		double dx = x - queryPoint.x();
-		if(dx * dx > minimumDistanceSq)
-			break;
-
-		//see if this point is closer than the current closest
-		double currentdistanceSq = (queryPoint - data[lower].position).lengthSquared();
-		if(currentdistanceSq < minimumDistanceSq)
-		{
-			minimumDistanceSq = currentdistanceSq;
-			closestT = t;
-		}
-	}
-
-	//we want to perform the same search in the +x direction too
-    while(upper < size)
-	{
-		double t = data[upper].t;
-		double x = data[upper].position.x();
-
-		//if the x distance between these two points is larger than the distance between the two closest points
-		//then we cannot possibly find a closer point, so break
-		double dx = x - queryPoint.x();
-		if(dx * dx > minimumDistanceSq)
-			break;
-
-		//see if this point is closer than the current closest
-		double currentdistanceSq = (queryPoint - data[upper].position).lengthSquared();
-		if(currentdistanceSq < minimumDistanceSq)
-		{
-			minimumDistanceSq = currentdistanceSq;
-			closestT = t;
-		}
-
-		upper++;
-	}
-
-	return closestT;
 }
 
 double SplineInverter::bisectionMethod(const Vector3D &queryPoint, double lowerBound, double upperBound) const
@@ -319,44 +296,6 @@ double SplineInverter::circleProjectionMethod(const Vector3D &queryPoint, double
         double percent = queryAngle / arcAngle;
         return lowerBound + percent * (upperBound - lowerBound);
     }
-}
-
-int SplineInverter::findSampleIndex(double xValue) const
-{
-	//we want to find the segment whos t0 and t1 values bound x
-	auto data = splineSamples.data();
-
-	//if xValue is lower than the lowest sample's x value, return the lowest sample
-	if(data[0].position.x() > xValue)
-		return 0;
-
-	int maxIndex = splineSamples.size() - 1;
-	if(data[maxIndex].position.x() < xValue)
-		return maxIndex;
-
-	//perform a binary search on segmentData
-	int currentMin = 0;
-	int currentMax = maxIndex;
-	int currentIndex = (currentMin + currentMax) / 2;
-
-	//keep looping as long as this index does not bound x
-	while((currentIndex != maxIndex) &&
-		(data[currentIndex].position.x() > xValue || data[currentIndex + 1].position.x() < xValue))
-	{
-		//if the current index is greater than x, search the left half of the array
-		if(data[currentIndex].position.x() > xValue)
-		{
-			currentMax = currentIndex - 1;
-		}
-
-		//the only other possibility is that the next index is less than x, so search the right half of the array
-		else
-		{
-			currentMin = currentIndex + 1;
-		}
-		currentIndex = (currentMin + currentMax) / 2;
-	}
-	return currentIndex;
 }
 
 double SplineInverter::getDistanceSlope(const Vector3D &queryPoint, double t) const
