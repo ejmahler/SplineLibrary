@@ -31,7 +31,7 @@ private: //data
     //distance in t between samples
     double sampleStep;
 
-    //this inner class will be defined in the source, because we don't want to #include the nanoflann hpp file inside this header
+    //inner class used to provide an abstraction between the spline inverter and nanoflann
     class SampleTree;
     std::unique_ptr<SampleTree> sampleTree;
 };
