@@ -92,6 +92,11 @@ LoopingNaturalSpline::LoopingNaturalSpline(const std::vector<Vector3D> &points, 
 
 Vector3D LoopingNaturalSpline::getPosition(double x) const
 {
+    //use modular arithmetic to bring x into an acceptable range
+    x = fmod(x, numSegments);
+    if(x < 0)
+        x += numSegments;
+
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
     double t = (x - segment.t0);
 
@@ -100,6 +105,11 @@ Vector3D LoopingNaturalSpline::getPosition(double x) const
 
 Spline::InterpolatedPT LoopingNaturalSpline::getTangent(double x) const
 {
+    //use modular arithmetic to bring x into an acceptable range
+    x = fmod(x, numSegments);
+    if(x < 0)
+        x += numSegments;
+
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
     double t = (x - segment.t0);
 
@@ -111,6 +121,11 @@ Spline::InterpolatedPT LoopingNaturalSpline::getTangent(double x) const
 
 Spline::InterpolatedPTC LoopingNaturalSpline::getCurvature(double x) const
 {
+    //use modular arithmetic to bring x into an acceptable range
+    x = fmod(x, numSegments);
+    if(x < 0)
+        x += numSegments;
+
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
     double t = (x - segment.t0);
 
@@ -123,8 +138,12 @@ Spline::InterpolatedPTC LoopingNaturalSpline::getCurvature(double x) const
 
 Spline::InterpolatedPTCW LoopingNaturalSpline::getWiggle(double x) const
 {
-    int index = getSegmentIndex(x);
-    InterpolationData segment = segmentData.at(index);
+    //use modular arithmetic to bring x into an acceptable range
+    x = fmod(x, numSegments);
+    if(x < 0)
+        x += numSegments;
+
+    InterpolationData segment = segmentData.at(getSegmentIndex(x));
     double t = (x - segment.t0);
 
     return InterpolatedPTCW(
