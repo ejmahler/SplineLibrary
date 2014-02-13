@@ -14,7 +14,7 @@ Features
     * Every spline type has both looping and non-looping variants
 * Compute the inverse of a spline
     * Given a data point (not necessarily on the spline, or even close to it), what T value brings the spline closest to that data point?
-    * Create a SplineInverter object and call either its findClosestFast or findClosestPrecise method
+    * Create a SplineInverter object and call its findClosestT method
 * Interpolation of the first, second, and third derivatives of the spline
     * The first derivative is called the "tangent" - this is how quickly and in what direction the interpolated position is changing, per T
     * The second derivative is called the "curvature" - this is how quickly and in what direction the interpolated tangent is changing, per T

@@ -10,16 +10,10 @@ This must be computed numerically - there is no reasonable analytic solution lik
 
 To create a Spline Inverter, import `spline_library/splineinverter.h`, and create a new `SplineInverter` object by passing a `std::shared_ptr<Spline>` to the constructor. `SplineInverter inverter(mySpline);`.
 
-In the SplineInverter constructor, it takes "samples" of the spline at regular intervals. By default it takes 10 samples per T, but this can be changed via a constructor parameter. When given a query point, it first finds the closest sample to the query point, then uses that sample location as the starting point for a refining algorithm. Which algorithm is used depends on which method is called.
+In the SplineInverter constructor, it takes "samples" of the spline at regular intervals. By default it takes 10 samples per T, but this can be changed via a constructor parameter. When given a query point, it first finds the closest sample to the query point, then uses that sample location as the starting point for a refining algorithm.
 
-### double findClosestPrecise(const Vector3D &queryPoint) const
-This method finds the closest sample to the query point, and uses that closest sample as a starting point for the [Bisection Method](http://en.wikipedia.org/wiki/Bisection_method). The bisection method is very similar in concept to a binary search - it starts with a large serch interval, then repeatedly rules out the bottom or top half of the interval. It is very precise, but relatively slow.
-
-### double findClosestFast(const Vector3D &queryPoint) const
-This method finds the closest sample to the query point, then uses that and the adjacent points to project the query point onto a circle arc that extends between the samples.
-Most small spline segments can be approximated with circle arcs, and the shorter the distance between T values, the better the approximation.
-
-This method is very fast, but is less accurate than the precise method.
+### double findClosestT(const Vector3D &queryPoint) const
+This method finds the closest sample to the query point, and uses that closest sample as a starting point for the [Brent's Method](http://en.wikipedia.org/wiki/Brent%27s_method).
 
 Spline Length Calculator
 =============

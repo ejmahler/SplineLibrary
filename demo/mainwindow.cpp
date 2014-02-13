@@ -169,7 +169,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 		else 
 		{
 			//if we're not currently dragging an object, get the current T to the mouse position
-            double closest = splineInverter->findClosestFast(realPos);
+            double closest = splineInverter->findClosestT(realPos);
 
 			//redraw to highlight this new closest T
 			DisplayData d;

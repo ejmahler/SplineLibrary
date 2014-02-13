@@ -225,7 +225,7 @@ void GraphicsController::createDistanceField(const QString &filename)
 						x + base + dx * step,
 						y + base + dy * step, 
 						0);
-                    double tfast = calc.findClosestPrecise(realPoint);
+                    double tfast = calc.findClosestT(realPoint);
                     colorVector += getColor(tfast);
 				}
 			}
