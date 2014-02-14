@@ -43,7 +43,7 @@ License
 -------------
 This code is available under the terms of the [Mozilla Public License v2.0](http://mozilla.org/MPL/2.0/)
 
-This project includes the [nanoflann](https://code.google.com/p/nanoflann/) library for fast nearest-neighbor queries, which is avilable under the [Simplified BSD License](http://opensource.org/licenses/BSD-2-Clause)
+This project includes the [nanoflann](https://code.google.com/p/nanoflann/) library for fast nearest-neighbor queries, which is available under the [Simplified BSD License](http://opensource.org/licenses/BSD-2-Clause)
 
 To-Do
 -------------
