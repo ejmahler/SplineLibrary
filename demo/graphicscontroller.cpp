@@ -134,8 +134,7 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	painter.setOpacity(1);
     painter.setPen(Qt::white);
 
-    drawDiagnosticText(painter, 5, "Precise Length", QString::number(lengthCalc.findLengthPrecise(0, mainSpline->getMaxT())));
-    drawDiagnosticText(painter, 25, "Fast Length", QString::number(lengthCalc.findLengthFast(0, mainSpline->getMaxT())));
+    drawDiagnosticText(painter, 5, "Spline Length", QString::number(lengthCalc.findLength(0, mainSpline->getMaxT())));
 
 	//draw container for control data
     int controlBoxWidth = 225;

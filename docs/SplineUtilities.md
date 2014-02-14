@@ -21,8 +21,8 @@ The Spline Length calculator object is used to answer the question "How long is 
 
 To create a Spline Length Calculator, import `spline_library/splinelengthcalculator.h` and create a new `SplineLengthCalcuator` object by passing a `std::shared_ptr<Spline>` to the constructor. `SplineLengthCalculator lengthCalculator(myspline);`
 
-### double findLengthPrecise(double beginT, double endT, bool useShortestPath=false) const
-This method recursively subdivides the specified segment until the difference in tangent between the subdivided segments is negligible. It then returns the sum of the straight-line length of those subdivided segments. It is very precise, but relatively slow.
+### double findLength(double beginT, double endT, bool useShortestPath=false) const
+This method recursively subdivides the specified segment until the difference in tangent between the subdivided segments is negligible. It then returns the sum of the straight-line length of those subdivided segments.
 
 If the spline is a non-looping spline, the useShortestPath parameter has no effect. If the spline is a looping spline and useShortestPath parameter is true, this method will compute the shortest path around the spline, either forwards or backwards, rather than blindly returning the distance from beginT to endT.
 
