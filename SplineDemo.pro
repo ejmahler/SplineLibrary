@@ -30,7 +30,9 @@ SOURCES += \
     spline_library/hermite/quintic/quintic_cr_spline.cpp \
     spline_library/hermite/quintic/quintic_hermite_spline.cpp \
     spline_library/splinelengthcalculator.cpp \
-    spline_library/utils/linearalgebra.cpp
+    spline_library/utils/linearalgebra.cpp \
+    spline_library/linear/linear_spline.cpp \
+    spline_library/linear/looping_linear_spline.cpp
 
 HEADERS  += \
     demo/settingswidget.h \
@@ -56,7 +58,9 @@ HEADERS  += \
     spline_library/splinelengthcalculator.h \
     spline_library/utils/linearalgebra.h \
     spline_library/utils/nanoflann.hpp \
-    spline_library/utils/splinesample_adaptor.h
+    spline_library/utils/splinesample_adaptor.h \
+    spline_library/linear/linear_spline.h \
+    spline_library/linear/looping_linear_spline.h
 
 FORMS    += \
     demo/settingswidget.ui \
