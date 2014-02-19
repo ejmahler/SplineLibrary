@@ -1,11 +1,12 @@
 #ifndef SETTINGSWIDGET_H
 #define SETTINGSWIDGET_H
 
-#include <QWidget>
+#include <QDialog>
 #include <QMap>
-namespace Ui {class SettingsWidget;};
 
-class SettingsWidget : public QWidget
+namespace Ui {class SettingsWidget;}
+
+class SettingsWidget : public QDialog
 {
 	Q_OBJECT
 

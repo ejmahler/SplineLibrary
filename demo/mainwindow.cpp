@@ -30,7 +30,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
 	: QWidget(parent),
-	settingsWidget(new SettingsWidget()),
+    settingsWidget(new SettingsWidget(this)),
 	graphicsController(new GraphicsController(this)),
 
 	leftMousePressed(0),
@@ -64,8 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-	delete ui;
-	delete settingsWidget;
+    delete ui;
 }
 
 void MainWindow::settingChanged(void)

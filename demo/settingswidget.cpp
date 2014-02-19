@@ -9,7 +9,7 @@
 #include "settings.h"
 
 SettingsWidget::SettingsWidget(QWidget *parent)
-	: QWidget(parent)
+    : QDialog(parent)
 {
 	ui = new Ui::SettingsWidget();
 	ui->setupUi(this);
