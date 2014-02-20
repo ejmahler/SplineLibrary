@@ -13,8 +13,8 @@ SplineLengthCalculator::SplineLengthCalculator(const std::shared_ptr<Spline> &sp
       spline(spline),
       maxT(spline->getMaxT()),
 
-      //compute the length of the whole spline, to optimize "shortest path" length calculations later
-      splineLength(findLength(0, maxT, false))
+      //the spline length will be lazy-computed when it's needed
+      splineLength(-1)
 {
 
 }
@@ -38,6 +38,15 @@ double SplineLengthCalculator::findLength(double beginT, double endT, bool useSh
 
         //compute length
         double computedLength = computeLength(actualBeginT, actualEndT);
+
+        //lazy compute the spline length
+        if(splineLength < 0)
+        {
+            //modifying a variable inside of a const function can be non thread safe, but in this case thread safety is not a concern
+            //we're using std::atomic so the worst possible thing that could happen is this variable could be computed multiple times by simultaneous threads
+            //but if that happens, it'll be the same both times so who cares
+            splineLength = findLength(0, maxT, false);
+        }
 
         //that was one direction around, the other direction will be (splineLength - computedLength). return the smaller of the two
         return std::min(computedLength, splineLength - computedLength);

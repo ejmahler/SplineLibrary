@@ -2,6 +2,7 @@
 #define SPLINELENGTHCALCULATOR_H
 
 #include <memory>
+#include <atomic>
 
 class Spline;
 class Vector3D;
@@ -28,7 +29,7 @@ private: //data
 
     std::shared_ptr<Spline> spline;
     double maxT;
-    double splineLength;
+    mutable std::atomic<double> splineLength;
 };
 
 #endif // SPLINELENGTHCALCULATOR_H
