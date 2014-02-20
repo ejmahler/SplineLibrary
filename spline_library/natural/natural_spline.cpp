@@ -128,7 +128,7 @@ Vector3D NaturalSpline::getPosition(double x) const
 Spline::InterpolatedPT NaturalSpline::getTangent(double x) const
 {
     InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
+    double t = (x - segment.t0);
 
     return InterpolatedPT(
                 computePosition(t, segment),
@@ -138,8 +138,9 @@ Spline::InterpolatedPT NaturalSpline::getTangent(double x) const
 
 Spline::InterpolatedPTC NaturalSpline::getCurvature(double x) const
 {
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
+    int index = getSegmentIndex(x);
+    InterpolationData segment = segmentData.at(index);
+    double t = (x - segment.t0);
 
     return InterpolatedPTC(
                 computePosition(t, segment),

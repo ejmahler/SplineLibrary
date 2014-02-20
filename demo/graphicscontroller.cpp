@@ -400,7 +400,8 @@ void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_
     double cosAngle = Vector3D::dotProduct(beginNormalizedTangent, endNormalizedTangent);
 
     //if the angle is too low, subdivide this segment into two segments
-    if(cosAngle < thresholdAngle)
+    double minDelta = .001;
+    if(cosAngle < thresholdAngle && (endT - beginT) > minDelta)
     {
         //we dont want the exact middle, give a bias to the end whose curvature rejected against the tangent is longer
         //if one side's curvature rejection is larger, it means that side is turning faster, so we can reduce the number of segments
