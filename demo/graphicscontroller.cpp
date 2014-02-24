@@ -52,7 +52,7 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	if(displayData.imagePath != backgroundImagePath)
 	{
 		backgroundImagePath = displayData.imagePath;
-		backgroundImage = std::shared_ptr<QImage>(new QImage(backgroundImagePath));
+        backgroundImage = std::make_shared<QImage>(backgroundImagePath);
 
 		//if loading failed, set the image to null
 		if(backgroundImage->isNull())
@@ -197,9 +197,9 @@ void GraphicsController::createDistanceField(const QString &filename)
 			double(qrand()) / RAND_MAX));
 	}
     if(mainSpline->isLooping())
-        colorSpline = std::shared_ptr<Spline>(new LoopingCRSpline(colorList));
+        colorSpline = std::make_shared<LoopingCRSpline>(colorList);
     else
-        colorSpline = std::shared_ptr<Spline>(new CRSpline(colorList));
+        colorSpline = std::make_shared<CRSpline>(colorList);
 
 	painter.fillRect(0,0,output.width(),output.height(),Qt::white);
 

@@ -219,7 +219,7 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
     }
     graphicsController->setSecondarySpline(secondarySpline);
 
-    splineInverter = std::shared_ptr<SplineInverter>(new SplineInverter(mainSpline, 100));
+    splineInverter = std::make_shared<SplineInverter>(mainSpline, 100);
 
 	DisplayData d;
     d.showConnectingLines = settingsWidget->getOption("misc_showConnectingLines").toBool();
@@ -236,44 +236,44 @@ std::shared_ptr<Spline> MainWindow::createSpline(const std::vector<Vector3D> &po
     {
         if(isLooping)
         {
-            return std::shared_ptr<Spline>(new LoopingCRSpline(pointList, alpha));
+            return std::make_shared<LoopingCRSpline>(pointList, alpha);
         }
         else
         {
-            return std::shared_ptr<Spline>(new CRSpline(pointList, alpha));
+            return std::make_shared<CRSpline>(pointList, alpha);
         }
     }
     else if(splineType == "Cubic B-Spline")
     {
         if(isLooping)
         {
-            return std::shared_ptr<Spline>(new LoopingCubicBSpline(pointList));
+            return std::make_shared<LoopingCubicBSpline>(pointList);
         }
         else
         {
-            return std::shared_ptr<Spline>(new CubicBSpline(pointList));
+            return std::make_shared<CubicBSpline>(pointList);
         }
     }
     else if(splineType == "Cubic Natural Spline")
     {
         if(isLooping)
         {
-            return std::shared_ptr<Spline>(new LoopingNaturalSpline(pointList, alpha));
+            return std::make_shared<LoopingNaturalSpline>(pointList, alpha);
         }
         else
         {
-            return std::shared_ptr<Spline>(new NaturalSpline(pointList, includeEndpoints, alpha));
+            return std::make_shared<NaturalSpline>(pointList, includeEndpoints, alpha);
         }
     }
     else
     {
         if(isLooping)
         {
-            return std::shared_ptr<Spline>(new LoopingQuinticCRSpline(pointList, alpha));
+            return std::make_shared<LoopingQuinticCRSpline>(pointList, alpha);
         }
         else
         {
-            return std::shared_ptr<Spline>(new QuinticCRSpline(pointList, alpha));
+            return std::make_shared<QuinticCRSpline>(pointList, alpha);
         }
     }
 }
