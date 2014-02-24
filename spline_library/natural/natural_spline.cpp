@@ -16,7 +16,7 @@ NaturalSpline::NaturalSpline(const std::vector<Vector3D> &points, bool includeEn
 
     std::unordered_map<int, double> indexToT_Raw;
 
-    int size = points.size();
+    size_t size = points.size();
     int firstPoint;
 
     if(includeEndpoints)
@@ -43,46 +43,42 @@ NaturalSpline::NaturalSpline(const std::vector<Vector3D> &points, bool includeEn
     //the tridiagonal matrix's main diagonal will be neighborDeltaT, and the secondary diagonals will be deltaT
     //the list of values to solve for will be neighborDeltaPoint
 
+    size_t loop_limit = size - 1;
+
     //create an array of the differences in T between one point and the next
-    std::vector<double> upperDiagonal;
-    for(size_t i = 0; i < points.size() - 1; i++)
+    std::vector<double> upperDiagonal(loop_limit);
+    for(size_t i = 0; i < loop_limit; i++)
     {
         double delta = indexToT.at(i + 1) - indexToT.at(i);
-        upperDiagonal.push_back(delta);
+        upperDiagonal[i] = delta;
     }
 
     //create an array that stores 2 * (deltaT.at(i - 1) + deltaT.at(i))
-    //note that since we have to reference i - 1, the first element of this array is garbage and will not be used
-    std::vector<double> diagonal;
-    diagonal.push_back(0);
-    for(size_t i = 1; i < points.size() - 1; i++)
+    std::vector<double> diagonal(loop_limit - 1);
+    for(size_t i = 1; i < loop_limit; i++)
     {
         double neighborDelta = 2 * (upperDiagonal.at(i - 1) + upperDiagonal.at(i));
-        diagonal.push_back(neighborDelta);
+        diagonal[i - 1] = neighborDelta;
     }
 
     //create an array of displacement between each point, divided by delta t
-    std::vector<Vector3D> deltaPoint;
-    for(size_t i = 0; i < points.size() - 1; i++)
+    std::vector<Vector3D> deltaPoint(loop_limit);
+    for(size_t i = 0; i < loop_limit; i++)
     {
         Vector3D displacement = points.at(i + 1) - points.at(i);
-        deltaPoint.push_back(displacement / upperDiagonal.at(i));
+        deltaPoint[i] = displacement / upperDiagonal.at(i);
     }
 
     //create an array that stores 3 * (deltaPoint(i - 1) + deltaPoint(i))
-    //note that since we have to reference i - 1, the first element of this array is garbage and will not be used
-    std::vector<Vector3D> inputVector;
-    inputVector.push_back(Vector3D());
-    for(size_t i = 1; i < points.size() - 1; i++)
+    std::vector<Vector3D> inputVector(loop_limit - 1);
+    for(size_t i = 1; i < loop_limit; i++)
     {
         Vector3D neighborDelta = 3 * (deltaPoint.at(i) - deltaPoint.at(i - 1));
-        inputVector.push_back(neighborDelta);
+        inputVector[i - 1] = neighborDelta;
     }
 
-    //remove the first element of each vector, since it won't be used
-    diagonal.erase(diagonal.begin());
+    //the first element in upperDiagonal is garbage, so remove it
     upperDiagonal.erase(upperDiagonal.begin());
-    inputVector.erase(inputVector.begin());
 
     //solve the tridiagonal system to get the curvature at each point
     std::vector<Vector3D> curvatures = LinearAlgebra::solveSymmetricTridiagonal(diagonal, upperDiagonal, inputVector);

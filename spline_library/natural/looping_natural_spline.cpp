@@ -13,7 +13,7 @@ LoopingNaturalSpline::LoopingNaturalSpline(const std::vector<Vector3D> &points, 
     std::unordered_map<int, double> indexToT_Raw;
     std::unordered_map<int, Vector3D> pointMap;
 
-    int size = points.size();
+    size_t size = points.size();
     numSegments = size;
 
     //compute the T values for each point
@@ -28,37 +28,37 @@ LoopingNaturalSpline::LoopingNaturalSpline(const std::vector<Vector3D> &points, 
     //the list of values to solve for will be neighborDeltaPoint
 
     //create an array of the differences in T between one point and the next
-    std::vector<double> upperDiagonal;
-    for(size_t i = 0; i < points.size(); i++)
+    std::vector<double> upperDiagonal(size);
+    for(size_t i = 0; i < size; i++)
     {
         double delta = indexToT.at(i + 1) - indexToT.at(i);
-        upperDiagonal.push_back(delta);
+        upperDiagonal[i] = delta;
     }
 
     //create an array that stores 2 * (deltaT.at(i - 1) + deltaT.at(i))
     //when i = 0, wrap i - 1 back around to the end of the list
-    std::vector<double> diagonal;
-    for(size_t i = 0; i < points.size(); i++)
+    std::vector<double> diagonal(size);
+    for(size_t i = 0; i < size; i++)
     {
         double neighborDelta = 2 * (upperDiagonal.at((i - 1 + size)%size) + upperDiagonal.at(i));
-        diagonal.push_back(neighborDelta);
+        diagonal[i] = neighborDelta;
     }
 
     //create an array of displacement between each point, divided by delta t
-    std::vector<Vector3D> deltaPoint;
-    for(size_t i = 0; i < points.size(); i++)
+    std::vector<Vector3D> deltaPoint(size);
+    for(size_t i = 0; i < size; i++)
     {
         Vector3D displacement = points.at((i + 1)%size) - points.at(i);
-        deltaPoint.push_back(displacement / upperDiagonal.at(i));
+        deltaPoint[i] = displacement / upperDiagonal.at(i);
     }
 
     //create an array that stores 3 * (deltaPoint(i - 1) + deltaPoint(i))
     //when i = 0, wrap i - 1 back around to the end of the list
-    std::vector<Vector3D> inputVector;
-    for(size_t i = 0; i < points.size(); i++)
+    std::vector<Vector3D> inputVector(size);
+    for(size_t i = 0; i < size; i++)
     {
         Vector3D neighborDelta = 3 * (deltaPoint.at(i) - deltaPoint.at((i - 1 + size) % size));
-        inputVector.push_back(neighborDelta);
+        inputVector[i] = neighborDelta;
     }
 
     //solve the cyclic tridiagonal system to get the curvature at each point
