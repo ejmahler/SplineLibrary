@@ -102,7 +102,7 @@ QString SettingsWidget::getSettingName(const QString &objectName)
 void SettingsWidget::loadSettings(void)
 {
     //go through all line edits
-    foreach(QLineEdit *x, findChildren<QLineEdit*>())
+    for(QLineEdit *x: findChildren<QLineEdit*>())
     {
         QString category = getSettingCategory(x->objectName());
         QString name = getSettingName(x->objectName());
@@ -119,7 +119,7 @@ void SettingsWidget::loadSettings(void)
     }
 
     //go through all combo boxes
-    foreach(QComboBox *x, findChildren<QComboBox*>())
+    for(QComboBox *x: findChildren<QComboBox*>())
     {
         QString category = getSettingCategory(x->objectName());
         QString name = getSettingName(x->objectName());
@@ -136,7 +136,7 @@ void SettingsWidget::loadSettings(void)
     }
 
 	//go through all checkboxes
-	foreach(QRadioButton *x, findChildren<QRadioButton*>())
+    for(QRadioButton *x: findChildren<QRadioButton*>())
 	{
 		QString category = getSettingCategory(x->objectName());
 		QString name = getSettingName(x->objectName());
@@ -153,7 +153,7 @@ void SettingsWidget::loadSettings(void)
 	}
 
 	//go through all radio buttons
-	foreach(QCheckBox *x, findChildren<QCheckBox*>())
+    for(QCheckBox *x: findChildren<QCheckBox*>())
 	{
 		QString category = getSettingCategory(x->objectName());
 		QString name = getSettingName(x->objectName());
@@ -170,7 +170,7 @@ void SettingsWidget::loadSettings(void)
 	}
 
 	//go through all spin boxes
-	foreach(QSlider *x, findChildren<QSlider*>())
+    for(QSlider *x: findChildren<QSlider*>())
 	{
 		QString category = getSettingCategory(x->objectName());
 		QString name = getSettingName(x->objectName());
@@ -187,7 +187,7 @@ void SettingsWidget::loadSettings(void)
 	}
 
 	//go through all spin boxes
-	foreach(QSpinBox *x, findChildren<QSpinBox*>())
+    for(QSpinBox *x: findChildren<QSpinBox*>())
 	{
 		QString category = getSettingCategory(x->objectName());
 		QString name = getSettingName(x->objectName());
@@ -204,7 +204,7 @@ void SettingsWidget::loadSettings(void)
 	}
 
 	//go through all double spin boxes
-	foreach(QDoubleSpinBox *x, findChildren<QDoubleSpinBox*>())
+    for(QDoubleSpinBox *x: findChildren<QDoubleSpinBox*>())
 	{
 		QString category = getSettingCategory(x->objectName());
 		QString name = getSettingName(x->objectName());
@@ -224,7 +224,7 @@ void SettingsWidget::loadSettings(void)
 void SettingsWidget::setSignals(void)
 {
     //connect all line edits
-    foreach(QLineEdit *x, findChildren<QLineEdit*>())
+    for(QLineEdit *x: findChildren<QLineEdit*>())
     {
         connect(
             x,
@@ -235,7 +235,7 @@ void SettingsWidget::setSignals(void)
     }
 
     //connect all combo boxes
-    foreach(QComboBox *x, findChildren<QComboBox*>())
+    for(QComboBox *x: findChildren<QComboBox*>())
     {
         connect(
             x,
@@ -246,7 +246,7 @@ void SettingsWidget::setSignals(void)
     }
 
 	//connect all radio buttons
-	foreach(QRadioButton *x, findChildren<QRadioButton*>())
+    for(QRadioButton *x: findChildren<QRadioButton*>())
 	{
 		connect(
 			x,
@@ -257,7 +257,7 @@ void SettingsWidget::setSignals(void)
 	}
 
 	//connect all checkboxes
-	foreach(QCheckBox *x, findChildren<QCheckBox*>())
+    for(QCheckBox *x: findChildren<QCheckBox*>())
 	{
 		connect(
 			x,
@@ -268,7 +268,7 @@ void SettingsWidget::setSignals(void)
 	}
 
 	//connect all sliders
-	foreach(QSlider *x, findChildren<QSlider*>())
+    for(QSlider *x: findChildren<QSlider*>())
 	{
 		connect(
 			x,
@@ -279,7 +279,7 @@ void SettingsWidget::setSignals(void)
 	}
 
 	//connect all spin boxes
-	foreach(QDoubleSpinBox *x, findChildren<QDoubleSpinBox*>())
+    for(QDoubleSpinBox *x: findChildren<QDoubleSpinBox*>())
 	{
 		connect(
 			x,
@@ -290,7 +290,7 @@ void SettingsWidget::setSignals(void)
 	}
 
 	//connect all double spin boxes
-	foreach(QSpinBox *x, findChildren<QSpinBox*>())
+    for(QSpinBox *x: findChildren<QSpinBox*>())
 	{
 		connect(
 			x,

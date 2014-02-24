@@ -38,9 +38,9 @@ std::unordered_map<int, double> TCalculator::computeTValues(const std::vector<Ve
 
     //now that we have all ouf our t values and indexes figured out, normalize the t values by dividing them by maxT
     double multiplier = desiredMaxT / maxTRaw;
-    for(auto it = indexToT.begin(); it != indexToT.end(); it++)
+    for(auto &entry: indexToT)
     {
-        it->second *= multiplier;
+        entry.second *= multiplier;
     }
 
     return indexToT;
@@ -76,9 +76,9 @@ std::unordered_map<int, double> TCalculator::computeLoopingTValues(const std::ve
 
     //now that we have all ouf our t values and indexes figured out, normalize the t values by dividing them by maxT
     double multiplier = size / maxTRaw;
-    for(auto it = indexToT.begin(); it != indexToT.end(); it++)
+    for(auto &entry: indexToT)
     {
-        it->second *= multiplier;
+        entry.second *= multiplier;
     }
 
     return indexToT;
