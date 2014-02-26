@@ -23,11 +23,6 @@ public:
     //this method is destructive to avoid having to make copies. the contents of the input arrays is undefined after the method returns.
     template<class T>
     static std::vector<T> solveCyclicSymmetricTridiagonal(std::vector<double> &mainDiagonal, std::vector<double> &secondaryDiagonal, std::vector<T> &inputVector);
-
-private:
-    //compute the dot product of the two arrays of data
-    template<class S, class T>
-    static S vectorDotProduct(const std::vector<S> &left, const std::vector<T> &right);
 };
 
 template<class T>
@@ -112,18 +107,6 @@ std::vector<T> LinearAlgebra::solveCyclicSymmetricTridiagonal(std::vector<double
     }
 
     return initialOutput;
-}
-
-//given two arrays of doubles, compute the dot product of the two arrays
-template<class S, class T>
-S LinearAlgebra::vectorDotProduct(const std::vector<S> &left, const std::vector<T> &right)
-{
-    S sum = S();
-    for(int i = 0; i < left.size(); i++)
-    {
-        sum += left.at(i) * right.at(i);
-    }
-    return sum;
 }
 
 #endif // LINEARSOLVER_H
