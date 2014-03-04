@@ -35,9 +35,14 @@ Project Layout
 -------------
 The root of the repository is a Qt Creator project that demonstrates some uses of the library. The source for the spline code itself is in the "spline_library" directory, and the code to set up the demo is in the "demo" directory.
 
+Requirements
+-------------
+
 The demo project requires Qt 5. To build it, either run qmake with the .pro file to generate a makefile, or open the .pro file in qt Creator.
 
 The spline_library code has no third-party dependencies, so it's safe to drop that folder directly in the source folder of your own project.
+
+Both the demo and the spline_library code require a fully compliant C++11 compiler. Visual Studio 2012 currently compiles it correctly, but this is not guaranteed to be the case in the future: VS2012 isn't fully compliant, missing useful features like std::initializer_list.
 
 License
 -------------
@@ -49,4 +54,4 @@ To-Do
 -------------
 * Implement a Generic B-Sline type that supports arbitrary powers, in addition to the cubic-only version. The generic one would almost certainly have worse performance and numerical stability than the cubic-only version, so it's worth keeping both.
 * Add support for arbitrary T value differences in the Cubic B-Spline
-
+* Implement "composite splines", ie a spline that is made by combining two or more splines. Current ideas include a "sum spline" where the output for a given T is a sum of all the child spline results at T, and a "concatenation spline" formed simply by starting one spline where the previous leaves off.
