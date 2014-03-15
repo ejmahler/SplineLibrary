@@ -15,11 +15,6 @@ public:
 
     double findClosestT(const Vector3D &queryPoint) const;
 
-private: //methods
-    double brentsMethod(const Vector3D &queryPoint, double a, double aValue, double b, double bValue) const;
-
-	double getDistanceSlope(const Vector3D &queryPoint, double t) const;
-
 private: //data
     std::shared_ptr<Spline> spline;
 

@@ -32,7 +32,8 @@ SOURCES += \
     spline_library/splinelengthcalculator.cpp \
     spline_library/utils/linearalgebra.cpp \
     spline_library/linear/linear_spline.cpp \
-    spline_library/linear/looping_linear_spline.cpp
+    spline_library/linear/looping_linear_spline.cpp \
+    spline_library/utils/optimization.cpp
 
 HEADERS  += \
     demo/settingswidget.h \
@@ -60,7 +61,8 @@ HEADERS  += \
     spline_library/utils/nanoflann.hpp \
     spline_library/utils/splinesample_adaptor.h \
     spline_library/linear/linear_spline.h \
-    spline_library/linear/looping_linear_spline.h
+    spline_library/linear/looping_linear_spline.h \
+    spline_library/utils/optimization.h
 
 FORMS    += \
     demo/settingswidget.ui \
