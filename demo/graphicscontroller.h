@@ -48,7 +48,7 @@ public:
 	int pickVertex(const QPoint &screenPoint);
 
 protected:
-	 void paintEvent(QPaintEvent *event);
+     void paintEvent(QPaintEvent *event) override;
 
 private:
 
@@ -62,7 +62,7 @@ private:
 	void drawControlText(QPainter &painter, int top, 
 		const QString &labelText,const QString &valueText);
 
-	void keyPressEvent(QKeyEvent *event);
+    void keyPressEvent(QKeyEvent *event) override;
 
     Vector3D getColor(float t) const;
 

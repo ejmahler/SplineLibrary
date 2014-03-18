@@ -16,17 +16,17 @@ class NaturalSpline : public Spline
 
     //methods
     public:
-        virtual Vector3D getPosition(double x) const;
-        virtual InterpolatedPT getTangent(double x) const;
-        virtual InterpolatedPTC getCurvature(double x) const;
-        virtual InterpolatedPTCW getWiggle(double x) const;
+        virtual Vector3D getPosition(double x) const override;
+        virtual InterpolatedPT getTangent(double x) const override;
+        virtual InterpolatedPTC getCurvature(double x) const override;
+        virtual InterpolatedPTCW getWiggle(double x) const override;
 
-        virtual double getT(int index) const;
-        virtual double getMaxT(void) const;
+        virtual double getT(int index) const override;
+        virtual double getMaxT(void) const override;
 
-        virtual const std::vector<Vector3D> &getPoints(void) const;
+        virtual const std::vector<Vector3D> &getPoints(void) const override;
 
-        virtual bool isLooping(void) const;
+        virtual bool isLooping(void) const override;
 
     protected:
 

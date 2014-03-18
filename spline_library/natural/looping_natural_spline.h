@@ -12,12 +12,12 @@ public:
 
     //methods
     public:
-        virtual Vector3D getPosition(double x) const;
-        virtual InterpolatedPT getTangent(double x) const;
-        virtual InterpolatedPTC getCurvature(double x) const;
-        virtual InterpolatedPTCW getWiggle(double x) const;
+        virtual Vector3D getPosition(double x) const override;
+        virtual InterpolatedPT getTangent(double x) const override;
+        virtual InterpolatedPTC getCurvature(double x) const override;
+        virtual InterpolatedPTCW getWiggle(double x) const override;
 
-        virtual bool isLooping(void) const;
+        virtual bool isLooping(void) const override;
 };
 
 #endif // LOOPINGNATURALSPLINE_H

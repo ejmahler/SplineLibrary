@@ -30,12 +30,12 @@ private slots:
 
 private: //methods
 	
-	void keyPressEvent(QKeyEvent *event);
+    void keyPressEvent(QKeyEvent *event) override;
 
-	void mousePressEvent(QMouseEvent *event);
-	void mouseReleaseEvent(QMouseEvent *event);
-	void mouseMoveEvent(QMouseEvent *event);
-	void mouseDoubleClickEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
 	
 	void rebuildSpline(std::vector<Vector3D> pointList);
     std::shared_ptr<Spline> createSpline(const std::vector<Vector3D> &pointList, const QString &splineType, bool looping, float alpha, bool includeEndpoints);
