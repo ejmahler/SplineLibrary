@@ -5,7 +5,7 @@
 #include <cmath>
 
 #define LENGTH_INTERVAL 0.1
-#define MINIMUM_SEGMENTS 5
+#define MINIMUM_SEGMENTS 5.0
 #define RECURSIVE_MINIMUM_INTERVAL .00001
 
 SplineLengthCalculator::SplineLengthCalculator(const std::shared_ptr<Spline> &spline)
@@ -14,7 +14,7 @@ SplineLengthCalculator::SplineLengthCalculator(const std::shared_ptr<Spline> &sp
       maxT(spline->getMaxT()),
 
       //the spline length will be lazy-computed when it's needed
-      splineLength(-1)
+      atomic_splineLength(-1)
 {
 
 }
@@ -39,6 +39,8 @@ double SplineLengthCalculator::findLength(double beginT, double endT, bool useSh
         //compute length
         double computedLength = computeLength(actualBeginT, actualEndT);
 
+        double splineLength = atomic_splineLength.load(std::memory_order_consume);
+
         //lazy compute the spline length
         if(splineLength < 0)
         {
@@ -46,6 +48,7 @@ double SplineLengthCalculator::findLength(double beginT, double endT, bool useSh
             //we're using std::atomic so the worst possible thing that could happen is this variable could be computed multiple times by simultaneous threads
             //but if that happens, it'll be the same both times so who cares
             splineLength = findLength(0, maxT, false);
+            atomic_splineLength.store(splineLength, std::memory_order_release);
         }
 
         //that was one direction around, the other direction will be (splineLength - computedLength). return the smaller of the two
@@ -67,16 +70,7 @@ double SplineLengthCalculator::computeLength(double beginT, double endT) const
 
     //find the number of segments we're going to use
     double interval = LENGTH_INTERVAL;
-    double numSegments = tDistance / interval;
-    if(tDistance / interval < MINIMUM_SEGMENTS)
-    {
-        numSegments = MINIMUM_SEGMENTS;
-    }
-    else
-    {
-        //the nuber of segments probably isn't a whole number, so round it up
-        numSegments = ceil(numSegments);
-    }
+    double numSegments = std::max(ceil(tDistance / interval), MINIMUM_SEGMENTS);
 
     //now that we know the number of segments, find the actual interval
     interval = tDistance / numSegments;

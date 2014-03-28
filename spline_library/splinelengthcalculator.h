@@ -29,7 +29,7 @@ private: //data
 
     std::shared_ptr<Spline> spline;
     double maxT;
-    mutable std::atomic<double> splineLength;
+    mutable std::atomic<double> atomic_splineLength;
 };
 
 #endif // SPLINELENGTHCALCULATOR_H
