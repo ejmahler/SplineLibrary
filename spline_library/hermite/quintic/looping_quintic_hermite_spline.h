@@ -18,7 +18,7 @@ protected:
 
 
 //methods
-protected:
+public:
     virtual Vector3D getPosition(double x) const override;
     virtual InterpolatedPT getTangent(double x) const override;
     virtual InterpolatedPTC getCurvature(double x) const override;
