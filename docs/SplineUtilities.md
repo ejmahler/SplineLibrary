@@ -17,12 +17,12 @@ This method finds the closest sample to the query point, and uses that closest s
 
 Spline Length Calculator
 =============
-The Spline Length calculator object is used to answer the question "How long is the spline segment between these two T values?"
+The Spline Length calculator object is used to answer the questions "How long is the spline segment between these two T values?" or "How long is the entire spline from beginning to end?"
 
 To create a Spline Length Calculator, import `spline_library/splinelengthcalculator.h` and create a new `SplineLengthCalcuator` object by passing a `std::shared_ptr<Spline>` to the constructor. `SplineLengthCalculator lengthCalculator(myspline);`
 
 ### double findLength(double beginT, double endT, bool useShortestPath=false, double epsilon=0.0025) const
-This method recursively subdivides the specified segment until the ssubdivisions stop improving the estimate of the length of the segment. It then returns the sum of the straight-line length of those subdivided segments.
+This method recursively subdivides the specified segment until the subdivisions stop improving the estimate of the length of the segment. It then returns the sum of the straight-line length of those subdivided segments.
 
 If the spline is a non-looping spline, the useShortestPath parameter has no effect. If the spline is a looping spline and useShortestPath parameter is true, this method will compute the shortest path around the spline, either forwards or backwards, rather than blindly returning the distance from beginT to endT.
 
