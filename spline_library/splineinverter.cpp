@@ -2,49 +2,8 @@
 
 #include "spline.h"
 #include "spline_library/utils/splinesample_adaptor.h"
-#include "spline_library/utils/nanoflann.hpp"
 #include "spline_library/utils/optimization.h"
-
-template <typename T> int sign(T val) {
-    return (T(0) < val) - (val < T(0));
-}
-
-//inner class used to provide an abstraction between the spline inverter and nanoflann
-class SplineInverter::SampleTree
-{
-    typedef SplineSampleAdaptor<SplineSamples3D> AdaptorType;
-    typedef nanoflann::KDTreeSingleIndexAdaptor<
-            nanoflann::L2_Simple_Adaptor<double, AdaptorType>,
-            AdaptorType, 3>
-        TreeType;
-
-public:
-    SampleTree(const SplineSamples3D &samples)
-        :adaptor(samples), tree(3, adaptor)
-    {
-        tree.buildIndex();
-    }
-
-    double findClosestSample(const Vector3D &queryPoint) const
-    {
-        //build a query point
-        double queryPointArray[3] = {queryPoint.x(), queryPoint.y(), queryPoint.z()};
-
-        // do a knn search
-        const size_t num_results = 1;
-        size_t ret_index;
-        double out_dist_sqr;
-        nanoflann::KNNResultSet<double> resultSet(num_results);
-        resultSet.init(&ret_index, &out_dist_sqr );
-        tree.findNeighbors(resultSet, &queryPointArray[0], nanoflann::SearchParams());
-
-        return adaptor.derived().pts.at(ret_index).t;
-    }
-
-private:
-    AdaptorType adaptor;
-    TreeType tree;
-};
+#include "spline_library/utils/utils.h"
 
 SplineInverter::SplineInverter(const std::shared_ptr<Spline> &spline, int samplesPerT)
     :spline(spline), sampleStep(1.0 / double(samplesPerT)), slopeTolerance(0.01)
@@ -59,8 +18,7 @@ SplineInverter::SplineInverter(const std::shared_ptr<Spline> &spline, int sample
 	{
         auto sampledPoint = spline->getPosition(currentT);
 
-        SplineSamples3D::Point3D currentSample(sampledPoint.x(), sampledPoint.y(), sampledPoint.z(), currentT);
-        samples.pts.push_back(currentSample);
+        samples.pts.emplace_back(sampledPoint.x(), sampledPoint.y(), sampledPoint.z(), currentT);
 
 		currentT += sampleStep;
 	}
@@ -71,12 +29,11 @@ SplineInverter::SplineInverter(const std::shared_ptr<Spline> &spline, int sample
 	{
 		auto sampledPoint = spline->getPosition(maxT);
 
-        SplineSamples3D::Point3D currentSample(sampledPoint.x(), sampledPoint.y(), sampledPoint.z(), maxT);
-        samples.pts.push_back(currentSample);
+        samples.pts.emplace_back(sampledPoint.x(), sampledPoint.y(), sampledPoint.z(), currentT);
     }
 
     //populate the sample kd-tree
-    sampleTree = std::unique_ptr<SampleTree>(new SampleTree(samples));
+    sampleTree = std::unique_ptr<SplineSampleTree>(new SplineSampleTree(samples));
 }
 
 SplineInverter::~SplineInverter()
@@ -118,8 +75,8 @@ double SplineInverter::findClosestT(const Vector3D &queryPoint) const
             return closestSampleT;
     }
 
-    //step forwards or backwards in the spline until we find a point where the distance slope has flipped sign
-    //because "currentsample" is the closest point,  the "next" sample's slope MUST have a different sign
+    //step forwards or backwards in the spline until we find a point where the distance slope has flipped sign.
+    //because "currentsample" is the closest point, the "next" sample's slope MUST have a different sign
     //otherwise that sample would be closer
     //note: this assumption is only true if the samples are close together
 
@@ -131,7 +88,7 @@ double SplineInverter::findClosestT(const Vector3D &queryPoint) const
     double aValue = sampleDistanceSlope;
     double bValue = distanceSlopeFunction(b);
 
-    //we know that the actual closest point is now between littleT and bigT
-    //use the circle projection method to find the actual closest point, using the Ts as bounds
+    //we know that the actual closest T is now between a and b
+    //use brent's method to find the actual closest point, using a and b as bounds
     return Optimization::brentsMethod(distanceSlopeFunction, a, aValue, b, bValue);
 }

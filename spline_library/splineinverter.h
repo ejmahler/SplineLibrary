@@ -6,6 +6,7 @@
 
 #include "vector3d.h"
 class Spline;
+class SplineSampleTree;
 
 class SplineInverter
 {
@@ -25,8 +26,7 @@ private: //data
     double slopeTolerance;
 
     //inner class used to provide an abstraction between the spline inverter and nanoflann
-    class SampleTree;
-    std::unique_ptr<SampleTree> sampleTree;
+    std::unique_ptr<SplineSampleTree> sampleTree;
 };
 
 #endif // SplineInverter_H

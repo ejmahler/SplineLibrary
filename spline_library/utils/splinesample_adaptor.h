@@ -31,7 +31,9 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *************************************************************************/
 
+#include "nanoflann.hpp"
 #include <vector>
+#include "spline_library/vector3d.h"
 
 struct SplineSamples3D
 {
@@ -91,6 +93,42 @@ struct SplineSampleAdaptor
     //   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds)
     template <class BBOX>
     bool kdtree_get_bbox(BBOX &bb) const { return false; }
+};
+
+class SplineSampleTree
+{
+    typedef SplineSampleAdaptor<SplineSamples3D> AdaptorType;
+    typedef nanoflann::KDTreeSingleIndexAdaptor<
+            nanoflann::L2_Simple_Adaptor<double, AdaptorType>,
+            AdaptorType, 3>
+        TreeType;
+
+public:
+    SplineSampleTree(const SplineSamples3D &samples)
+        :adaptor(samples), tree(3, adaptor)
+    {
+        tree.buildIndex();
+    }
+
+    double findClosestSample(const Vector3D &queryPoint) const
+    {
+        //build a query point
+        double queryPointArray[3] = {queryPoint.x(), queryPoint.y(), queryPoint.z()};
+
+        // do a knn search
+        const size_t num_results = 1;
+        size_t ret_index;
+        double out_dist_sqr;
+        nanoflann::KNNResultSet<double> resultSet(num_results);
+        resultSet.init(&ret_index, &out_dist_sqr );
+        tree.findNeighbors(resultSet, &queryPointArray[0], nanoflann::SearchParams());
+
+        return adaptor.derived().pts.at(ret_index).t;
+    }
+
+private:
+    AdaptorType adaptor;
+    TreeType tree;
 };
 
 #endif // SPLINESAMPLE_ADAPTOR_H
