@@ -4,8 +4,7 @@
 
 #include <cmath>
 
-#define LENGTH_INTERVAL 0.1
-#define MINIMUM_SEGMENTS 5.0
+#define LENGTH_INTERVAL 0.25
 #define RECURSIVE_MINIMUM_INTERVAL .00001
 
 SplineLengthCalculator::SplineLengthCalculator(const std::shared_ptr<Spline> &spline)
@@ -19,8 +18,9 @@ SplineLengthCalculator::SplineLengthCalculator(const std::shared_ptr<Spline> &sp
 
 }
 
-double SplineLengthCalculator::findLength(double beginT, double endT, bool useShortestPath) const
+double SplineLengthCalculator::findLength(double beginT, double endT, bool useShortestPath, double eps) const
 {
+
     //if this is a looping spline and the calles had requested the shortest path, the behavior will be slightly different
     if(useShortestPath && spline->isLooping())
     {
@@ -37,7 +37,7 @@ double SplineLengthCalculator::findLength(double beginT, double endT, bool useSh
         double actualEndT = std::max(beginT,endT);
 
         //compute length
-        double computedLength = computeLength(actualBeginT, actualEndT);
+        double computedLength = computeLength(actualBeginT, actualEndT, eps);
 
         double splineLength = atomic_splineLength.load(std::memory_order_consume);
 
@@ -47,7 +47,7 @@ double SplineLengthCalculator::findLength(double beginT, double endT, bool useSh
             //modifying a variable inside of a const function can be non thread safe, but in this case thread safety is not a concern
             //we're using std::atomic so the worst possible thing that could happen is this variable could be computed multiple times by simultaneous threads
             //but if that happens, it'll be the same both times so who cares
-            splineLength = findLength(0, maxT, false);
+            splineLength = computeLength(0, maxT, eps);
             atomic_splineLength.store(splineLength, std::memory_order_release);
         }
 
@@ -60,69 +60,64 @@ double SplineLengthCalculator::findLength(double beginT, double endT, bool useSh
         double actualBeginT = std::min(beginT, endT);
         double actualEndT = std::max(beginT,endT);
 
-        return computeLength(actualBeginT, actualEndT);
+        return computeLength(actualBeginT, actualEndT, eps);
     }
 }
 
-double SplineLengthCalculator::computeLength(double beginT, double endT) const
+double SplineLengthCalculator::computeLength(double beginT, double endT, double eps) const
 {
     double tDistance = endT - beginT;
 
     //find the number of segments we're going to use
-    double interval = LENGTH_INTERVAL;
-    double numSegments = std::max(ceil(tDistance / interval), MINIMUM_SEGMENTS);
+    int numSegments = ceil(tDistance / LENGTH_INTERVAL);
 
     //now that we know the number of segments, find the actual interval
-    interval = tDistance / numSegments;
+    double interval = tDistance / numSegments;
 
     //for each segment, compute the length of a circle arc passing though that segment's endpoints
-    auto previousData = spline->getTangent(beginT);
-    previousData.tangent = previousData.tangent.normalized();
-    double currentT = beginT + interval;
-
+    auto previousData = spline->getPosition(beginT);
     double lengthSum = 0;
 
-    while(currentT <= endT)
+    for(int i = 0; i < numSegments; i++)
     {
-        auto currentData = spline->getTangent(currentT);
-        currentData.tangent = currentData.tangent.normalized();
+        double currentT = beginT + (i + 1) * interval;
 
+        auto currentData = spline->getPosition(currentT);
         lengthSum += computeLengthHelper(
-                    currentT - interval,    previousData.position, previousData.tangent,
-                    currentT,               currentData.position, currentData.tangent);
+                    currentT - interval,    previousData,
+                    currentT,               currentData, eps);
 
         previousData = currentData;
-        currentT += interval;
     }
 
     return lengthSum;
 }
 
 double SplineLengthCalculator::computeLengthHelper(
-        double beginT, const Vector3D &beginPosition, const Vector3D &beginTangentNormalized,
-        double endT, const Vector3D &endPosition, const Vector3D &endTangentNormalized) const
+        double beginT, const Vector3D &beginPosition,
+        double endT, const Vector3D &endPosition, double eps) const
 {
-    //compute the angle between the tangents
-    double cosTangentAngle = Vector3D::dotProduct(beginTangentNormalized, endTangentNormalized);
+    //compute the midpoint between the start and end
+    double midT = (beginT + endT) * 0.5;
+    Vector3D midPosition = spline->getPosition(midT);
 
-    //if the cos(angle) between the velocities is almost 1, there is essentially a straight line between the two points
-    //if that's the case, just return the distance between the two points
-    if(cosTangentAngle > .9999 || (endT - beginT < RECURSIVE_MINIMUM_INTERVAL))
+    //compute the length squared for start->mid plus mid->end
+    double fullLength = (endPosition - beginPosition).lengthSquared();
+    double halfLengths = ((endPosition - midPosition).lengthSquared() + (midPosition - beginPosition).lengthSquared()) * 2;
+
+    //if the difference bween the total lengh squared and the length squared for the two halves is small enough, return the length of the whole segment
+    //eps is a percentage
+    double test = fullLength / halfLengths;
+    double limit = 1 - eps;
+    if(fullLength / halfLengths > limit || (endT - beginT < RECURSIVE_MINIMUM_INTERVAL))
     {
-        return (endPosition - beginPosition).length();
+        return sqrt(fullLength);
     }
     else
     {
-        double middleT = (beginT + endT) * 0.5;
-        auto middleData = spline->getTangent(middleT);
-
-        Vector3D middleTangentNormalized = middleData.tangent.normalized();
-
-        double firstHalf = computeLengthHelper(beginT, beginPosition, beginTangentNormalized,
-                                                      middleT, middleData.position, middleTangentNormalized);
-
-        double secondHalf = computeLengthHelper(middleT, middleData.position, middleTangentNormalized,
-                                                      endT, endPosition, endTangentNormalized);
+        //there is too much of a difference, so recursively compute the lengths
+        double firstHalf = computeLengthHelper(beginT, beginPosition, midT, midPosition, eps);
+        double secondHalf = computeLengthHelper(midT, midPosition, endT, endPosition, eps);
 
         return firstHalf + secondHalf;
     }
