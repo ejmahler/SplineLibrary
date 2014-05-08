@@ -38,11 +38,11 @@ The root of the repository is a Qt Creator project that demonstrates some uses o
 Requirements
 -------------
 
-The demo project requires Qt 5. To build it, either run qmake with the .pro file to generate a makefile, or open the .pro file in qt Creator.
+Both the demo and the spline_library code require a fully compliant C++11 compiler. Visual Studio 2012 currently compiles it correctly, but this is not guaranteed to be the case in the future: VS2012 isn't fully compliant, missing useful features like std::initializer_list.
 
 The spline_library code has no third-party dependencies, so it's safe to drop that folder directly in the source folder of your own project.
 
-Both the demo and the spline_library code require a fully compliant C++11 compiler. Visual Studio 2012 currently compiles it correctly, but this is not guaranteed to be the case in the future: VS2012 isn't fully compliant, missing useful features like std::initializer_list.
+The demo project requires Qt 5. To build it, either run qmake with the .pro file to generate a makefile, or open the .pro file in qt Creator.
 
 License
 -------------
