@@ -1,6 +1,6 @@
 
 #include "cr_spline.h"
-#include "spline_library/utils/t_calculator.h"
+#include "spline_library/utils/spline_setup.h"
 
 #include <cmath>
 #include <cassert>
@@ -16,7 +16,7 @@ CRSpline::CRSpline(const std::vector<Vector3D> &points, double alpha)
     numSegments = size - 3;
 
     //compute the T values for each point
-    indexToT = TCalculator::computeTValues(points, alpha, firstTangent);
+    indexToT = SplineSetup::computeTValues(points, alpha, firstTangent);
     maxT = indexToT.at(firstTangent + numSegments);
 
     //compute the tangents

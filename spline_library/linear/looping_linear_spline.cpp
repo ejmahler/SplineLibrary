@@ -1,6 +1,6 @@
 #include "looping_linear_spline.h"
 
-#include "spline_library/utils/t_calculator.h"
+#include "spline_library/utils/spline_setup.h"
 
 #include <cmath>
 #include <cassert>
@@ -20,7 +20,7 @@ LoopingLinearSpline::LoopingLinearSpline(const std::vector<Vector3D> &points, do
 
     //compute the T values for each point
     int padding = 0;
-    indexToT = TCalculator::computeLoopingTValues(points, alpha, padding);
+    indexToT = SplineSetup::computeLoopingTValues(points, alpha, padding);
     maxT = indexToT.at(size);
 
     //pre-arrange the data needed for interpolation
@@ -48,9 +48,8 @@ Vector3D LoopingLinearSpline::getPosition(double x) const
     if(x < 0)
         x += numSegments;
 
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0) * segment.tDistanceInverse;
 
     return computePosition(t, segment);
 }
@@ -62,9 +61,8 @@ Spline::InterpolatedPT LoopingLinearSpline::getTangent(double x) const
     if(x < 0)
         x += numSegments;
 
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0) * segment.tDistanceInverse;
 
     return InterpolatedPT(
         computePosition(t, segment),
@@ -79,9 +77,8 @@ Spline::InterpolatedPTC LoopingLinearSpline::getCurvature(double x) const
     if(x < 0)
         x += numSegments;
 
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0) * segment.tDistanceInverse;
 
     return InterpolatedPTC(
         computePosition(t, segment),
@@ -97,8 +94,8 @@ Spline::InterpolatedPTCW LoopingLinearSpline::getWiggle(double x) const
     if(x < 0)
         x += numSegments;
 
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0) * segment.tDistanceInverse;
 
     return InterpolatedPTCW(
                 computePosition(t, segment),

@@ -4,7 +4,7 @@
 #include <cmath>
 
 #include "spline_library/utils/linearalgebra.h"
-#include "spline_library/utils/t_calculator.h"
+#include "spline_library/utils/spline_setup.h"
 
 LoopingNaturalSpline::LoopingNaturalSpline(const std::vector<Vector3D> &points, double alpha)
 {
@@ -17,7 +17,7 @@ LoopingNaturalSpline::LoopingNaturalSpline(const std::vector<Vector3D> &points, 
     numSegments = size;
 
     //compute the T values for each point
-    indexToT = TCalculator::computeLoopingTValues(points, alpha, 1);
+    indexToT = SplineSetup::computeLoopingTValues(points, alpha, 1);
     maxT = indexToT.at(size);
 
     //now that we know the t values, we need to prepare the tridiagonal matrix calculation
@@ -97,8 +97,8 @@ Vector3D LoopingNaturalSpline::getPosition(double x) const
     if(x < 0)
         x += numSegments;
 
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0);
 
     return computePosition(t, segment);
 }
@@ -110,8 +110,8 @@ Spline::InterpolatedPT LoopingNaturalSpline::getTangent(double x) const
     if(x < 0)
         x += numSegments;
 
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0);
 
     return InterpolatedPT(
                 computePosition(t, segment),
@@ -126,8 +126,8 @@ Spline::InterpolatedPTC LoopingNaturalSpline::getCurvature(double x) const
     if(x < 0)
         x += numSegments;
 
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0);
 
     return InterpolatedPTC(
                 computePosition(t, segment),
@@ -143,8 +143,8 @@ Spline::InterpolatedPTCW LoopingNaturalSpline::getWiggle(double x) const
     if(x < 0)
         x += numSegments;
 
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0);
 
     return InterpolatedPTCW(
                 computePosition(t, segment),

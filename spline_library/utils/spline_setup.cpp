@@ -1,12 +1,8 @@
-#include "t_calculator.h"
+#include "spline_setup.h"
 
 #include <cmath>
 
-TCalculator::TCalculator()
-{
-}
-
-std::unordered_map<int, double> TCalculator::computeTValues(const std::vector<Vector3D> &points, double alpha, int padding)
+std::unordered_map<int, double> SplineSetup::computeTValues(const std::vector<Vector3D> &points, double alpha, int padding)
 {
     int size = points.size();
     int endPaddingIndex = size - 1 - padding;
@@ -47,7 +43,7 @@ std::unordered_map<int, double> TCalculator::computeTValues(const std::vector<Ve
 }
 
 
-std::unordered_map<int, double> TCalculator::computeLoopingTValues(const std::vector<Vector3D> &points, double alpha, int padding)
+std::unordered_map<int, double> SplineSetup::computeLoopingTValues(const std::vector<Vector3D> &points, double alpha, int padding)
 {
     int size = points.size();
 

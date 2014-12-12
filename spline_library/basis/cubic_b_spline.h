@@ -37,8 +37,6 @@ protected:
     inline Vector3D computeCurvature(double t, const InterpolationData &segment) const;
     inline Vector3D computeWiggle(const InterpolationData &segment) const;
 
-    int getSegmentIndex(double x) const;
-
 //data
 protected:
     //a vector containing pre-computed datasets, one per segment
@@ -58,45 +56,45 @@ protected:
 
 struct CubicBSpline::InterpolationData {
     //t values
-    double t1, t2;
+    double t0, t1;
 
     //points
-    Vector3D p0, p1, p2, p3;
+    Vector3D beforePoint, p0, p1, afterPoint;
 };
 
 inline Vector3D CubicBSpline::computePosition(double t, const InterpolationData &segment) const
 {
     return (
-                segment.p0 * ((1 - t) * (1 - t) * (1 - t)) +
-                segment.p1 * (t * t * 3 * (t - 2) + 4) +
-                segment.p2 * (t * (t * (-3 * t + 3) + 3) + 1) +
-                segment.p3 * (t * t * t)
+                segment.beforePoint * ((1 - t) * (1 - t) * (1 - t)) +
+                segment.p0 * (t * t * 3 * (t - 2) + 4) +
+                segment.p1 * (t * (t * (-3 * t + 3) + 3) + 1) +
+                segment.afterPoint * (t * t * t)
             ) / 6;
 }
 
 inline Vector3D CubicBSpline::computeTangent(double t, const InterpolationData &segment) const
 {
     return (
-                segment.p0 * (-(1 - t) * (1 - t)) +
-                segment.p1 * (t * (3 * t - 4)) +
-                segment.p2 * ((3 * t + 1) * (1 - t)) +
-                segment.p3 * (t * t)
+                segment.beforePoint * (-(1 - t) * (1 - t)) +
+                segment.p0 * (t * (3 * t - 4)) +
+                segment.p1 * ((3 * t + 1) * (1 - t)) +
+                segment.afterPoint * (t * t)
             ) / 2;
 }
 
 inline Vector3D CubicBSpline::computeCurvature(double t, const InterpolationData &segment) const
 {
     return (
-                segment.p0 * (1 - t) +
-                segment.p1 * (3 * t - 2) +
-                segment.p2 * (1 - 3 * t) +
-                segment.p3 * (t)
+                segment.beforePoint * (1 - t) +
+                segment.p0 * (3 * t - 2) +
+                segment.p1 * (1 - 3 * t) +
+                segment.afterPoint * (t)
             );
 }
 
 inline Vector3D CubicBSpline::computeWiggle(const InterpolationData &segment) const
 {
-    return 3 * (segment.p1 - segment.p2) + (segment.p3 - segment.p0);
+    return 3 * (segment.p0 - segment.p1) + (segment.afterPoint - segment.beforePoint);
 }
 
 #endif // B_SPLINE_H

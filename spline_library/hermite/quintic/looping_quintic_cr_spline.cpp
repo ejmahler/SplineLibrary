@@ -1,6 +1,6 @@
 #include "looping_quintic_cr_spline.h"
 
-#include "spline_library/utils/t_calculator.h"
+#include "spline_library/utils/spline_setup.h"
 
 #include <cmath>
 #include <cassert>
@@ -16,7 +16,7 @@ LoopingQuinticCRSpline::LoopingQuinticCRSpline(const std::vector<Vector3D> &poin
 
     //compute the T values for each point
     int padding = 2;
-    indexToT = TCalculator::computeLoopingTValues(points, alpha, padding);
+    indexToT = SplineSetup::computeLoopingTValues(points, alpha, padding);
     maxT = indexToT.at(size);
 
     //compute the tangents

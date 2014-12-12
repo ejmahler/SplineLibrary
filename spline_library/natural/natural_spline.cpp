@@ -4,7 +4,7 @@
 #include <cmath>
 
 #include "spline_library/utils/linearalgebra.h"
-#include "spline_library/utils/t_calculator.h"
+#include "spline_library/utils/spline_setup.h"
 
 NaturalSpline::NaturalSpline()
 {
@@ -33,7 +33,7 @@ NaturalSpline::NaturalSpline(const std::vector<Vector3D> &points, bool includeEn
     }
 
     //compute the T values for each point
-    indexToT = TCalculator::computeTValues(points, alpha, firstPoint);
+    indexToT = SplineSetup::computeTValues(points, alpha, firstPoint);
     maxT = indexToT.at(firstPoint + numSegments);
 
     //now that we know the t values, we need to prepare the tridiagonal matrix calculation
@@ -115,16 +115,16 @@ NaturalSpline::NaturalSpline(const std::vector<Vector3D> &points, bool includeEn
 
 Vector3D NaturalSpline::getPosition(double x) const
 {
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0);
 
     return computePosition(t, segment);
 }
 
 Spline::InterpolatedPT NaturalSpline::getTangent(double x) const
 {
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0);
 
     return InterpolatedPT(
                 computePosition(t, segment),
@@ -134,9 +134,8 @@ Spline::InterpolatedPT NaturalSpline::getTangent(double x) const
 
 Spline::InterpolatedPTC NaturalSpline::getCurvature(double x) const
 {
-    int index = getSegmentIndex(x);
-    InterpolationData segment = segmentData.at(index);
-    double t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0);
 
     return InterpolatedPTC(
                 computePosition(t, segment),
@@ -147,9 +146,8 @@ Spline::InterpolatedPTC NaturalSpline::getCurvature(double x) const
 
 Spline::InterpolatedPTCW NaturalSpline::getWiggle(double x) const
 {
-    int index = getSegmentIndex(x);
-    InterpolationData segment = segmentData.at(index);
-    double t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0);
 
     return InterpolatedPTCW(
                 computePosition(t, segment),
@@ -157,41 +155,6 @@ Spline::InterpolatedPTCW NaturalSpline::getWiggle(double x) const
                 computeCurvature(t, segment),
                 computeWiggle(segment)
                 );
-}
-
-int NaturalSpline::getSegmentIndex(double x) const
-{
-    //we want to find the segment whos t0 and t1 values bound x
-
-    //if no segments bound x, return -1
-    if(x < segmentData[0].t0)
-        return 0;
-    if(x > segmentData[numSegments - 1].t1)
-        return numSegments - 1;
-
-    //perform a binary search on segmentData
-    int currentMin = 0;
-    int currentMax = segmentData.size() - 1;
-    int currentIndex = (currentMin + currentMax) / 2;
-
-    //keep looping as long as this segment does not bound x
-
-    while(x < segmentData[currentIndex].t0 || x > segmentData[currentIndex].t1)
-    {
-        //if t0 is greater than x, search the left half of the array
-        if(segmentData[currentIndex].t0 > x)
-        {
-            currentMax = currentIndex - 1;
-        }
-
-        //the only other possibility is that t1 is less than x, so search the right half of the array
-        else
-        {
-            currentMin = currentIndex + 1;
-        }
-        currentIndex = (currentMin + currentMax) / 2;
-    }
-    return currentIndex;
 }
 
 double NaturalSpline::getT(int index) const

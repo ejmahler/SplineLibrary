@@ -1,6 +1,6 @@
 #include "looping_cubic_b_spline.h"
 
-#include "spline_library/utils/t_calculator.h"
+#include "spline_library/utils/spline_setup.h"
 
 #include <cassert>
 #include <cmath>
@@ -17,7 +17,7 @@ LoopingCubicBSpline::LoopingCubicBSpline(const std::vector<Vector3D> &points)
 
     //compute the T values for each point
     int padding = 1;
-    indexToT = TCalculator::computeLoopingTValues(points, alpha, padding);
+    indexToT = SplineSetup::computeLoopingTValues(points, alpha, padding);
     maxT = indexToT.at(size);
 
     //pre-arrange the data needed for interpolation
@@ -25,13 +25,13 @@ LoopingCubicBSpline::LoopingCubicBSpline(const std::vector<Vector3D> &points)
     {
         InterpolationData segment;
 
-        segment.t1 = indexToT.at(i);
-        segment.t2 = indexToT.at(i + 1);
+        segment.t0 = indexToT.at(i);
+        segment.t1 = indexToT.at(i + 1);
 
-        segment.p0 = points.at((i - 1 + size)%size);
-        segment.p1 = points.at((i + size)%size);
-        segment.p2 = points.at((i + 1 + size)%size);
-        segment.p3 = points.at((i + 2 + size)%size);
+        segment.beforePoint = points.at((i - 1 + size)%size);
+        segment.p0 = points.at((i + size)%size);
+        segment.p1 = points.at((i + 1 + size)%size);
+        segment.afterPoint = points.at((i + 2 + size)%size);
 
         segmentData.push_back(segment);
     }
@@ -44,8 +44,8 @@ Vector3D LoopingCubicBSpline::getPosition(double x) const
     if(x < 0)
         x += numSegments;
 
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = x - segment.t1;
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    double t = x - segment.t0;
 
     return computePosition(t, segment);
 }
@@ -57,8 +57,8 @@ Spline::InterpolatedPT LoopingCubicBSpline::getTangent(double x) const
     if(x < 0)
         x += numSegments;
 
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = x - segment.t1;
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    double t = x - segment.t0;
 
     return InterpolatedPT(
                 computePosition(t, segment),
@@ -73,8 +73,8 @@ Spline::InterpolatedPTC LoopingCubicBSpline::getCurvature(double x) const
     if(x < 0)
         x += numSegments;
 
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = x - segment.t1;
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    double t = x - segment.t0;
 
     return InterpolatedPTC(
                 computePosition(t, segment),
@@ -90,8 +90,8 @@ Spline::InterpolatedPTCW LoopingCubicBSpline::getWiggle(double x) const
     if(x < 0)
         x += numSegments;
 
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = x - segment.t1;
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    double t = x - segment.t0;
 
     return InterpolatedPTCW(
                 computePosition(t, segment),

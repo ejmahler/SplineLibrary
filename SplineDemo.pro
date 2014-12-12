@@ -16,7 +16,6 @@ SOURCES += \
     spline_library/vector3d.cpp \
     spline_library/splineinverter.cpp \
     spline_library/spline.cpp \
-    spline_library/utils/t_calculator.cpp \
     spline_library/basis/cubic_b_spline.cpp \
     spline_library/basis/looping_cubic_b_spline.cpp \
     spline_library/natural/natural_spline.cpp \
@@ -33,7 +32,9 @@ SOURCES += \
     spline_library/utils/linearalgebra.cpp \
     spline_library/linear/linear_spline.cpp \
     spline_library/linear/looping_linear_spline.cpp \
-    spline_library/utils/optimization.cpp
+    spline_library/utils/optimization.cpp \
+    spline_library/natural/natural_spline_basis.cpp \
+    spline_library/utils/spline_setup.cpp
 
 HEADERS  += \
     demo/settingswidget.h \
@@ -43,7 +44,6 @@ HEADERS  += \
     spline_library/vector3d.h \
     spline_library/splineinverter.h \
     spline_library/spline.h \
-    spline_library/utils/t_calculator.h \
     spline_library/basis/cubic_b_spline.h \
     spline_library/basis/looping_cubic_b_spline.h \
     spline_library/natural/looping_natural_spline.h \
@@ -63,7 +63,9 @@ HEADERS  += \
     spline_library/linear/linear_spline.h \
     spline_library/linear/looping_linear_spline.h \
     spline_library/utils/optimization.h \
-    spline_library/utils/utils.h
+    spline_library/utils/utils.h \
+    spline_library/natural/natural_spline_basis.h \
+    spline_library/utils/spline_setup.h
 
 FORMS    += \
     demo/settingswidget.ui \

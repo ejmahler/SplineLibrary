@@ -40,8 +40,6 @@ protected:
     inline Vector3D computeCurvature(double t, const InterpolationData &segment) const;
     inline Vector3D computeWiggle(double t, const InterpolationData &segment) const;
 
-	int getSegmentIndex(double x) const;
-
 //data
 protected:
 	//a vector containing pre-computed datasets, one per segment

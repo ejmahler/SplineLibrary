@@ -1,6 +1,6 @@
 #include "quintic_cr_spline.h"
 
-#include "spline_library/utils/t_calculator.h"
+#include "spline_library/utils/spline_setup.h"
 
 #include <cmath>
 #include <cassert>
@@ -18,7 +18,7 @@ QuinticCRSpline::QuinticCRSpline(const std::vector<Vector3D> &points, double alp
     numSegments = size - 5;
 
     //compute the T values for each point
-    indexToT = TCalculator::computeTValues(points, alpha, firstCurvature);
+    indexToT = SplineSetup::computeTValues(points, alpha, firstCurvature);
     maxT = indexToT.at(firstCurvature + numSegments);
 
 

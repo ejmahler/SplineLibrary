@@ -1,6 +1,6 @@
 #include "looping_cr_spline.h"
 
-#include "spline_library/utils/t_calculator.h"
+#include "spline_library/utils/spline_setup.h"
 
 #include <cmath>
 #include <cassert>
@@ -16,7 +16,7 @@ LoopingCRSpline::LoopingCRSpline(const std::vector<Vector3D> &points, double alp
 
     //compute the T values for each point
     int padding = 1;
-    indexToT = TCalculator::computeLoopingTValues(points, alpha, padding);
+    indexToT = SplineSetup::computeLoopingTValues(points, alpha, padding);
     maxT = indexToT.at(size);
 
     //compute the tangents

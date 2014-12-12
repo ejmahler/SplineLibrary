@@ -1,6 +1,6 @@
 #include "looping_quintic_hermite_spline.h"
 
-#include "spline_library/utils/t_calculator.h"
+#include "spline_library/utils/spline_setup.h"
 
 #include <cmath>
 #include <cassert>
@@ -27,7 +27,7 @@ LoopingQuinticHermiteSpline::LoopingQuinticHermiteSpline(
 
     //compute the T values for each point
     int padding = 0;
-    indexToT = TCalculator::computeLoopingTValues(points, alpha, padding);
+    indexToT = SplineSetup::computeLoopingTValues(points, alpha, padding);
     maxT = indexToT.at(size);
 
     //pre-arrange the data needed for interpolation
@@ -63,9 +63,8 @@ Vector3D LoopingQuinticHermiteSpline::getPosition(double x) const
     if(x < 0)
         x += numSegments;
 
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0) * segment.tDistanceInverse;
 
     return computePosition(t, segment);
 }
@@ -77,9 +76,8 @@ Spline::InterpolatedPT LoopingQuinticHermiteSpline::getTangent(double x) const
     if(x < 0)
         x += numSegments;
 
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0) * segment.tDistanceInverse;
 
     return InterpolatedPT(
         computePosition(t, segment),
@@ -94,10 +92,8 @@ Spline::InterpolatedPTC LoopingQuinticHermiteSpline::getCurvature(double x) cons
     if(x < 0)
         x += numSegments;
 
-
-    //find the interpolation data for this t value
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0) * segment.tDistanceInverse;
 
     return InterpolatedPTC(
         computePosition(t, segment),
@@ -113,8 +109,8 @@ Spline::InterpolatedPTCW LoopingQuinticHermiteSpline::getWiggle(double x) const
     if(x < 0)
         x += numSegments;
 
-    InterpolationData segment = segmentData.at(getSegmentIndex(x));
-    double t = (x - segment.t0) * segment.tDistanceInverse;
+    auto segment = SplineSetup::getSegmentForT(segmentData, x);
+    auto t = (x - segment.t0) * segment.tDistanceInverse;
 
     return InterpolatedPTCW(
                 computePosition(t, segment),
