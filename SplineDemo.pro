@@ -33,7 +33,6 @@ SOURCES += \
     spline_library/linear/linear_spline.cpp \
     spline_library/linear/looping_linear_spline.cpp \
     spline_library/utils/optimization.cpp \
-    spline_library/natural/natural_spline_basis.cpp \
     spline_library/utils/spline_setup.cpp
 
 HEADERS  += \
@@ -64,7 +63,6 @@ HEADERS  += \
     spline_library/linear/looping_linear_spline.h \
     spline_library/utils/optimization.h \
     spline_library/utils/utils.h \
-    spline_library/natural/natural_spline_basis.h \
     spline_library/utils/spline_setup.h
 
 FORMS    += \
