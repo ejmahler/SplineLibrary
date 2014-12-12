@@ -63,7 +63,8 @@ HEADERS  += \
     spline_library/linear/looping_linear_spline.h \
     spline_library/utils/optimization.h \
     spline_library/utils/utils.h \
-    spline_library/utils/spline_setup.h
+    spline_library/utils/spline_setup.h \
+    spline_library/natural/natural_spline_kernel.h
 
 FORMS    += \
     demo/settingswidget.ui \

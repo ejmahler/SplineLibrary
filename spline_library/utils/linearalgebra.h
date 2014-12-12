@@ -33,7 +33,7 @@ std::vector<T> LinearAlgebra::solveSymmetricTridiagonal(std::vector<double> &mai
     std::vector<T> outputVector(inputVector.size());
 
     //forward sweep
-    for(int i = 1; i < inputVector.size(); i++)
+    for(size_t i = 1; i < inputVector.size(); i++)
     {
         double m = secondaryDiagonal.at(i - 1) / mainDiagonal.at(i - 1);
         mainDiagonal[i] -= m * secondaryDiagonal.at(i - 1);
@@ -58,7 +58,7 @@ std::vector<T> LinearAlgebra::solveCyclicSymmetricTridiagonal(std::vector<double
     //we're getting this algorithm from http://www.cs.princeton.edu/courses/archive/fall11/cos323/notes/cos323_f11_lecture06_linsys2.pdf
     //basically, we're going to solve two different non-cyclic versions of this system and then combine the results
 
-    int size = inputVector.size();
+    size_t size = inputVector.size();
 
 
     //the value at the upper right and lower left of the input matrix. it's at the end of the secondary diagonal array because almost all
@@ -101,7 +101,7 @@ std::vector<T> LinearAlgebra::solveCyclicSymmetricTridiagonal(std::vector<double
     T factor = (initialOutput.at(0) + initialOutput.at(size - 1) * cornerMultiplier) / (1 + correctionOutput.at(0) + correctionOutput.at(size - 1) * cornerMultiplier);
 
     //use the correction factor to modify the result
-    for(int i = 0; i < size; i++)
+    for(size_t i = 0; i < size; i++)
     {
         initialOutput[i] -= factor * correctionOutput.at(i);
     }

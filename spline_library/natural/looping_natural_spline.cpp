@@ -68,7 +68,7 @@ LoopingNaturalSpline::LoopingNaturalSpline(const std::vector<Vector3D> &points, 
     //use this curvature to determine a,b,c,and d to build each segment
     for(int i = 0; i < numSegments; i++) {
 
-        InterpolationData segment;
+        NaturalSplineKernel::InterpolationData<Vector3D> segment;
         segment.t0 = indexToT.at(i);
         segment.t1 = indexToT.at(i + 1);
 

@@ -91,7 +91,7 @@ NaturalSpline::NaturalSpline(const std::vector<Vector3D> &points, bool includeEn
     //use this curvature to determine a,b,c,and d to build each segment
     for(int i = firstPoint; i < firstPoint + numSegments; i++) {
 
-        InterpolationData segment;
+        NaturalSplineKernel::InterpolationData<Vector3D> segment;
         segment.t0 = indexToT.at(i);
         segment.t1 = indexToT.at(i + 1);
 
