@@ -2,36 +2,32 @@
 #define NATURALSPLINE_H
 
 #include "spline_library/spline.h"
-
 #include "spline_library/natural/natural_spline_kernel.h"
 
 #include <unordered_map>
 
-class NaturalSpline : public Spline
+class NaturalSpline final : public Spline
 {
     //constructors
     public:
         NaturalSpline(const std::vector<Vector3D> &points, bool includeEndpoints, double alpha = 0.0);
-    protected:
-        //you're only allowed to create one of these without point data if a subclass is providing the point data
-        NaturalSpline();
 
     //methods
     public:
-        virtual Vector3D getPosition(double x) const override;
-        virtual InterpolatedPT getTangent(double x) const override;
-        virtual InterpolatedPTC getCurvature(double x) const override;
-        virtual InterpolatedPTCW getWiggle(double x) const override;
+        Vector3D getPosition(double x) const override;
+        InterpolatedPT getTangent(double x) const override;
+        InterpolatedPTC getCurvature(double x) const override;
+        InterpolatedPTCW getWiggle(double x) const override;
 
-        virtual double getT(int index) const override;
-        virtual double getMaxT(void) const override;
+        double getT(int index) const override;
+        double getMaxT(void) const override;
 
-        virtual const std::vector<Vector3D> &getPoints(void) const override;
+        const std::vector<Vector3D> &getPoints(void) const override;
 
-        virtual bool isLooping(void) const override;
+        bool isLooping(void) const override;
 
     //data
-    protected:
+    private:
         //a vector containing pre-computed datasets, one per segment
         //there will be lots of duplication of data here,
         //but precomputing this really speeds up the interpolation

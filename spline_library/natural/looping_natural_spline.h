@@ -3,21 +3,41 @@
 
 #include "natural_spline.h"
 
-class LoopingNaturalSpline : public NaturalSpline
+class LoopingNaturalSpline final : public Spline
 {
+//constructors
 public:
-    //constructors
-    public:
-        LoopingNaturalSpline(const std::vector<Vector3D> &points, double alpha = 0.0);
+    LoopingNaturalSpline(const std::vector<Vector3D> &points, double alpha = 0.0);
 
-    //methods
-    public:
-        virtual Vector3D getPosition(double x) const override;
-        virtual InterpolatedPT getTangent(double x) const override;
-        virtual InterpolatedPTC getCurvature(double x) const override;
-        virtual InterpolatedPTCW getWiggle(double x) const override;
+//methods
+public:
+    Vector3D getPosition(double x) const override;
+    InterpolatedPT getTangent(double x) const override;
+    InterpolatedPTC getCurvature(double x) const override;
+    InterpolatedPTCW getWiggle(double x) const override;
 
-        virtual bool isLooping(void) const override;
+    double getT(int index) const override;
+    double getMaxT(void) const override;
+
+    const std::vector<Vector3D> &getPoints(void) const override;
+
+    bool isLooping(void) const override;
+
+//data
+private:
+    //a vector containing pre-computed datasets, one per segment
+    //there will be lots of duplication of data here,
+    //but precomputing this really speeds up the interpolation
+    int numSegments;
+    std::vector<NaturalSplineKernel::InterpolationData<Vector3D>> segmentData;
+
+    double maxT;
+
+    //original point data
+    std::vector<Vector3D> points;
+
+    //map from index to t value. it's a map and not an array so we can store negative indexes
+    std::unordered_map<int,double> indexToT;
 };
 
 #endif // LOOPINGNATURALSPLINE_H

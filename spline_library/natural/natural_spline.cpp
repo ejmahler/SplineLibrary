@@ -6,10 +6,6 @@
 #include "spline_library/utils/linearalgebra.h"
 #include "spline_library/utils/spline_setup.h"
 
-NaturalSpline::NaturalSpline()
-{
-}
-
 NaturalSpline::NaturalSpline(const std::vector<Vector3D> &points, bool includeEndpoints, double alpha)
 {
     this->points = points;
@@ -113,47 +109,47 @@ NaturalSpline::NaturalSpline(const std::vector<Vector3D> &points, bool includeEn
 }
 
 
-Vector3D NaturalSpline::getPosition(double x) const
+Vector3D NaturalSpline::getPosition(double globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    auto t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
-    return computePosition(t, segment);
+    return NaturalSplineKernel::computePosition(localT, segment);
 }
 
-Spline::InterpolatedPT NaturalSpline::getTangent(double x) const
+Spline::InterpolatedPT NaturalSpline::getTangent(double globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    auto t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPT(
-                computePosition(t, segment),
-                computeTangent(t, segment)
+                NaturalSplineKernel::computePosition(localT, segment),
+                NaturalSplineKernel::computeTangent(localT, segment)
                 );
 }
 
-Spline::InterpolatedPTC NaturalSpline::getCurvature(double x) const
+Spline::InterpolatedPTC NaturalSpline::getCurvature(double globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    auto t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPTC(
-                computePosition(t, segment),
-                computeTangent(t, segment),
-                computeCurvature(t, segment)
+                NaturalSplineKernel::computePosition(localT, segment),
+                NaturalSplineKernel::computeTangent(localT, segment),
+                NaturalSplineKernel::computeCurvature(localT, segment)
                 );
 }
 
-Spline::InterpolatedPTCW NaturalSpline::getWiggle(double x) const
+Spline::InterpolatedPTCW NaturalSpline::getWiggle(double globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    auto t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPTCW(
-                computePosition(t, segment),
-                computeTangent(t, segment),
-                computeCurvature(t, segment),
-                computeWiggle(segment)
+                NaturalSplineKernel::computePosition(localT, segment),
+                NaturalSplineKernel::computeTangent(localT, segment),
+                NaturalSplineKernel::computeCurvature(localT, segment),
+                NaturalSplineKernel::computeWiggle(segment)
                 );
 }
 

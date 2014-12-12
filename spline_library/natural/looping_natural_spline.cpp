@@ -90,70 +90,84 @@ LoopingNaturalSpline::LoopingNaturalSpline(const std::vector<Vector3D> &points, 
 }
 
 
-Vector3D LoopingNaturalSpline::getPosition(double x) const
+Vector3D LoopingNaturalSpline::getPosition(double globalT) const
 {
-    //use modular arithmetic to bring x into an acceptable range
-    x = fmod(x, numSegments);
-    if(x < 0)
-        x += numSegments;
+    //use modular arithmetic to bring globalT into an acceptable range
+    globalT = fmod(globalT, numSegments);
+    if(globalT < 0)
+        globalT += numSegments;
 
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    auto t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
-    return computePosition(t, segment);
+    return NaturalSplineKernel::computePosition(localT, segment);
 }
 
-Spline::InterpolatedPT LoopingNaturalSpline::getTangent(double x) const
+Spline::InterpolatedPT LoopingNaturalSpline::getTangent(double globalT) const
 {
-    //use modular arithmetic to bring x into an acceptable range
-    x = fmod(x, numSegments);
-    if(x < 0)
-        x += numSegments;
+    //use modular arithmetic to bring globalT into an acceptable range
+    globalT = fmod(globalT, numSegments);
+    if(globalT < 0)
+        globalT += numSegments;
 
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    auto t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPT(
-                computePosition(t, segment),
-                computeTangent(t, segment)
+                NaturalSplineKernel::computePosition(localT, segment),
+                NaturalSplineKernel::computeTangent(localT, segment)
                 );
 }
 
-Spline::InterpolatedPTC LoopingNaturalSpline::getCurvature(double x) const
+Spline::InterpolatedPTC LoopingNaturalSpline::getCurvature(double globalT) const
 {
-    //use modular arithmetic to bring x into an acceptable range
-    x = fmod(x, numSegments);
-    if(x < 0)
-        x += numSegments;
+    //use modular arithmetic to bring globalT into an acceptable range
+    globalT = fmod(globalT, numSegments);
+    if(globalT < 0)
+        globalT += numSegments;
 
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    auto t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPTC(
-                computePosition(t, segment),
-                computeTangent(t, segment),
-                computeCurvature(t, segment)
+                NaturalSplineKernel::computePosition(localT, segment),
+                NaturalSplineKernel::computeTangent(localT, segment),
+                NaturalSplineKernel::computeCurvature(localT, segment)
                 );
 }
 
-Spline::InterpolatedPTCW LoopingNaturalSpline::getWiggle(double x) const
+Spline::InterpolatedPTCW LoopingNaturalSpline::getWiggle(double globalT) const
 {
-    //use modular arithmetic to bring x into an acceptable range
-    x = fmod(x, numSegments);
-    if(x < 0)
-        x += numSegments;
+    //use modular arithmetic to bring globalT into an acceptable range
+    globalT = fmod(globalT, numSegments);
+    if(globalT < 0)
+        globalT += numSegments;
 
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    auto t = (x - segment.t0);
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPTCW(
-                computePosition(t, segment),
-                computeTangent(t, segment),
-                computeCurvature(t, segment),
-                computeWiggle(segment)
+                NaturalSplineKernel::computePosition(localT, segment),
+                NaturalSplineKernel::computeTangent(localT, segment),
+                NaturalSplineKernel::computeCurvature(localT, segment),
+                NaturalSplineKernel::computeWiggle(segment)
                 );
 }
 
+double LoopingNaturalSpline::getT(int index) const
+{
+    return indexToT.at(index);
+}
+
+double LoopingNaturalSpline::getMaxT(void) const
+{
+    return maxT;
+}
+
+const std::vector<Vector3D> &LoopingNaturalSpline::getPoints(void) const
+{
+    return points;
+}
 bool LoopingNaturalSpline::isLooping(void) const
 {
     return true;
