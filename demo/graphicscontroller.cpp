@@ -48,6 +48,8 @@ void GraphicsController::draw(const DisplayData &d)
 
 void GraphicsController::paintEvent(QPaintEvent *event)
 {
+    Q_UNUSED(event)
+
 	//load image if necessary
 	if(displayData.imagePath != backgroundImagePath)
 	{

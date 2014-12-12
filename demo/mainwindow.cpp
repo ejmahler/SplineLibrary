@@ -188,7 +188,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 
 void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 {
-
+    Q_UNUSED(event)
 }
 
 

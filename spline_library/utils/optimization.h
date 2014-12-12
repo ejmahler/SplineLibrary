@@ -2,6 +2,7 @@
 #define OPTIMIZATION_H
 
 #include <algorithm>
+#include <cmath>
 
 #include "spline_library/utils/utils.h"
 
@@ -32,7 +33,7 @@ double Optimization::brentsMethod(Function f, double a, double fa, double b, dou
     // this combines the good of both and leaves out the bad of both, but it's much more complicated to read
 
     //if a is a better guess than b, swap them - we want b to be better than a
-    if(abs(contrapointValue) < abs(currentGuessValue))
+    if(std::abs(contrapointValue) < std::abs(currentGuessValue))
     {
         std::swap(contrapoint, currentGuess);
         std::swap(contrapointValue, currentGuessValue);
@@ -49,7 +50,7 @@ double Optimization::brentsMethod(Function f, double a, double fa, double b, dou
 
     double minDelta = 0.001;
 
-    while(currentGuessValue > tolerance && abs(currentGuess - contrapoint) > tolerance)
+    while(currentGuessValue > tolerance && std::abs(currentGuess - contrapoint) > tolerance)
     {
         //s will be the next guess for the actual t value
         double nextGuess;
@@ -71,10 +72,10 @@ double Optimization::brentsMethod(Function f, double a, double fa, double b, dou
         //determine if we can use the s that we jsut calculated. if not we have to use bisection method :(
         //condition numbers correspond to the pseudocode in the wiki article
         if(     (nextGuess < (3 * contrapoint + currentGuess) / 4 || nextGuess  > currentGuess) //condition 1
-                || (mflag && (abs(nextGuess - currentGuess) >= abs(currentGuess - prevGuess)/2)) //condition 2
-                || (!mflag && (abs(nextGuess - currentGuess) >= abs(prevGuess - oldGuess)/2)) //condition 3
-                || (mflag && (abs(currentGuess - prevGuess) < minDelta)) //condition 4
-                || (!mflag && (abs(nextGuess - currentGuess) < minDelta)) //condition 5
+                || (mflag && (std::abs(nextGuess - currentGuess) >= std::abs(currentGuess - prevGuess)/2)) //condition 2
+                || (!mflag && (std::abs(nextGuess - currentGuess) >= std::abs(prevGuess - oldGuess)/2)) //condition 3
+                || (mflag && (std::abs(currentGuess - prevGuess) < minDelta)) //condition 4
+                || (!mflag && (std::abs(nextGuess - currentGuess) < minDelta)) //condition 5
                 )
         {
             //one of these was true so we have to use bisection
@@ -105,7 +106,7 @@ double Optimization::brentsMethod(Function f, double a, double fa, double b, dou
         }
 
         //if a is a better guess than b, swap them - we want b to be better than a
-        if(abs(contrapointValue) < abs(currentGuessValue))
+        if(std::abs(contrapointValue) < std::abs(currentGuessValue))
         {
             std::swap(contrapoint, currentGuess);
             std::swap(contrapointValue, currentGuessValue);
