@@ -40,7 +40,7 @@ QuinticHermiteSpline::QuinticHermiteSpline(
         const std::vector<Vector3D> &points,
         const std::vector<Vector3D> &tangents,
         const std::vector<Vector3D> &curvatures,
-        float alpha
+        double alpha
        )
     :Spline(points)
 {

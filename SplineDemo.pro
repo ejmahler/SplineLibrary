@@ -30,8 +30,7 @@ SOURCES += \
     spline_library/utils/linearalgebra.cpp \
     spline_library/linear/linear_spline.cpp \
     spline_library/linear/looping_linear_spline.cpp \
-    spline_library/utils/optimization.cpp \
-    spline_library/utils/spline_setup.cpp
+    spline_library/utils/optimization.cpp
 
 HEADERS  += \
     demo/settingswidget.h \

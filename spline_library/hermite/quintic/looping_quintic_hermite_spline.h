@@ -13,7 +13,7 @@ public:
     LoopingQuinticHermiteSpline(const std::vector<Vector3D> &points,
                                 const std::vector<Vector3D> &tangents,
                                 const std::vector<Vector3D> &curvatures,
-                                float alpha = 0.0
+                                double alpha = 0.0
                                 );
 
     LoopingQuinticHermiteSpline(const std::vector<Vector3D> &points, double alpha = 0.0);

@@ -230,7 +230,7 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
 	graphicsController->draw(d);
 }
 
-std::shared_ptr<Spline> MainWindow::createSpline(const std::vector<Vector3D> &pointList, const QString &splineType, bool isLooping, float alpha, bool includeEndpoints)
+std::shared_ptr<Spline> MainWindow::createSpline(const std::vector<Vector3D> &pointList, const QString &splineType, bool isLooping, double alpha, bool includeEndpoints)
 {
     if(splineType == "Cubic Catmull-Rom Spline")
     {

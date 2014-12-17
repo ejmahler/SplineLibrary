@@ -13,7 +13,7 @@ public:
     QuinticHermiteSpline(const std::vector<Vector3D> &points,
                          const std::vector<Vector3D> &tangents,
                          const std::vector<Vector3D> &curvatures,
-                         float alpha = 0.0f
+                         double alpha = 0.0f
                          );
     QuinticHermiteSpline(const std::vector<Vector3D> &points, double alpha = 0.0f);
 
