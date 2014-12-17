@@ -1,8 +1,9 @@
 #ifndef NATURALSPLINEKERNEL_H
 #define NATURALSPLINEKERNEL_H
 
-namespace NaturalSplineKernel
+class NaturalSplineKernel
 {
+public:
     template<class InterpolationType, typename floating_t=double>
     struct alignas(16) InterpolationData
     {
@@ -20,35 +21,32 @@ namespace NaturalSplineKernel
         {
             return globalT - t0;
         }
+
+        inline InterpolationType computePosition(floating_t t)
+        {
+            return a + t * (b + t * (c + t * d));
+        }
+
+        inline InterpolationType computeTangent(floating_t t)
+        {
+            //compute the derivative of the position function
+            return b + t * (2 * c + (3 * t) * d);
+        }
+
+        inline InterpolationType computeCurvature(floating_t t)
+        {
+            //compute the 2nd derivative of the position function
+            return 2 * c + (6 * t) * d;
+        }
+
+        inline InterpolationType computeWiggle(void)
+        {
+            //compute the 3rd derivative of the position function
+            return 6 * d;
+        }
     };
-
-    template<class InterpolationType, typename floating_t>
-    inline InterpolationType computePosition(floating_t t, const InterpolationData<InterpolationType,floating_t> &segment)
-    {
-        return segment.a + t * (segment.b + t * (segment.c + t * segment.d));
-    }
-
-    template<class InterpolationType, typename floating_t>
-    inline InterpolationType computeTangent(floating_t t, const InterpolationData<InterpolationType,floating_t> &segment)
-    {
-        //compute the derivative of the position function
-        return segment.b + t * (2 * segment.c + (3 * t) * segment.d);
-    }
-
-    template<class InterpolationType, typename floating_t>
-    inline InterpolationType computeCurvature(floating_t t, const InterpolationData<InterpolationType,floating_t> &segment)
-    {
-        //compute the 2nd derivative of the position function
-        return 2 * segment.c + (6 * t) * segment.d;
-    }
-
-    template<class InterpolationType, typename floating_t>
-    inline InterpolationType computeWiggle(const InterpolationData<InterpolationType,floating_t> &segment)
-    {
-        //compute the 3rd derivative of the position function
-        return 6 * segment.d;
-    }
-
+private:
+    NaturalSplineKernel(void) = default;
 };
 
 #endif // NATURALSPLINEKERNEL_H

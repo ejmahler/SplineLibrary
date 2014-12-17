@@ -7,8 +7,8 @@
 #include "spline_library/utils/spline_setup.h"
 
 NaturalSpline::NaturalSpline(const std::vector<Vector3D> &points, bool includeEndpoints, double alpha)
+    :Spline(points)
 {
-    this->points = points;
 
     std::unordered_map<int, double> indexToT_Raw;
 
@@ -114,7 +114,7 @@ Vector3D NaturalSpline::getPosition(double globalT) const
     auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
     auto localT = segment.computeLocalT(globalT);
 
-    return NaturalSplineKernel::computePosition(localT, segment);
+    return segment.computePosition(localT);
 }
 
 Spline::InterpolatedPT NaturalSpline::getTangent(double globalT) const
@@ -123,8 +123,8 @@ Spline::InterpolatedPT NaturalSpline::getTangent(double globalT) const
     auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPT(
-                NaturalSplineKernel::computePosition(localT, segment),
-                NaturalSplineKernel::computeTangent(localT, segment)
+                segment.computePosition(localT),
+                segment.computeTangent(localT)
                 );
 }
 
@@ -134,9 +134,9 @@ Spline::InterpolatedPTC NaturalSpline::getCurvature(double globalT) const
     auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPTC(
-                NaturalSplineKernel::computePosition(localT, segment),
-                NaturalSplineKernel::computeTangent(localT, segment),
-                NaturalSplineKernel::computeCurvature(localT, segment)
+                segment.computePosition(localT),
+                segment.computeTangent(localT),
+                segment.computeCurvature(localT)
                 );
 }
 
@@ -146,10 +146,10 @@ Spline::InterpolatedPTCW NaturalSpline::getWiggle(double globalT) const
     auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPTCW(
-                NaturalSplineKernel::computePosition(localT, segment),
-                NaturalSplineKernel::computeTangent(localT, segment),
-                NaturalSplineKernel::computeCurvature(localT, segment),
-                NaturalSplineKernel::computeWiggle(segment)
+                segment.computePosition(localT),
+                segment.computeTangent(localT),
+                segment.computeCurvature(localT),
+                segment.computeWiggle()
                 );
 }
 
@@ -161,11 +161,6 @@ double NaturalSpline::getT(int index) const
 double NaturalSpline::getMaxT(void) const
 {
     return maxT;
-}
-
-const std::vector<Vector3D> &NaturalSpline::getPoints(void) const
-{
-    return points;
 }
 
 bool NaturalSpline::isLooping(void) const

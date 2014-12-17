@@ -22,8 +22,6 @@ class NaturalSpline final : public Spline
         double getT(int index) const override;
         double getMaxT(void) const override;
 
-        const std::vector<Vector3D> &getPoints(void) const override;
-
         bool isLooping(void) const override;
 
     //data
@@ -35,9 +33,6 @@ class NaturalSpline final : public Spline
         std::vector<NaturalSplineKernel::InterpolationData<Vector3D>> segmentData;
 
         double maxT;
-
-        //original point data
-        std::vector<Vector3D> points;
 
         //map from index to t value. it's a map and not an array so we can store negative indexes
         std::unordered_map<int,double> indexToT;

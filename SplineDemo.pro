@@ -7,6 +7,8 @@ TEMPLATE = app
 
 CONFIG += c++11
 
+CXXFLAGS += -v
+
 SOURCES += \
     demo/settingswidget.cpp \
     demo/settings.cpp \
@@ -20,13 +22,9 @@ SOURCES += \
     spline_library/basis/looping_cubic_b_spline.cpp \
     spline_library/natural/natural_spline.cpp \
     spline_library/natural/looping_natural_spline.cpp \
-    spline_library/hermite/cubic/cr_spline.cpp \
     spline_library/hermite/cubic/cubic_hermite_spline.cpp \
-    spline_library/hermite/cubic/looping_cr_spline.cpp \
     spline_library/hermite/cubic/looping_cubic_hermite_spline.cpp \
-    spline_library/hermite/quintic/looping_quintic_cr_spline.cpp \
     spline_library/hermite/quintic/looping_quintic_hermite_spline.cpp \
-    spline_library/hermite/quintic/quintic_cr_spline.cpp \
     spline_library/hermite/quintic/quintic_hermite_spline.cpp \
     spline_library/splinelengthcalculator.cpp \
     spline_library/utils/linearalgebra.cpp \
@@ -47,13 +45,9 @@ HEADERS  += \
     spline_library/basis/looping_cubic_b_spline.h \
     spline_library/natural/looping_natural_spline.h \
     spline_library/natural/natural_spline.h \
-    spline_library/hermite/cubic/cr_spline.h \
     spline_library/hermite/cubic/cubic_hermite_spline.h \
-    spline_library/hermite/cubic/looping_cr_spline.h \
     spline_library/hermite/cubic/looping_cubic_hermite_spline.h \
-    spline_library/hermite/quintic/looping_quintic_cr_spline.h \
     spline_library/hermite/quintic/looping_quintic_hermite_spline.h \
-    spline_library/hermite/quintic/quintic_cr_spline.h \
     spline_library/hermite/quintic/quintic_hermite_spline.h \
     spline_library/splinelengthcalculator.h \
     spline_library/utils/linearalgebra.h \
@@ -64,7 +58,11 @@ HEADERS  += \
     spline_library/utils/optimization.h \
     spline_library/utils/utils.h \
     spline_library/utils/spline_setup.h \
-    spline_library/natural/natural_spline_kernel.h
+    spline_library/natural/natural_spline_kernel.h \
+    spline_library/linear/linear_spline_kernel.h \
+    spline_library/basis/cubic_b_spline_kernel.h \
+    spline_library/hermite/cubic/cubic_hermite_spline_kernel.h \
+    spline_library/hermite/quintic/quintic_hermite_spline_kernel.h
 
 FORMS    += \
     demo/settingswidget.ui \

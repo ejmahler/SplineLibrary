@@ -11,8 +11,8 @@
 #include "spline_library/vector3d.h"
 #include "spline_library/splineinverter.h"
 #include "spline_library/splinelengthcalculator.h"
-#include "spline_library/hermite/cubic/cr_spline.h"
-#include "spline_library/hermite/cubic/looping_cr_spline.h"
+#include "spline_library/hermite/cubic/cubic_hermite_spline.h"
+#include "spline_library/hermite/cubic/looping_cubic_hermite_spline.h"
 
 GraphicsController::GraphicsController(QWidget *parent)
 	: QGLWidget(parent), 
@@ -89,7 +89,7 @@ void GraphicsController::paintEvent(QPaintEvent *event)
     }
 	
     //draw points
-    drawPoints(painter, mainSpline->getPoints());
+    drawPoints(painter, mainSpline->getOriginalPoints());
 
 	//draw the highlighted point if it exists
 	if(displayData.highlightT)
@@ -191,7 +191,7 @@ void GraphicsController::createDistanceField(const QString &filename)
 	qsrand(time(0));
 
 	std::vector<Vector3D> colorList;
-    for(size_t i = 0; i < mainSpline->getPoints().size(); i++)
+    for(size_t i = 0; i < mainSpline->getOriginalPoints().size(); i++)
 	{
 		colorList.push_back(Vector3D(
 			double(qrand()) / RAND_MAX,
@@ -199,9 +199,9 @@ void GraphicsController::createDistanceField(const QString &filename)
 			double(qrand()) / RAND_MAX));
 	}
     if(mainSpline->isLooping())
-        colorSpline = std::make_shared<LoopingCRSpline>(colorList);
+        colorSpline = std::make_shared<LoopingCubicHermiteSpline>(colorList);
     else
-        colorSpline = std::make_shared<CRSpline>(colorList);
+        colorSpline = std::make_shared<CubicHermiteSpline>(colorList);
 
 	painter.fillRect(0,0,output.width(),output.height(),Qt::white);
 
@@ -242,7 +242,7 @@ void GraphicsController::createDistanceField(const QString &filename)
 	}
 
     //draw points
-    drawPoints(painter, mainSpline->getPoints());
+    drawPoints(painter, mainSpline->getOriginalPoints());
 
 	//draw lines
     painter.setPen(Qt::red);
@@ -273,7 +273,7 @@ void GraphicsController::createDistanceField(const QString &filename)
 
 int GraphicsController::pickVertex(const QPoint &screenPoint)
 {
-    std::vector<Vector3D> points = mainSpline->getPoints();
+    std::vector<Vector3D> points = mainSpline->getOriginalPoints();
 
 	//convert this point to world coordinates and then just loop through every vertex
 	Vector3D convertedPoint = convertPoint(screenPoint);

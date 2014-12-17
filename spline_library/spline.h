@@ -8,6 +8,11 @@
 class Spline
 {
 public:
+    Spline(const std::vector<Vector3D> &originalPoints)
+        :originalPoints(originalPoints)
+    {}
+
+public:
     struct InterpolatedPT;
     struct InterpolatedPTC;
     struct InterpolatedPTCW;
@@ -20,8 +25,11 @@ public:
 	virtual double getT(int index) const = 0;
     virtual double getMaxT(void) const = 0;
 
-	virtual const std::vector<Vector3D> &getPoints(void) const = 0;
+    const std::vector<Vector3D> &getOriginalPoints(void) const { return originalPoints; }
     virtual bool isLooping(void) const = 0;
+
+private:
+    const std::vector<Vector3D> originalPoints;
 };
 
 struct Spline::InterpolatedPT

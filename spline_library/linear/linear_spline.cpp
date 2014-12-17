@@ -5,16 +5,10 @@
 #include <cmath>
 #include <cassert>
 
-LinearSpline::LinearSpline()
-{
-
-}
-
 LinearSpline::LinearSpline(const std::vector<Vector3D> &points, double alpha)
+    :Spline(points)
 {
     assert(points.size() >= 2);
-
-    this->points = points;
 
     int size = points.size();
     numSegments = size - 1;
@@ -26,7 +20,7 @@ LinearSpline::LinearSpline(const std::vector<Vector3D> &points, double alpha)
     //pre-arrange the data needed for interpolation
     for(int i = 0; i < numSegments; i++)
     {
-        InterpolationData segment;
+        LinearSplineKernel::InterpolationData<Vector3D> segment;
 
         segment.t0 = indexToT.at(i);
         segment.t1 = indexToT.at(i + 1);
@@ -41,45 +35,45 @@ LinearSpline::LinearSpline(const std::vector<Vector3D> &points, double alpha)
     }
 }
 
-Vector3D LinearSpline::getPosition(double x) const
+Vector3D LinearSpline::getPosition(double globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    auto t = (x - segment.t0) * segment.tDistanceInverse;
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
-    return computePosition(t, segment);
+    return segment.computePosition(localT);
 }
 
-Spline::InterpolatedPT LinearSpline::getTangent(double x) const
+Spline::InterpolatedPT LinearSpline::getTangent(double globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    auto t = (x - segment.t0) * segment.tDistanceInverse;
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPT(
-                computePosition(t, segment),
-                computeTangent(segment)
+                segment.computePosition(localT),
+                segment.computeTangent()
                 );
 }
 
-Spline::InterpolatedPTC LinearSpline::getCurvature(double x) const
+Spline::InterpolatedPTC LinearSpline::getCurvature(double globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    auto t = (x - segment.t0) * segment.tDistanceInverse;
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPTC(
-                computePosition(t, segment),
-                computeTangent(segment),
+                segment.computePosition(localT),
+                segment.computeTangent(),
                 Vector3D() //curvature is always 0 for linear spline
                 );
 }
 
-Spline::InterpolatedPTCW LinearSpline::getWiggle(double x) const
+Spline::InterpolatedPTCW LinearSpline::getWiggle(double globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    auto t = (x - segment.t0) * segment.tDistanceInverse;
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPTCW(
-                computePosition(t, segment),
-                computeTangent(segment),
+                segment.computePosition(localT),
+                segment.computeTangent(),
                 Vector3D(), //curvature and wiggle are always 0 for linear spline
                 Vector3D()
                 );
@@ -93,11 +87,6 @@ double LinearSpline::getT(int index) const
 double LinearSpline::getMaxT(void) const
 {
     return maxT;
-}
-
-const std::vector<Vector3D> &LinearSpline::getPoints(void) const
-{
-    return points;
 }
 
 bool LinearSpline::isLooping(void) const

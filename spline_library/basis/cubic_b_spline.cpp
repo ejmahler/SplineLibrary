@@ -5,17 +5,11 @@
 #include <cmath>
 #include <cassert>
 
-CubicBSpline::CubicBSpline()
-{
-
-}
-
 CubicBSpline::CubicBSpline(const std::vector<Vector3D> &points)
+    :Spline(points)
 {
     assert(points.size() >= 4);
     double alpha = 0.0;
-
-    this->points = points;
 
     int size = points.size();
     int padding = 1;
@@ -28,7 +22,7 @@ CubicBSpline::CubicBSpline(const std::vector<Vector3D> &points)
     //pre-arrange the data needed for interpolation
     for(int i = padding; i < padding + numSegments; i++)
     {
-        InterpolationData segment;
+        CubicBSplineKernel::InterpolationData<Vector3D> segment;
 
         segment.t0 = indexToT.at(i);
         segment.t1 = indexToT.at(i + 1);
@@ -42,47 +36,47 @@ CubicBSpline::CubicBSpline(const std::vector<Vector3D> &points)
     }
 }
 
-Vector3D CubicBSpline::getPosition(double x) const
+Vector3D CubicBSpline::getPosition(double globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    double t = x - segment.t0;
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
-    return computePosition(t, segment);
+    return segment.computePosition(localT);
 }
 
-Spline::InterpolatedPT CubicBSpline::getTangent(double x) const
+Spline::InterpolatedPT CubicBSpline::getTangent(double globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    double t = x - segment.t0;
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPT(
-                computePosition(t, segment),
-                computeTangent(t, segment)
+                segment.computePosition(localT),
+                segment.computeTangent(localT)
                 );
 }
 
-Spline::InterpolatedPTC CubicBSpline::getCurvature(double x) const
+Spline::InterpolatedPTC CubicBSpline::getCurvature(double globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    double t = x - segment.t0;
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPTC(
-                computePosition(t, segment),
-                computeTangent(t, segment),
-                computeCurvature(t, segment)
+                segment.computePosition(localT),
+                segment.computeTangent(localT),
+                segment.computeCurvature(localT)
                 );
 }
 
-Spline::InterpolatedPTCW CubicBSpline::getWiggle(double x) const
+Spline::InterpolatedPTCW CubicBSpline::getWiggle(double globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    double t = x - segment.t0;
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPTCW(
-                computePosition(t, segment),
-                computeTangent(t, segment),
-                computeCurvature(t, segment),
-                computeWiggle(segment)
+                segment.computePosition(localT),
+                segment.computeTangent(localT),
+                segment.computeCurvature(localT),
+                segment.computeWiggle()
                 );
 }
 
@@ -94,11 +88,6 @@ double CubicBSpline::getT(int index) const
 double CubicBSpline::getMaxT(void) const
 {
     return maxT;
-}
-
-const std::vector<Vector3D> &CubicBSpline::getPoints(void) const
-{
-    return points;
 }
 
 bool CubicBSpline::isLooping(void) const

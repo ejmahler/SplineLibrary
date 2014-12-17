@@ -18,10 +18,10 @@
 #include "graphicscontroller.h"
 #include "settingswidget.h"
 
-#include "spline_library/hermite/quintic/quintic_cr_spline.h"
-#include "spline_library/hermite/quintic/looping_quintic_cr_spline.h"
-#include "spline_library/hermite/cubic/cr_spline.h"
-#include "spline_library/hermite/cubic/looping_cr_spline.h"
+#include "spline_library/hermite/quintic/quintic_hermite_spline.h"
+#include "spline_library/hermite/quintic/looping_quintic_hermite_spline.h"
+#include "spline_library/hermite/cubic/cubic_hermite_spline.h"
+#include "spline_library/hermite/cubic/looping_cubic_hermite_spline.h"
 #include "spline_library/basis/cubic_b_spline.h"
 #include "spline_library/basis/looping_cubic_b_spline.h"
 #include "spline_library/natural/natural_spline.h"
@@ -70,7 +70,7 @@ MainWindow::~MainWindow()
 void MainWindow::settingChanged(void)
 {
 	//rebuild the spline
-	rebuildSpline(mainSpline->getPoints());
+    rebuildSpline(mainSpline->getOriginalPoints());
 }
 
 
@@ -89,7 +89,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 		addVertex();
 		break;
     case Qt::Key_D:
-		if(mainSpline->getPoints().size() > 3)
+        if(mainSpline->getOriginalPoints().size() > 3)
 			deleteVertex();
 		break;
 	default:
@@ -112,7 +112,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 		if(objectId >= 0)
 		{
 			draggedObject = objectId;
-            rebuildSpline(mainSpline->getPoints());
+            rebuildSpline(mainSpline->getOriginalPoints());
 		}
 	}
 	else if(event->button() == Qt::RightButton)
@@ -128,7 +128,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 		if(objectId >= 0)
 		{
             selectedObject = objectId;
-            rebuildSpline(mainSpline->getPoints());
+            rebuildSpline(mainSpline->getOriginalPoints());
 		}
 	}
 
@@ -145,7 +145,7 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 	{
 		rightMousePressed = false;
 	}
-	rebuildSpline(mainSpline->getPoints());
+    rebuildSpline(mainSpline->getOriginalPoints());
 }
 
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
@@ -159,7 +159,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 		if(draggedObject >= 0)
 		{
 			//change the point's position
-			std::vector<Vector3D> points = mainSpline->getPoints();
+            std::vector<Vector3D> points = mainSpline->getOriginalPoints();
             points[draggedObject] = realPos;
 
 			//rebuild the spline
@@ -236,11 +236,11 @@ std::shared_ptr<Spline> MainWindow::createSpline(const std::vector<Vector3D> &po
     {
         if(isLooping)
         {
-            return std::make_shared<LoopingCRSpline>(pointList, alpha);
+            return std::make_shared<LoopingCubicHermiteSpline>(pointList, alpha);
         }
         else
         {
-            return std::make_shared<CRSpline>(pointList, alpha);
+            return std::make_shared<CubicHermiteSpline>(pointList, alpha);
         }
     }
     else if(splineType == "Cubic B-Spline")
@@ -269,11 +269,11 @@ std::shared_ptr<Spline> MainWindow::createSpline(const std::vector<Vector3D> &po
     {
         if(isLooping)
         {
-            return std::make_shared<LoopingQuinticCRSpline>(pointList, alpha);
+            return std::make_shared<LoopingQuinticHermiteSpline>(pointList, alpha);
         }
         else
         {
-            return std::make_shared<QuinticCRSpline>(pointList, alpha);
+            return std::make_shared<QuinticHermiteSpline>(pointList, alpha);
         }
     }
 }
@@ -283,7 +283,7 @@ void MainWindow::addVertex(void)
     //get the midway point between the chosen vertex and the previous vertex
     //if this is the first vertex, use the next one instead
 
-    std::vector<Vector3D> points = mainSpline->getPoints();
+    std::vector<Vector3D> points = mainSpline->getOriginalPoints();
     if(selectedObject == 0)
     {
         int index = 1;
@@ -312,7 +312,7 @@ void MainWindow::addVertex(void)
 
 void MainWindow::deleteVertex(void)
 {
-	std::vector<Vector3D> points = mainSpline->getPoints();
+    std::vector<Vector3D> points = mainSpline->getOriginalPoints();
 
 	//remove the object
 	points.erase(points.begin() + selectedObject);

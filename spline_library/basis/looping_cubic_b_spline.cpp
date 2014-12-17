@@ -6,11 +6,10 @@
 #include <cmath>
 
 LoopingCubicBSpline::LoopingCubicBSpline(const std::vector<Vector3D> &points)
+    :Spline(points)
 {
     assert(points.size() >= 3);
     double alpha = 0.0;
-
-    this->points = points;
 
     int size = points.size();
     numSegments = size;
@@ -23,7 +22,7 @@ LoopingCubicBSpline::LoopingCubicBSpline(const std::vector<Vector3D> &points)
     //pre-arrange the data needed for interpolation
     for(int i = 0; i < size + 1; i++)
     {
-        InterpolationData segment;
+        CubicBSplineKernel::InterpolationData<Vector3D> segment;
 
         segment.t0 = indexToT.at(i);
         segment.t1 = indexToT.at(i + 1);
@@ -37,68 +36,78 @@ LoopingCubicBSpline::LoopingCubicBSpline(const std::vector<Vector3D> &points)
     }
 }
 
-Vector3D LoopingCubicBSpline::getPosition(double x) const
+Vector3D LoopingCubicBSpline::getPosition(double globalT) const
 {
-    //use modular arithmetic to bring x into an acceptable range
-    x = fmod(x, numSegments);
-    if(x < 0)
-        x += numSegments;
+    //use modular arithmetic to bring globalT into an acceptable range
+    globalT = fmod(globalT, numSegments);
+    if(globalT < 0)
+        globalT += numSegments;
 
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    double t = x - segment.t0;
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
-    return computePosition(t, segment);
+    return segment.computePosition(localT);
 }
 
-Spline::InterpolatedPT LoopingCubicBSpline::getTangent(double x) const
+Spline::InterpolatedPT LoopingCubicBSpline::getTangent(double globalT) const
 {
-    //use modular arithmetic to bring x into an acceptable range
-    x = fmod(x, numSegments);
-    if(x < 0)
-        x += numSegments;
+    //use modular arithmetic to bring globalT into an acceptable range
+    globalT = fmod(globalT, numSegments);
+    if(globalT < 0)
+        globalT += numSegments;
 
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    double t = x - segment.t0;
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPT(
-                computePosition(t, segment),
-                computeTangent(t, segment)
+                segment.computePosition(localT),
+                segment.computeTangent(localT)
                 );
 }
 
-Spline::InterpolatedPTC LoopingCubicBSpline::getCurvature(double x) const
+Spline::InterpolatedPTC LoopingCubicBSpline::getCurvature(double globalT) const
 {
-    //use modular arithmetic to bring x into an acceptable range
-    x = fmod(x, numSegments);
-    if(x < 0)
-        x += numSegments;
+    //use modular arithmetic to bring globalT into an acceptable range
+    globalT = fmod(globalT, numSegments);
+    if(globalT < 0)
+        globalT += numSegments;
 
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    double t = x - segment.t0;
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPTC(
-                computePosition(t, segment),
-                computeTangent(t, segment),
-                computeCurvature(t, segment)
+                segment.computePosition(localT),
+                segment.computeTangent(localT),
+                segment.computeCurvature(localT)
                 );
 }
 
-Spline::InterpolatedPTCW LoopingCubicBSpline::getWiggle(double x) const
+Spline::InterpolatedPTCW LoopingCubicBSpline::getWiggle(double globalT) const
 {
-    //use modular arithmetic to bring x into an acceptable range
-    x = fmod(x, numSegments);
-    if(x < 0)
-        x += numSegments;
+    //use modular arithmetic to bring globalT into an acceptable range
+    globalT = fmod(globalT, numSegments);
+    if(globalT < 0)
+        globalT += numSegments;
 
-    auto segment = SplineSetup::getSegmentForT(segmentData, x);
-    double t = x - segment.t0;
+    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
+    auto localT = segment.computeLocalT(globalT);
 
     return InterpolatedPTCW(
-                computePosition(t, segment),
-                computeTangent(t, segment),
-                computeCurvature(t, segment),
-                computeWiggle(segment)
+                segment.computePosition(localT),
+                segment.computeTangent(localT),
+                segment.computeCurvature(localT),
+                segment.computeWiggle()
                 );
+}
+
+double LoopingCubicBSpline::getT(int index) const
+{
+    return indexToT.at(index);
+}
+
+double LoopingCubicBSpline::getMaxT(void) const
+{
+    return maxT;
 }
 
 bool LoopingCubicBSpline::isLooping(void) const
