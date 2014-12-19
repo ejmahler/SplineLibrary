@@ -7,7 +7,7 @@
 
 #include "spline_library/spline.h"
 
-class Vector3D;
+class QVector2D;
 
 struct DisplayData
 {
@@ -35,13 +35,13 @@ public:
 	GraphicsController(QWidget *parent);
 	~GraphicsController();
 
-    void setMainSpline(const std::shared_ptr<Spline<Vector3D>> &s);
-    void setSecondarySpline(const std::shared_ptr<Spline<Vector3D>> &s);
+    void setMainSpline(const std::shared_ptr<Spline<QVector2D>> &s);
+    void setSecondarySpline(const std::shared_ptr<Spline<QVector2D>> &s);
 
 	void draw(const DisplayData &d);
 
-	QPoint convertPoint(const Vector3D &point);
-	Vector3D convertPoint(const QPoint &point);
+    QPoint convertPoint(const QVector2D &point);
+    QVector2D convertPoint(const QPoint &point);
 
 	void createDistanceField(const QString &filename);
 
@@ -52,10 +52,10 @@ protected:
 
 private:
 
-    void drawSpline(QPainter &painter, const std::shared_ptr<Spline<Vector3D>> &s, const QColor &color);
-    void drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline<Vector3D>> &s, double beginT, double endT, double thresholdAngle);
+    void drawSpline(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, const QColor &color);
+    void drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, double beginT, double endT, double thresholdAngle);
 
-    void drawPoints(QPainter &painter, const std::vector<Vector3D> &points);
+    void drawPoints(QPainter &painter, const std::vector<QVector2D> &points);
 
     void drawDiagnosticText(QPainter &painter, int top,
             const QString &labelText,const QString &valueText);
@@ -64,14 +64,14 @@ private:
 
     void keyPressEvent(QKeyEvent *event) override;
 
-    Vector3D getColor(float t) const;
+    QVector3D getColor(float t) const;
 
 private:
 
 	QMap<QString,QStaticText> staticText;
 
-    std::shared_ptr<Spline<Vector3D>> mainSpline;
-    std::shared_ptr<Spline<Vector3D>> secondarySpline;
+    std::shared_ptr<Spline<QVector2D>> mainSpline;
+    std::shared_ptr<Spline<QVector2D>> secondarySpline;
 
 	DisplayData displayData;
 
@@ -82,7 +82,7 @@ private:
 	std::shared_ptr<QImage> backgroundImage;
 	QString backgroundImagePath;
 
-    std::shared_ptr<Spline<Vector3D>> colorSpline;
+    std::shared_ptr<Spline<QVector3D>> colorSpline;
 };
 
 #endif // GRAPHICSCONTROLLER_H

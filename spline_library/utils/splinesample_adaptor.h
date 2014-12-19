@@ -33,27 +33,29 @@
 
 #include "nanoflann.hpp"
 #include <vector>
+#include <array>
 #include "spline_library/vector3d.h"
 
-struct SplineSamples3D
+template<int dimension, typename floating_t>
+struct SplineSamples
 {
-    typedef double coord_t; //!< The type of each coordinate
+    typedef floating_t coord_t; //!< The type of each coordinate
 
-    struct Point3D
+    struct Point
     {
-        double x,y,z;
-        double t;
+        std::array<coord_t, dimension> coords;
+        coord_t t;
 
-        Point3D(double cx, double cy, double cz, double ct)
-            :x(cx),y(cy),z(cz),t(ct)
+        Point(const std::array<coord_t, dimension> &coords, coord_t ct)
+            :coords(coords), t(ct)
         {}
     };
 
-    std::vector<Point3D> pts;
+    std::vector<Point> pts;
 };
 
 
-template <typename Derived>
+template <typename Derived, int dimension>
 struct SplineSampleAdaptor
 {
     typedef typename Derived::coord_t coord_t;
@@ -72,10 +74,12 @@ struct SplineSampleAdaptor
     // Returns the distance between the vector "p1[0:size-1]" and the data point with index "idx_p2" stored in the class:
     inline coord_t kdtree_distance(const coord_t *p1, const size_t idx_p2,size_t size) const
     {
-        const coord_t dx=p1[0]-derived().pts[idx_p2].x;
-        const coord_t dy=p1[1]-derived().pts[idx_p2].y;
-        const coord_t dz=p1[2]-derived().pts[idx_p2].z;
-        return dx*dx+dy*dy+dz*dz;
+        coord_t sum = 0;
+        for(int i = 0; i < dimension; i++) {
+            coord_t diff = p1[i]-derived().pts[idx_p2].coords[i];
+            sum += diff*diff;
+        }
+        return sum;
     }
 
     // Returns the dim'th component of the idx'th point in the class:
@@ -83,9 +87,7 @@ struct SplineSampleAdaptor
     //  "if/else's" are actually solved at compile time.
     inline coord_t kdtree_get_pt(const size_t idx, int dim) const
     {
-        if (dim==0) return derived().pts[idx].x;
-        else if (dim==1) return derived().pts[idx].y;
-        else return derived().pts[idx].z;
+        return derived().pts[idx].coords[dim];
     }
 
     // Optional bounding-box computation: return false to default to a standard bbox computation loop.
@@ -95,33 +97,31 @@ struct SplineSampleAdaptor
     bool kdtree_get_bbox(BBOX &bb) const { return false; }
 };
 
+template<int dimension, typename floating_t>
 class SplineSampleTree
 {
-    typedef SplineSampleAdaptor<SplineSamples3D> AdaptorType;
+    typedef SplineSampleAdaptor<SplineSamples<dimension, floating_t>, dimension> AdaptorType;
     typedef nanoflann::KDTreeSingleIndexAdaptor<
-            nanoflann::L2_Simple_Adaptor<double, AdaptorType>,
-            AdaptorType, 3>
+            nanoflann::L2_Simple_Adaptor<floating_t, AdaptorType>,
+            AdaptorType, dimension>
         TreeType;
 
 public:
-    SplineSampleTree(const SplineSamples3D &samples)
-        :adaptor(samples), tree(3, adaptor)
+    SplineSampleTree(const SplineSamples<dimension, floating_t> &samples)
+        :adaptor(samples), tree(dimension, adaptor)
     {
         tree.buildIndex();
     }
 
-    double findClosestSample(const Vector3D &queryPoint) const
+    floating_t findClosestSample(const std::array<floating_t, dimension> &queryPoint) const
     {
-        //build a query point
-        double queryPointArray[3] = {queryPoint.x(), queryPoint.y(), queryPoint.z()};
-
         // do a knn search
         const size_t num_results = 1;
         size_t ret_index;
-        double out_dist_sqr;
-        nanoflann::KNNResultSet<double> resultSet(num_results);
+        floating_t out_dist_sqr;
+        nanoflann::KNNResultSet<floating_t> resultSet(num_results);
         resultSet.init(&ret_index, &out_dist_sqr );
-        tree.findNeighbors(resultSet, &queryPointArray[0], nanoflann::SearchParams());
+        tree.findNeighbors(resultSet, queryPoint.data(), nanoflann::SearchParams());
 
         return adaptor.derived().pts.at(ret_index).t;
     }

@@ -9,7 +9,7 @@
 #include "spline_library/spline.h"
 #include "spline_library/splineinverter.h"
 
-class Vector3D;
+#include <QVector2D>
 
 namespace Ui {class MainWindow;}
 
@@ -39,8 +39,8 @@ private: //methods
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 	
-	void rebuildSpline(std::vector<Vector3D> pointList);
-    std::shared_ptr<Spline<Vector3D>> createSpline(const std::vector<Vector3D> &pointList, const QString &splineType, bool looping, double alpha, bool includeEndpoints);
+    void rebuildSpline(std::vector<QVector2D> pointList);
+    std::shared_ptr<Spline<QVector2D>> createSpline(const std::vector<QVector2D> &pointList, const QString &splineType, bool looping, double alpha, bool includeEndpoints);
 
 	void redraw(void);
 
@@ -53,9 +53,9 @@ private: //methods
 private: //data
 	Ui::MainWindow *ui;
 
-    std::shared_ptr<Spline<Vector3D>> mainSpline;
-    std::shared_ptr<Spline<Vector3D>> secondarySpline;
-    std::shared_ptr<SplineInverter<Vector3D>> splineInverter;
+    std::shared_ptr<Spline<QVector2D>> mainSpline;
+    std::shared_ptr<Spline<QVector2D>> secondarySpline;
+    std::shared_ptr<SplineInverter<QVector2D>> splineInverter;
 
 	SettingsWidget *settingsWidget;
 
@@ -67,7 +67,10 @@ private: //data
 	int draggedObject;
 	int selectedObject;
 
-	QPointF originalMousePos;
+    QPoint originalMousePos;
 };
+
+template<>
+std::array<float, 2> convertPoint<QVector2D, float, 2>(const QVector2D& point);
 
 #endif // MAINWINDOW_H

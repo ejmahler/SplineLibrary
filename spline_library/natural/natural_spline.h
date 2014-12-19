@@ -114,21 +114,21 @@ NaturalSpline<InterpolationType,floating_t>::NaturalSpline(const std::vector<Int
     upperDiagonal.erase(upperDiagonal.begin());
 
     //solve the tridiagonal system to get the curvature at each point
-    std::vector<Vector3D> curvatures = LinearAlgebra::solveSymmetricTridiagonal(
+    std::vector<InterpolationType> curvatures = LinearAlgebra::solveSymmetricTridiagonal(
                 std::move(diagonal),
                 std::move(upperDiagonal),
                 std::move(inputVector)
                 );
 
     //we didn't compute the first or last curvature, which will be 0
-    curvatures.insert(curvatures.begin(), Vector3D());
-    curvatures.push_back(Vector3D());
+    curvatures.insert(curvatures.begin(), InterpolationType());
+    curvatures.push_back(InterpolationType());
 
     //we now have 0 curvature for index 0 and n - 1, and the final (usually nonzero) curvature for every other point
     //use this curvature to determine a,b,c,and d to build each segment
     for(int i = firstPoint; i < firstPoint + numSegments; i++) {
 
-        NaturalSplineKernel::InterpolationData<Vector3D> segment;
+        NaturalSplineKernel::InterpolationData<InterpolationType> segment;
         segment.t0 = indexToT.at(i);
         segment.t1 = indexToT.at(i + 1);
 

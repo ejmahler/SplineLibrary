@@ -15,6 +15,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
+#include <QVector2D>
+
 #include "graphicscontroller.h"
 #include "settingswidget.h"
 
@@ -27,8 +29,6 @@
 #include "spline_library/natural/natural_spline.h"
 #include "spline_library/natural/looping_natural_spline.h"
 #include "spline_library/splineinverter.h"
-
-#include "spline_library/vector3d.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QWidget(parent),
@@ -53,13 +53,13 @@ MainWindow::MainWindow(QWidget *parent)
 		);
 
 	qsrand(time(0));
-	std::vector<Vector3D> points;
-	points.push_back(Vector3D(100,100,0));
-	points.push_back(Vector3D(400,100,0));
-	points.push_back(Vector3D(500,400,0));
-	points.push_back(Vector3D(300,600,0));
-	points.push_back(Vector3D(300,300,0));
-    points.push_back(Vector3D(100,200,0));
+    std::vector<QVector2D> points;
+    points.push_back(QVector2D(100,100));
+    points.push_back(QVector2D(400,100));
+    points.push_back(QVector2D(500,400));
+    points.push_back(QVector2D(300,600));
+    points.push_back(QVector2D(300,300));
+    points.push_back(QVector2D(100,200));
 
 	rebuildSpline(points);
 }
@@ -156,12 +156,12 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 	{
 		//get the mouse position
 		QPoint mousePos = graphicsController->mapFromParent(event->pos());
-		Vector3D realPos = graphicsController->convertPoint(mousePos);
+        QVector2D realPos = graphicsController->convertPoint(mousePos);
 
 		if(draggedObject >= 0)
 		{
 			//change the point's position
-            std::vector<Vector3D> points = mainSpline->getOriginalPoints();
+            std::vector<QVector2D> points = mainSpline->getOriginalPoints();
             points[draggedObject] = realPos;
 
 			//rebuild the spline
@@ -194,7 +194,7 @@ void MainWindow::mouseDoubleClickEvent(QMouseEvent *event)
 }
 
 
-void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
+void MainWindow::rebuildSpline(std::vector<QVector2D> pointList)
 {
     QString mainSplineType = settingsWidget->getOption("main_splineType").toString();
     bool mainIsLooping = settingsWidget->getOption("main_isLooping").toBool();
@@ -221,7 +221,7 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
     }
     graphicsController->setSecondarySpline(secondarySpline);
 
-    splineInverter = std::make_shared<SplineInverter<Vector3D>>(mainSpline, 100);
+    splineInverter = std::make_shared<SplineInverter<QVector2D>>(mainSpline, 100);
 
 	DisplayData d;
     d.showConnectingLines = settingsWidget->getOption("misc_showConnectingLines").toBool();
@@ -232,50 +232,50 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
 	graphicsController->draw(d);
 }
 
-std::shared_ptr<Spline<Vector3D>> MainWindow::createSpline(const std::vector<Vector3D> &pointList, const QString &splineType, bool isLooping, double alpha, bool includeEndpoints)
+std::shared_ptr<Spline<QVector2D>> MainWindow::createSpline(const std::vector<QVector2D> &pointList, const QString &splineType, bool isLooping, double alpha, bool includeEndpoints)
 {
     if(splineType == "Cubic Catmull-Rom Spline")
     {
         if(isLooping)
         {
-            return std::make_shared<LoopingCubicHermiteSpline<Vector3D>>(pointList, alpha);
+            return std::make_shared<LoopingCubicHermiteSpline<QVector2D>>(pointList, alpha);
         }
         else
         {
-            return std::make_shared<CubicHermiteSpline<Vector3D>>(pointList, alpha);
+            return std::make_shared<CubicHermiteSpline<QVector2D>>(pointList, alpha);
         }
     }
     else if(splineType == "Cubic B-Spline")
     {
         if(isLooping)
         {
-            return std::make_shared<LoopingCubicBSpline<Vector3D>>(pointList);
+            return std::make_shared<LoopingCubicBSpline<QVector2D>>(pointList);
         }
         else
         {
-            return std::make_shared<CubicBSpline<Vector3D>>(pointList);
+            return std::make_shared<CubicBSpline<QVector2D>>(pointList);
         }
     }
     else if(splineType == "Cubic Natural Spline")
     {
         if(isLooping)
         {
-            return std::make_shared<LoopingNaturalSpline<Vector3D>>(pointList, alpha);
+            return std::make_shared<LoopingNaturalSpline<QVector2D>>(pointList, alpha);
         }
         else
         {
-            return std::make_shared<NaturalSpline<Vector3D>>(pointList, includeEndpoints, alpha);
+            return std::make_shared<NaturalSpline<QVector2D>>(pointList, includeEndpoints, alpha);
         }
     }
     else
     {
         if(isLooping)
         {
-            return std::make_shared<LoopingQuinticHermiteSpline<Vector3D>>(pointList, alpha);
+            return std::make_shared<LoopingQuinticHermiteSpline<QVector2D>>(pointList, alpha);
         }
         else
         {
-            return std::make_shared<QuinticHermiteSpline<Vector3D>>(pointList, alpha);
+            return std::make_shared<QuinticHermiteSpline<QVector2D>>(pointList, alpha);
         }
     }
 }
@@ -285,13 +285,13 @@ void MainWindow::addVertex(void)
     //get the midway point between the chosen vertex and the previous vertex
     //if this is the first vertex, use the next one instead
 
-    std::vector<Vector3D> points = mainSpline->getOriginalPoints();
+    std::vector<QVector2D> points = mainSpline->getOriginalPoints();
     if(selectedObject == 0)
     {
         int index = 1;
         float currentT = mainSpline->getT(selectedObject);
         float nextT = mainSpline->getT(index);
-        Vector3D halfPoint = mainSpline->getPosition((currentT + nextT) * 0.5);
+        QVector2D halfPoint = mainSpline->getPosition((currentT + nextT) * 0.5);
 
         //insert this new point
         points.insert(points.begin() + index, halfPoint);
@@ -302,7 +302,7 @@ void MainWindow::addVertex(void)
         int index = selectedObject - 1;
         float currentT = mainSpline->getT(selectedObject);
         float nextT = mainSpline->getT(index);
-        Vector3D halfPoint = mainSpline->getPosition((currentT + nextT) * 0.5);
+        QVector2D halfPoint = mainSpline->getPosition((currentT + nextT) * 0.5);
 
         //insert this new point
         points.insert(points.begin() + selectedObject, halfPoint);
@@ -314,7 +314,7 @@ void MainWindow::addVertex(void)
 
 void MainWindow::deleteVertex(void)
 {
-    std::vector<Vector3D> points = mainSpline->getOriginalPoints();
+    std::vector<QVector2D> points = mainSpline->getOriginalPoints();
 
 	//remove the object
 	points.erase(points.begin() + selectedObject);
@@ -342,4 +342,10 @@ void MainWindow::createDistanceField(void)
 	{
 		graphicsController->createDistanceField(saveFileName);
 	}
+}
+
+template<>
+std::array<float, 2> convertPoint<QVector2D, float, 2>(const QVector2D& point)
+{
+    return {point.x(), point.y()};
 }

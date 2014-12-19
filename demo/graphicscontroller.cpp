@@ -5,10 +5,12 @@
 
 #include <QKeyEvent>
 
+#include <QVector2D>
+#include <QVector3D>
+
 #include <ctime>
 #include <algorithm>
 
-#include "spline_library/vector3d.h"
 #include "spline_library/splineinverter.h"
 #include "spline_library/splinelengthcalculator.h"
 #include "spline_library/hermite/cubic/cubic_hermite_spline.h"
@@ -30,12 +32,12 @@ GraphicsController::~GraphicsController()
 
 }
 
-void GraphicsController::setMainSpline(const std::shared_ptr<Spline<Vector3D>> &s)
+void GraphicsController::setMainSpline(const std::shared_ptr<Spline<QVector2D>> &s)
 {
     mainSpline = s;
 }
 
-void GraphicsController::setSecondarySpline(const std::shared_ptr<Spline<Vector3D>> &s)
+void GraphicsController::setSecondarySpline(const std::shared_ptr<Spline<QVector2D>> &s)
 {
     secondarySpline = s;
 }
@@ -96,7 +98,7 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	{
 		painter.save();
 
-        Vector3D result = mainSpline->getPosition(displayData.highlightedT);
+        QVector2D result = mainSpline->getPosition(displayData.highlightedT);
 
 		painter.translate(result.x(),result.y());
 
@@ -120,7 +122,7 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	
 	painter.restore();
 
-    SplineLengthCalculator<Vector3D> lengthCalc(mainSpline);
+    SplineLengthCalculator<QVector2D> lengthCalc(mainSpline);
 
 	//draw container for diagnostic data
 	painter.setOpacity(0.75);
@@ -170,14 +172,14 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 }
 
 
-QPoint GraphicsController::convertPoint(const Vector3D &point)
+QPoint GraphicsController::convertPoint(const QVector2D &point)
 {
 	return QPoint(int(point.x()), int(point.y()));
 }
 
-Vector3D GraphicsController::convertPoint(const QPoint &point)
+QVector2D GraphicsController::convertPoint(const QPoint &point)
 {
-	return Vector3D(point.x(), point.y(),0);
+    return QVector2D(point.x(), point.y());
 }
 
 void GraphicsController::createDistanceField(const QString &filename)
@@ -190,22 +192,22 @@ void GraphicsController::createDistanceField(const QString &filename)
 
 	qsrand(time(0));
 
-	std::vector<Vector3D> colorList;
+    std::vector<QVector3D> colorList;
     for(size_t i = 0; i < mainSpline->getOriginalPoints().size(); i++)
 	{
-		colorList.push_back(Vector3D(
-			double(qrand()) / RAND_MAX,
-			double(qrand()) / RAND_MAX,
-			double(qrand()) / RAND_MAX));
+        colorList.push_back(QVector3D(
+            float(qrand()) / RAND_MAX,
+            float(qrand()) / RAND_MAX,
+            float(qrand()) / RAND_MAX));
 	}
     if(mainSpline->isLooping())
-        colorSpline = std::make_shared<LoopingCubicHermiteSpline<Vector3D>>(colorList);
+        colorSpline = std::make_shared<LoopingCubicHermiteSpline<QVector3D>>(colorList);
     else
-        colorSpline = std::make_shared<CubicHermiteSpline<Vector3D>>(colorList);
+        colorSpline = std::make_shared<CubicHermiteSpline<QVector3D>>(colorList);
 
 	painter.fillRect(0,0,output.width(),output.height(),Qt::white);
 
-    SplineInverter<Vector3D> calc(mainSpline, 40);
+    SplineInverter<QVector2D> calc(mainSpline, 40);
 
 	//supersampling amount - 1 is no supersampling
     int supersampling = 4;
@@ -219,13 +221,12 @@ void GraphicsController::createDistanceField(const QString &filename)
 		for(int x = 0; x < output.width(); x++)
 		{
 			//use 2x supersampling, with a simple grid
-			Vector3D colorVector;
+            QVector3D colorVector;
 			for(int dy = 0; dy < supersampling; dy++) {
 				for(int dx = 0; dx < supersampling; dx++) {
-					Vector3D realPoint(
+                    QVector2D realPoint(
 						x + base + dx * step,
-						y + base + dy * step, 
-						0);
+                        y + base + dy * step);
                     double tfast = calc.findClosestT(realPoint);
                     colorVector += getColor(tfast);
 				}
@@ -250,13 +251,13 @@ void GraphicsController::createDistanceField(const QString &filename)
 	double stepSize = 1.0 / 100;
 	double currentStep = stepSize;
     double limit = mainSpline->getMaxT();
-    Vector3D previousPoint = mainSpline->getPosition(0);
+    QVector2D previousPoint = mainSpline->getPosition(0);
 
 	painter.setPen(Qt::red);
 
 	while(currentStep <= limit)
 	{
-        Vector3D currentPoint = mainSpline->getPosition(currentStep);
+        QVector2D currentPoint = mainSpline->getPosition(currentStep);
 
 		painter.drawLine(
 			QPointF(previousPoint.x(),previousPoint.y()),
@@ -273,13 +274,13 @@ void GraphicsController::createDistanceField(const QString &filename)
 
 int GraphicsController::pickVertex(const QPoint &screenPoint)
 {
-    std::vector<Vector3D> points = mainSpline->getOriginalPoints();
+    std::vector<QVector2D> points = mainSpline->getOriginalPoints();
 
 	//convert this point to world coordinates and then just loop through every vertex
-	Vector3D convertedPoint = convertPoint(screenPoint);
+    QVector2D convertedPoint = convertPoint(screenPoint);
     for(size_t i = 0; i < points.size(); i++)
 	{
-		Vector3D position = points[i];
+        QVector2D position = points[i];
 
 		if((position - convertedPoint).lengthSquared() < pointRadius * pointRadius)
 		{
@@ -362,17 +363,17 @@ void GraphicsController::keyPressEvent(QKeyEvent *event)
 	}
 }
 
-Vector3D GraphicsController::getColor(float t) const
+QVector3D GraphicsController::getColor(float t) const
 {
-	Vector3D value = colorSpline->getPosition(t);
+    QVector3D value = colorSpline->getPosition(t);
 
-	return Vector3D(
-		qBound(0.0,value.x() * 255,255.0),
-		qBound(0.0,value.y() * 255,255.0),
-		qBound(0.0,value.z() * 255,255.0));
+    return QVector3D(
+        qBound(0.0f,value.x() * 255.0f, 255.0f),
+        qBound(0.0f,value.y() * 255.0f, 255.0f),
+        qBound(0.0f,value.z() * 255.0f, 255.0f));
 }
 
-void GraphicsController::drawSpline(QPainter &painter, const std::shared_ptr<Spline<Vector3D>> &s, const QColor &color)
+void GraphicsController::drawSpline(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, const QColor &color)
 {
     //draw the spline
     double stepSize = 0.25;
@@ -390,16 +391,16 @@ void GraphicsController::drawSpline(QPainter &painter, const std::shared_ptr<Spl
     }
 }
 
-void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline<Vector3D>> &s, double beginT, double endT, double thresholdAngle)
+void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, double beginT, double endT, double thresholdAngle)
 {
     auto beginData = s->getCurvature(beginT);
     auto endData = s->getCurvature(endT);
 
-    Vector3D beginNormalizedTangent = beginData.tangent.normalized();
-    Vector3D endNormalizedTangent = endData.tangent.normalized();
+    QVector2D beginNormalizedTangent = beginData.tangent.normalized();
+    QVector2D endNormalizedTangent = endData.tangent.normalized();
 
     //compute the angle between the two tangents
-    double cosAngle = Vector3D::dotProduct(beginNormalizedTangent, endNormalizedTangent);
+    double cosAngle = QVector2D::dotProduct(beginNormalizedTangent, endNormalizedTangent);
 
     //if the angle is too low, subdivide this segment into two segments
     double minDelta = .001;
@@ -409,11 +410,11 @@ void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_
         //if one side's curvature rejection is larger, it means that side is turning faster, so we can reduce the number of segments
         //by making the segment division closer to that side
         //not completely necessary or practical here but it shows off a potential use of the tangent and curvature
-        double beginProjection = Vector3D::dotProduct(beginNormalizedTangent, beginData.curvature);
-        double endProjection = Vector3D::dotProduct(endNormalizedTangent, endData.curvature);
+        double beginProjection = QVector2D::dotProduct(beginNormalizedTangent, beginData.curvature);
+        double endProjection = QVector2D::dotProduct(endNormalizedTangent, endData.curvature);
 
-        Vector3D beginRejection = beginData.curvature - beginNormalizedTangent * beginProjection;
-        Vector3D endRejection = endData.curvature - endNormalizedTangent * endProjection;
+        QVector2D beginRejection = beginData.curvature - beginNormalizedTangent * beginProjection;
+        QVector2D endRejection = endData.curvature - endNormalizedTangent * endProjection;
 
         double beginRejectionLength = beginRejection.length();
         double endRejectionLength = endRejection.length();
@@ -435,7 +436,7 @@ void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_
     }
 }
 
-void GraphicsController::drawPoints(QPainter &painter, const std::vector<Vector3D> &points)
+void GraphicsController::drawPoints(QPainter &painter, const std::vector<QVector2D> &points)
 {
     int size = points.size();
 
@@ -466,7 +467,7 @@ void GraphicsController::drawPoints(QPainter &painter, const std::vector<Vector3
     {
         painter.save();
 
-        Vector3D position = points.at(i);
+        QVector2D position = points.at(i);
 
         painter.translate(position.x(),position.y());
 
