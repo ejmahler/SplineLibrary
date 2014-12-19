@@ -5,7 +5,7 @@
 class QuinticHermiteSplineKernel
 {
 public:
-    template<class InterpolationType, typename floating_t=double>
+    template<class InterpolationType, typename floating_t>
     struct alignas(16) InterpolationData {
         //points
         InterpolationType p0;

@@ -34,7 +34,7 @@ private:
     //there will be lots of duplication of data here,
     //but precomputing this really speeds up the interpolation
     int numSegments;
-    std::vector<CubicHermiteSplineKernel::InterpolationData<InterpolationType>> segmentData;
+    std::vector<CubicHermiteSplineKernel::InterpolationData<InterpolationType, floating_t>> segmentData;
 
     floating_t maxT;
 
@@ -63,7 +63,7 @@ LoopingCubicHermiteSpline<InterpolationType,floating_t>::LoopingCubicHermiteSpli
     //pre-arrange the data needed for interpolation
     for(int i = 0; i < numSegments; i++)
     {
-        CubicHermiteSplineKernel::InterpolationData<InterpolationType> segment;
+        CubicHermiteSplineKernel::InterpolationData<InterpolationType, floating_t> segment;
 
         segment.t0 = indexToT.at(i);
         segment.t1 = indexToT.at(i + 1);
@@ -122,7 +122,7 @@ LoopingCubicHermiteSpline<InterpolationType,floating_t>::LoopingCubicHermiteSpli
     //pre-arrange the data needed for interpolation
     for(int i = 0; i < numSegments; i++)
     {
-        CubicHermiteSplineKernel::InterpolationData<InterpolationType> segment;
+        CubicHermiteSplineKernel::InterpolationData<InterpolationType, floating_t> segment;
 
         segment.t0 = indexToT.at(i);
         segment.t1 = indexToT.at(i + 1);

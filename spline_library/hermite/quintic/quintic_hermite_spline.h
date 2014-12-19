@@ -38,7 +38,7 @@ private:
     //there will be lots of duplication of data here,
     //but precomputing this really speeds up the interpolation
 	int numSegments;
-    std::vector<QuinticHermiteSplineKernel::InterpolationData<InterpolationType>> segmentData;
+    std::vector<QuinticHermiteSplineKernel::InterpolationData<InterpolationType, floating_t>> segmentData;
 
     floating_t maxT;
 
@@ -70,7 +70,7 @@ QuinticHermiteSpline<InterpolationType,floating_t>::QuinticHermiteSpline(
     //pre-arrange the data needed for interpolation
     for(int i = 0; i < numSegments; i++)
     {
-        QuinticHermiteSplineKernel::InterpolationData<InterpolationType> segment;
+        QuinticHermiteSplineKernel::InterpolationData<InterpolationType, floating_t> segment;
 
         segment.t0 = indexToT.at(i);
         segment.t1 = indexToT.at(i + 1);
@@ -162,7 +162,7 @@ QuinticHermiteSpline<InterpolationType,floating_t>::QuinticHermiteSpline(const s
     int lastSegment = firstCurvature + numSegments;
     for(int i = firstCurvature; i < lastSegment; i++)
     {
-        QuinticHermiteSplineKernel::InterpolationData<InterpolationType> segment;
+        QuinticHermiteSplineKernel::InterpolationData<InterpolationType, floating_t> segment;
 
         segment.t0 = indexToT.at(i);
         segment.t1 = indexToT.at(i + 1);

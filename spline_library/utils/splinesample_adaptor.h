@@ -75,7 +75,7 @@ struct SplineSampleAdaptor
     inline coord_t kdtree_distance(const coord_t *p1, const size_t idx_p2,size_t size) const
     {
         coord_t sum = 0;
-        for(int i = 0; i < dimension; i++) {
+        for(size_t i = 0; i < derived().pts[idx_p2].coords.size(); i++) {
             coord_t diff = p1[i]-derived().pts[idx_p2].coords[i];
             sum += diff*diff;
         }

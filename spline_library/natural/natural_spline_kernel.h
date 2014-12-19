@@ -4,7 +4,7 @@
 class NaturalSplineKernel
 {
 public:
-    template<class InterpolationType, typename floating_t=double>
+    template<class InterpolationType, typename floating_t>
     struct alignas(16) InterpolationData
     {
         //for natural splines, the "point data" is coefficcients for a single cubic function

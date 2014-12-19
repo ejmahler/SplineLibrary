@@ -34,7 +34,7 @@ private:
     //there will be lots of duplication of data here,
     //but precomputing this really speeds up the interpolation
     int numSegments;
-    std::vector<NaturalSplineKernel::InterpolationData<InterpolationType>> segmentData;
+    std::vector<NaturalSplineKernel::InterpolationData<InterpolationType, floating_t>> segmentData;
 
     floating_t maxT;
 
@@ -109,7 +109,7 @@ LoopingNaturalSpline<InterpolationType,floating_t>::LoopingNaturalSpline(const s
     //use this curvature to determine a,b,c,and d to build each segment
     for(int i = 0; i < numSegments; i++) {
 
-        NaturalSplineKernel::InterpolationData<InterpolationType> segment;
+        NaturalSplineKernel::InterpolationData<InterpolationType, floating_t> segment;
         segment.t0 = indexToT.at(i);
         segment.t1 = indexToT.at(i + 1);
 
