@@ -6,7 +6,9 @@
 
 #include <QWidget>
 
-class Spline;
+#include "spline_library/spline.h"
+#include "spline_library/splineinverter.h"
+
 class Vector3D;
 
 namespace Ui {class MainWindow;}
@@ -15,7 +17,7 @@ class GraphicsController;
 class Graph;
 class FpsCalculator;
 class SettingsWidget;
-class SplineInverter;
+
 
 class MainWindow : public QWidget
 {
@@ -38,7 +40,7 @@ private: //methods
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 	
 	void rebuildSpline(std::vector<Vector3D> pointList);
-    std::shared_ptr<Spline> createSpline(const std::vector<Vector3D> &pointList, const QString &splineType, bool looping, double alpha, bool includeEndpoints);
+    std::shared_ptr<Spline<Vector3D>> createSpline(const std::vector<Vector3D> &pointList, const QString &splineType, bool looping, double alpha, bool includeEndpoints);
 
 	void redraw(void);
 
@@ -51,9 +53,9 @@ private: //methods
 private: //data
 	Ui::MainWindow *ui;
 
-    std::shared_ptr<Spline> mainSpline;
-    std::shared_ptr<Spline> secondarySpline;
-	std::shared_ptr<SplineInverter> splineInverter;
+    std::shared_ptr<Spline<Vector3D>> mainSpline;
+    std::shared_ptr<Spline<Vector3D>> secondarySpline;
+    std::shared_ptr<SplineInverter<Vector3D>> splineInverter;
 
 	SettingsWidget *settingsWidget;
 

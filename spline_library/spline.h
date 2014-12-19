@@ -1,66 +1,72 @@
 #ifndef SPLINE_H
 #define SPLINE_H
 
-#include <map>
 #include <vector>
-#include "vector3d.h"
 
+template<class InterpolationType, typename floating_t=float>
 class Spline
 {
+
 public:
-    Spline(const std::vector<Vector3D> &originalPoints)
+
+    Spline(const std::vector<InterpolationType> &originalPoints)
         :originalPoints(originalPoints)
     {}
 
 public:
     struct InterpolatedPT;
+
     struct InterpolatedPTC;
+
     struct InterpolatedPTCW;
 
-	virtual Vector3D getPosition(double x) const = 0;
-    virtual InterpolatedPT getTangent(double x) const = 0;
-    virtual InterpolatedPTC getCurvature(double x) const = 0;
-    virtual InterpolatedPTCW getWiggle(double x) const = 0;
+    virtual InterpolationType getPosition(floating_t x) const = 0;
+    virtual InterpolatedPT getTangent(floating_t x) const = 0;
+    virtual InterpolatedPTC getCurvature(floating_t x) const = 0;
+    virtual InterpolatedPTCW getWiggle(floating_t x) const = 0;
 
-	virtual double getT(int index) const = 0;
-    virtual double getMaxT(void) const = 0;
+    virtual floating_t getT(int index) const = 0;
+    virtual floating_t getMaxT(void) const = 0;
 
-    const std::vector<Vector3D> &getOriginalPoints(void) const { return originalPoints; }
+    const std::vector<InterpolationType> &getOriginalPoints(void) const { return originalPoints; }
     virtual bool isLooping(void) const = 0;
 
 private:
-    const std::vector<Vector3D> originalPoints;
+    const std::vector<InterpolationType> originalPoints;
 };
 
-struct Spline::InterpolatedPT
+template<class InterpolationType, typename floating_t>
+struct Spline<InterpolationType,floating_t>::InterpolatedPT
 {
-    Vector3D position;
-    Vector3D tangent;
+    InterpolationType position;
+    InterpolationType tangent;
 
-    InterpolatedPT(const Vector3D &p, const Vector3D &t)
+    InterpolatedPT(const InterpolationType &p, const InterpolationType &t)
         :position(p),tangent(t)
     {}
 };
 
-struct Spline::InterpolatedPTC
+template<class InterpolationType, typename floating_t>
+struct Spline<InterpolationType,floating_t>::InterpolatedPTC
 {
-    Vector3D position;
-    Vector3D tangent;
-    Vector3D curvature;
+    InterpolationType position;
+    InterpolationType tangent;
+    InterpolationType curvature;
 
-    InterpolatedPTC(const Vector3D &p, const Vector3D &t, const Vector3D &c)
+    InterpolatedPTC(const InterpolationType &p, const InterpolationType &t, const InterpolationType &c)
         :position(p),tangent(t),curvature(c)
     {}
 };
 
-struct Spline::InterpolatedPTCW
+template<class InterpolationType, typename floating_t>
+struct Spline<InterpolationType,floating_t>::InterpolatedPTCW
 {
-    Vector3D position;
-    Vector3D tangent;
-    Vector3D curvature;
-    Vector3D wiggle;
+    InterpolationType position;
+    InterpolationType tangent;
+    InterpolationType curvature;
+    InterpolationType wiggle;
 
-    InterpolatedPTCW(const Vector3D &p, const Vector3D &t, const Vector3D &c, const Vector3D &w)
+    InterpolatedPTCW(const InterpolationType &p, const InterpolationType &t, const InterpolationType &c, const InterpolationType &w)
         :position(p),tangent(t),curvature(c), wiggle(w)
     {}
 };

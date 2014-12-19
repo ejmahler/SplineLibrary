@@ -28,6 +28,8 @@
 #include "spline_library/natural/looping_natural_spline.h"
 #include "spline_library/splineinverter.h"
 
+#include "spline_library/vector3d.h"
+
 MainWindow::MainWindow(QWidget *parent)
 	: QWidget(parent),
     settingsWidget(new SettingsWidget(this)),
@@ -219,7 +221,7 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
     }
     graphicsController->setSecondarySpline(secondarySpline);
 
-    splineInverter = std::make_shared<SplineInverter>(mainSpline, 100);
+    splineInverter = std::make_shared<SplineInverter<Vector3D>>(mainSpline, 100);
 
 	DisplayData d;
     d.showConnectingLines = settingsWidget->getOption("misc_showConnectingLines").toBool();
@@ -230,50 +232,50 @@ void MainWindow::rebuildSpline(std::vector<Vector3D> pointList)
 	graphicsController->draw(d);
 }
 
-std::shared_ptr<Spline> MainWindow::createSpline(const std::vector<Vector3D> &pointList, const QString &splineType, bool isLooping, double alpha, bool includeEndpoints)
+std::shared_ptr<Spline<Vector3D>> MainWindow::createSpline(const std::vector<Vector3D> &pointList, const QString &splineType, bool isLooping, double alpha, bool includeEndpoints)
 {
     if(splineType == "Cubic Catmull-Rom Spline")
     {
         if(isLooping)
         {
-            return std::make_shared<LoopingCubicHermiteSpline>(pointList, alpha);
+            return std::make_shared<LoopingCubicHermiteSpline<Vector3D>>(pointList, alpha);
         }
         else
         {
-            return std::make_shared<CubicHermiteSpline>(pointList, alpha);
+            return std::make_shared<CubicHermiteSpline<Vector3D>>(pointList, alpha);
         }
     }
     else if(splineType == "Cubic B-Spline")
     {
         if(isLooping)
         {
-            return std::make_shared<LoopingCubicBSpline>(pointList);
+            return std::make_shared<LoopingCubicBSpline<Vector3D>>(pointList);
         }
         else
         {
-            return std::make_shared<CubicBSpline>(pointList);
+            return std::make_shared<CubicBSpline<Vector3D>>(pointList);
         }
     }
     else if(splineType == "Cubic Natural Spline")
     {
         if(isLooping)
         {
-            return std::make_shared<LoopingNaturalSpline>(pointList, alpha);
+            return std::make_shared<LoopingNaturalSpline<Vector3D>>(pointList, alpha);
         }
         else
         {
-            return std::make_shared<NaturalSpline>(pointList, includeEndpoints, alpha);
+            return std::make_shared<NaturalSpline<Vector3D>>(pointList, includeEndpoints, alpha);
         }
     }
     else
     {
         if(isLooping)
         {
-            return std::make_shared<LoopingQuinticHermiteSpline>(pointList, alpha);
+            return std::make_shared<LoopingQuinticHermiteSpline<Vector3D>>(pointList, alpha);
         }
         else
         {
-            return std::make_shared<QuinticHermiteSpline>(pointList, alpha);
+            return std::make_shared<QuinticHermiteSpline<Vector3D>>(pointList, alpha);
         }
     }
 }

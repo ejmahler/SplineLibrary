@@ -30,12 +30,12 @@ GraphicsController::~GraphicsController()
 
 }
 
-void GraphicsController::setMainSpline(const std::shared_ptr<Spline> &s)
+void GraphicsController::setMainSpline(const std::shared_ptr<Spline<Vector3D>> &s)
 {
     mainSpline = s;
 }
 
-void GraphicsController::setSecondarySpline(const std::shared_ptr<Spline> &s)
+void GraphicsController::setSecondarySpline(const std::shared_ptr<Spline<Vector3D>> &s)
 {
     secondarySpline = s;
 }
@@ -120,7 +120,7 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	
 	painter.restore();
 
-    SplineLengthCalculator lengthCalc(mainSpline);
+    SplineLengthCalculator<Vector3D> lengthCalc(mainSpline);
 
 	//draw container for diagnostic data
 	painter.setOpacity(0.75);
@@ -199,13 +199,13 @@ void GraphicsController::createDistanceField(const QString &filename)
 			double(qrand()) / RAND_MAX));
 	}
     if(mainSpline->isLooping())
-        colorSpline = std::make_shared<LoopingCubicHermiteSpline>(colorList);
+        colorSpline = std::make_shared<LoopingCubicHermiteSpline<Vector3D>>(colorList);
     else
-        colorSpline = std::make_shared<CubicHermiteSpline>(colorList);
+        colorSpline = std::make_shared<CubicHermiteSpline<Vector3D>>(colorList);
 
 	painter.fillRect(0,0,output.width(),output.height(),Qt::white);
 
-    SplineInverter calc(mainSpline, 40);
+    SplineInverter<Vector3D> calc(mainSpline, 40);
 
 	//supersampling amount - 1 is no supersampling
     int supersampling = 4;
@@ -372,7 +372,7 @@ Vector3D GraphicsController::getColor(float t) const
 		qBound(0.0,value.z() * 255,255.0));
 }
 
-void GraphicsController::drawSpline(QPainter &painter, const std::shared_ptr<Spline> &s, const QColor &color)
+void GraphicsController::drawSpline(QPainter &painter, const std::shared_ptr<Spline<Vector3D>> &s, const QColor &color)
 {
     //draw the spline
     double stepSize = 0.25;
@@ -390,7 +390,7 @@ void GraphicsController::drawSpline(QPainter &painter, const std::shared_ptr<Spl
     }
 }
 
-void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline> &s, double beginT, double endT, double thresholdAngle)
+void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline<Vector3D>> &s, double beginT, double endT, double thresholdAngle)
 {
     auto beginData = s->getCurvature(beginT);
     auto endData = s->getCurvature(endT);

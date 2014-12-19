@@ -7,30 +7,12 @@ TEMPLATE = app
 
 CONFIG += c++11
 
-CXXFLAGS += -v
-
 SOURCES += \
     demo/settingswidget.cpp \
     demo/settings.cpp \
     demo/mainwindow.cpp \
     demo/main.cpp \
-    demo/graphicscontroller.cpp \
-    spline_library/vector3d.cpp \
-    spline_library/splineinverter.cpp \
-    spline_library/spline.cpp \
-    spline_library/basis/cubic_b_spline.cpp \
-    spline_library/basis/looping_cubic_b_spline.cpp \
-    spline_library/natural/natural_spline.cpp \
-    spline_library/natural/looping_natural_spline.cpp \
-    spline_library/hermite/cubic/cubic_hermite_spline.cpp \
-    spline_library/hermite/cubic/looping_cubic_hermite_spline.cpp \
-    spline_library/hermite/quintic/looping_quintic_hermite_spline.cpp \
-    spline_library/hermite/quintic/quintic_hermite_spline.cpp \
-    spline_library/splinelengthcalculator.cpp \
-    spline_library/utils/linearalgebra.cpp \
-    spline_library/linear/linear_spline.cpp \
-    spline_library/linear/looping_linear_spline.cpp \
-    spline_library/utils/optimization.cpp
+    demo/graphicscontroller.cpp
 
 HEADERS  += \
     demo/settingswidget.h \

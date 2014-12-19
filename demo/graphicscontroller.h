@@ -5,9 +5,9 @@
 
 #include <QGLWidget>
 
-class Vector3D;
+#include "spline_library/spline.h"
 
-class Spline;
+class Vector3D;
 
 struct DisplayData
 {
@@ -35,8 +35,8 @@ public:
 	GraphicsController(QWidget *parent);
 	~GraphicsController();
 
-    void setMainSpline(const std::shared_ptr<Spline> &s);
-    void setSecondarySpline(const std::shared_ptr<Spline> &s);
+    void setMainSpline(const std::shared_ptr<Spline<Vector3D>> &s);
+    void setSecondarySpline(const std::shared_ptr<Spline<Vector3D>> &s);
 
 	void draw(const DisplayData &d);
 
@@ -52,8 +52,8 @@ protected:
 
 private:
 
-    void drawSpline(QPainter &painter, const std::shared_ptr<Spline> &s, const QColor &color);
-    void drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline> &s, double beginT, double endT, double thresholdAngle);
+    void drawSpline(QPainter &painter, const std::shared_ptr<Spline<Vector3D>> &s, const QColor &color);
+    void drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline<Vector3D>> &s, double beginT, double endT, double thresholdAngle);
 
     void drawPoints(QPainter &painter, const std::vector<Vector3D> &points);
 
@@ -70,8 +70,8 @@ private:
 
 	QMap<QString,QStaticText> staticText;
 
-    std::shared_ptr<Spline> mainSpline;
-    std::shared_ptr<Spline> secondarySpline;
+    std::shared_ptr<Spline<Vector3D>> mainSpline;
+    std::shared_ptr<Spline<Vector3D>> secondarySpline;
 
 	DisplayData displayData;
 
@@ -82,7 +82,7 @@ private:
 	std::shared_ptr<QImage> backgroundImage;
 	QString backgroundImagePath;
 
-	std::shared_ptr<Spline> colorSpline;
+    std::shared_ptr<Spline<Vector3D>> colorSpline;
 };
 
 #endif // GRAPHICSCONTROLLER_H

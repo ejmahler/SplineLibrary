@@ -8,34 +8,44 @@ class Vector3D;
 class LinearAlgebra
 {
 private:
-    LinearAlgebra();
+    LinearAlgebra() = default;
 
 public:
 
     //solve the given tridiagonal matrix system, with the assumption that the lower diagonal and upper diagonal (ie secondaryDiagonal) are identical.
     //in other words, assume that the matrix is symmetric
-    //this method is destructive to avoid having to make copies. the contents of the input arrays is undefined after the method returns.
-    template<class T>
-    static std::vector<T> solveSymmetricTridiagonal(std::vector<double> &mainDiagonal, std::vector<double> &secondaryDiagonal, std::vector<T> &inputVector);
+    template<class OutputType, typename floating_t>
+    static std::vector<OutputType> solveSymmetricTridiagonal(
+
+            std::vector<floating_t> mainDiagonal,
+            std::vector<floating_t> secondaryDiagonal,
+            std::vector<OutputType> inputVector);
 
     //solve the given cyclic tridiagonal matrix system, with the assumption that the lower diagonal and upper diagonal (ie secondaryDiagonal) are identical
     //in other words, assume that the matrix is symmetric
-    //this method is destructive to avoid having to make copies. the contents of the input arrays is undefined after the method returns.
-    template<class T>
-    static std::vector<T> solveCyclicSymmetricTridiagonal(std::vector<double> &mainDiagonal, std::vector<double> &secondaryDiagonal, std::vector<T> &inputVector);
+    template<class OutputType, typename floating_t>
+    static std::vector<OutputType> solveCyclicSymmetricTridiagonal(
+
+            std::vector<floating_t> mainDiagonal,
+            std::vector<floating_t> secondaryDiagonal,
+            std::vector<OutputType> inputVector);
 };
 
-template<class T>
-std::vector<T> LinearAlgebra::solveSymmetricTridiagonal(std::vector<double> &mainDiagonal, std::vector<double> &secondaryDiagonal, std::vector<T> &inputVector)
+template<class OutputType, typename floating_t>
+std::vector<OutputType> LinearAlgebra::solveSymmetricTridiagonal(
+
+        std::vector<floating_t> mainDiagonal,
+        std::vector<floating_t> secondaryDiagonal,
+        std::vector<OutputType> inputVector)
 {
     //use the thomas algorithm to solve the tridiagonal matrix
     // http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
-    std::vector<T> outputVector(inputVector.size());
+    std::vector<OutputType> outputVector(inputVector.size());
 
     //forward sweep
     for(size_t i = 1; i < inputVector.size(); i++)
     {
-        double m = secondaryDiagonal.at(i - 1) / mainDiagonal.at(i - 1);
+        floating_t m = secondaryDiagonal.at(i - 1) / mainDiagonal.at(i - 1);
         mainDiagonal[i] -= m * secondaryDiagonal.at(i - 1);
         inputVector[i] -= m * inputVector.at(i - 1);
     }
@@ -51,8 +61,12 @@ std::vector<T> LinearAlgebra::solveSymmetricTridiagonal(std::vector<double> &mai
     return outputVector;
 }
 
-template<class T>
-std::vector<T> LinearAlgebra::solveCyclicSymmetricTridiagonal(std::vector<double> &mainDiagonal, std::vector<double> &secondaryDiagonal, std::vector<T> &inputVector)
+template<class OutputType, typename floating_t>
+std::vector<OutputType> LinearAlgebra::solveCyclicSymmetricTridiagonal(
+
+        std::vector<floating_t> mainDiagonal,
+        std::vector<floating_t> secondaryDiagonal,
+        std::vector<OutputType> inputVector)
 {
     //apply the sherman-morrison algorithm to the cyclic tridiagonal matrix so that we can use the standard tridiagonal algorithm
     //we're getting this algorithm from http://www.cs.princeton.edu/courses/archive/fall11/cos323/notes/cos323_f11_lecture06_linsys2.pdf
@@ -63,19 +77,19 @@ std::vector<T> LinearAlgebra::solveCyclicSymmetricTridiagonal(std::vector<double
 
     //the value at the upper right and lower left of the input matrix. it's at the end of the secondary diagonal array because almost all
     //cyclic tridiagonal papers treat it as an extension of the secondary diagonals
-    double cornerValue = secondaryDiagonal.at(size - 1);
+    floating_t cornerValue = secondaryDiagonal.at(size - 1);
 
     //gamma value - doesn't affect actual output (the algorithm makes sure it cancels out), but a good choice for this value can reduce floating point errors
-    double gamma = -mainDiagonal.at(0);
-    double cornerMultiplier = cornerValue/gamma;
+    floating_t gamma = -mainDiagonal.at(0);
+    floating_t cornerMultiplier = cornerValue/gamma;
 
     //corrective vector U: should be all 0, except for gamma in the first element, and cornerValue at the end
-    std::vector<double> correctionInputU(size);
+    std::vector<floating_t> correctionInputU(size);
     correctionInputU[0] = gamma;
     correctionInputU[size - 1] = cornerValue;
 
     //corrective vector V: should be all 0, except for 1 in the first element, and cornerValue/gamma at the end
-    std::vector<double> correctionV(size);
+    std::vector<floating_t> correctionV(size);
     correctionV[0] = 1;
     correctionV[size - 1] = cornerMultiplier;
 
@@ -83,22 +97,25 @@ std::vector<T> LinearAlgebra::solveCyclicSymmetricTridiagonal(std::vector<double
     mainDiagonal[0] -= gamma;
     mainDiagonal[size - 1] -= cornerValue * cornerMultiplier;
 
-    //create a copy of the main diangonal, because the non-cyclic tridiagonal algorithm will destroy the contents, but we need them twice
-    std::vector<double> mainDiagonalCopy(mainDiagonal);
-
     //solve the modified system for the input vector
-    //NOTE: even though the public api for the noncyclic method says that the secondary diagonal may be modified, we know that it isn't modified
-    //so it's safe to pass it in without copying
-    std::vector<T> initialOutput = solveSymmetricTridiagonal(mainDiagonal, secondaryDiagonal, inputVector);
+    std::vector<OutputType> initialOutput = solveSymmetricTridiagonal(
+                mainDiagonal,
+                secondaryDiagonal,
+                std::move(inputVector)
+                );
 
     //solve the modified system for the correction vector
-    std::vector<double> correctionOutput = solveSymmetricTridiagonal(mainDiagonalCopy, secondaryDiagonal, correctionInputU);
+    std::vector<floating_t> correctionOutput = solveSymmetricTridiagonal(
+                std::move(mainDiagonal),
+                std::move(secondaryDiagonal),
+                std::move(correctionInputU)
+                );
 
-    //compute the corrective T to apply to each initial output
+    //compute the corrective OutputType to apply to each initial output
     //this involves a couple dot products, but all of the elements on the correctionV vector are 0 except the first and last
     //so just compute those directly instead of looping through and multplying a bunch of 0s
-    //T factor = vectorDotProduct(initialOutput, correctionV) / (1 + vectorDotProduct(correctionV, correctionOutput));
-    T factor = (initialOutput.at(0) + initialOutput.at(size - 1) * cornerMultiplier) / (1 + correctionOutput.at(0) + correctionOutput.at(size - 1) * cornerMultiplier);
+    //OutputType factor = vectorDotProduct(initialOutput, correctionV) / (1 + vectorDotProduct(correctionV, correctionOutput));
+    OutputType factor = (initialOutput.at(0) + initialOutput.at(size - 1) * cornerMultiplier) / (1 + correctionOutput.at(0) + correctionOutput.at(size - 1) * cornerMultiplier);
 
     //use the correction factor to modify the result
     for(size_t i = 0; i < size; i++)

@@ -13,19 +13,19 @@ public:
     //in other words, return a point between a and b where the given function crosses the x axis
     //fa must be equal to f(a), fb must be equal to f(b), fa and fb must have opposite signs
     //the algorithm returns when abs(f(x)) is less than 'tolerance'
-    template<class Function>
-    static double brentsMethod(Function f, double a, double fa, double b, double fb, double tolerance = .0001);
+    template<class Function, typename floating_t>
+    static floating_t brentsMethod(Function f, floating_t a, floating_t fa, floating_t b, floating_t fb, floating_t tolerance = .0001);
 private:
-    Optimization();
+    Optimization() = default;
 };
 
-template<class Function>
-double Optimization::brentsMethod(Function f, double a, double fa, double b, double fb, double tolerance)
+template<class Function, typename floating_t>
+floating_t Optimization::brentsMethod(Function f, floating_t a, floating_t fa, floating_t b, floating_t fb, floating_t tolerance)
 {
-    double currentGuess = a;
-    double currentGuessValue = fa;
-    double contrapoint = b;
-    double contrapointValue = fb;
+    floating_t currentGuess = a;
+    floating_t currentGuessValue = fa;
+    floating_t contrapoint = b;
+    floating_t contrapointValue = fb;
 
     // http://en.wikipedia.org/wiki/Brent%27s_method
     // this algorithm is sort of a hybrid between the secant method and bisection method
@@ -40,20 +40,20 @@ double Optimization::brentsMethod(Function f, double a, double fa, double b, dou
     }
 
     bool mflag = true;
-    double prevGuess = contrapoint;
+    floating_t prevGuess = contrapoint;
 
-    double prevGuessValue = contrapointValue;
+    floating_t prevGuessValue = contrapointValue;
 
     //this gets set at the end of the loop, but is only referenced if mflag is false
     //and mflag starts out true, so i can't be referenced while uninitialized
-    double oldGuess;
+    floating_t oldGuess;
 
-    double minDelta = 0.001;
+    floating_t minDelta = 0.001;
 
     while(currentGuessValue > tolerance && std::abs(currentGuess - contrapoint) > tolerance)
     {
         //s will be the next guess for the actual t value
-        double nextGuess;
+        floating_t nextGuess;
 
         if(contrapointValue != prevGuessValue && currentGuessValue != prevGuessValue)
         {
@@ -87,7 +87,7 @@ double Optimization::brentsMethod(Function f, double a, double fa, double b, dou
             mflag = false;
         }
 
-        double sValue = f(nextGuess);
+        floating_t sValue = f(nextGuess);
 
         oldGuess = prevGuess;
         prevGuess = currentGuess;

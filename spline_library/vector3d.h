@@ -1,20 +1,22 @@
 #ifndef VECTOR3D_H
 #define VECTOR3D_H
 
+#include <cmath>
+
 class Vector3D
 {
 public:
 	Vector3D();
 	Vector3D(double x, double y, double z);
 
-	double x() const;
-	double y() const;
-	double z() const;
+    inline double x() const;
+    inline double y() const;
+    inline double z() const;
 
-	Vector3D &operator+=(const Vector3D &v);
-    Vector3D &operator-=(const Vector3D &v);
-    Vector3D &operator*=(double s);
-    Vector3D &operator/=(double s);
+    inline Vector3D &operator+=(const Vector3D &v);
+    inline Vector3D &operator-=(const Vector3D &v);
+    inline Vector3D &operator*=(double s);
+    inline Vector3D &operator/=(double s);
 
 	friend inline const Vector3D operator+(const Vector3D &left, const Vector3D &right);
     friend inline const Vector3D operator-(const Vector3D &left, const Vector3D &right);
@@ -26,12 +28,12 @@ public:
     friend inline bool operator==(const Vector3D &left, const Vector3D &right);
     friend inline bool operator!=(const Vector3D &left, const Vector3D &right);
 
-	double length() const;
-    double lengthSquared() const;
+    inline double length() const;
+    inline double lengthSquared() const;
 
-    Vector3D normalized() const;
+    inline Vector3D normalized() const;
 
-    static double dotProduct(const Vector3D& left, const Vector3D& right);
+    inline static double dotProduct(const Vector3D& left, const Vector3D& right);
 
 private:
 	double xp;
@@ -125,6 +127,36 @@ inline bool operator!=(const Vector3D &left, const Vector3D &right)
 	return left.xp != right.xp
 		|| left.yp != right.yp
 		|| left.zp != right.zp;
+}
+
+inline Vector3D Vector3D::normalized() const
+{
+    // Need some extra precision if the length is very small.
+    double lengthSquared =	xp * xp +
+                            yp * yp +
+                            zp * zp;
+    if (lengthSquared < .00000001)
+        return Vector3D();
+    else
+    {
+        double invLength = 1 / sqrt(lengthSquared);
+        return Vector3D(xp * invLength, yp * invLength, zp * invLength);
+    }
+}
+
+inline double Vector3D::dotProduct(const Vector3D& v1, const Vector3D& v2)
+{
+    return v1.xp * v2.xp + v1.yp * v2.yp + v1.zp * v2.zp;
+}
+
+inline double Vector3D::length() const
+{
+    return sqrt(xp * xp + yp * yp + zp * zp);
+}
+
+inline double Vector3D::lengthSquared() const
+{
+    return xp * xp + yp * yp + zp * zp;
 }
 
 
