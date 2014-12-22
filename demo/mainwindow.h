@@ -40,7 +40,13 @@ private: //methods
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 	
     void rebuildSpline(std::vector<QVector2D> pointList);
-    std::shared_ptr<Spline<QVector2D>> createSpline(const std::vector<QVector2D> &pointList, const QString &splineType, bool looping, double alpha, bool includeEndpoints);
+    std::shared_ptr<Spline<QVector2D>> createSpline(
+            const std::vector<QVector2D> &pointList,
+            const QString &splineType,
+            bool looping,
+            float alpha,
+            bool includeEndpoints
+            );
 
 	void redraw(void);
 

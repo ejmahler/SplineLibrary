@@ -169,8 +169,8 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 		}
 		else 
 		{
-			//if we're not currently dragging an object, get the current T to the mouse position
-            double closest = splineInverter->findClosestT(realPos);
+            //if we're not currently dragging an object, get the closest T to the mouse position
+            auto closest = splineInverter->findClosestT(realPos);
 
 			//redraw to highlight this new closest T
 			DisplayData d;
@@ -198,12 +198,12 @@ void MainWindow::rebuildSpline(std::vector<QVector2D> pointList)
 {
     QString mainSplineType = settingsWidget->getOption("main_splineType").toString();
     bool mainIsLooping = settingsWidget->getOption("main_isLooping").toBool();
-    double mainAlpha = settingsWidget->getOption("main_alpha").toDouble() / 10;
+    float mainAlpha = settingsWidget->getOption("main_alpha").toFloat() / 10;
 
     bool enableSecondary = settingsWidget->getOption("secondary_enable").toBool();
     QString secondarySplineType = settingsWidget->getOption("secondary_splineType").toString();
     bool secondaryIsLooping = settingsWidget->getOption("secondary_isLooping").toBool();
-    double secondaryAlpha = settingsWidget->getOption("secondary_alpha").toDouble() / 10;
+    float secondaryAlpha = settingsWidget->getOption("secondary_alpha").toFloat() / 10;
 
     bool includeEndpoints = settingsWidget->getOption("naturalSpline_includeEndpoints").toBool();
 
@@ -232,7 +232,13 @@ void MainWindow::rebuildSpline(std::vector<QVector2D> pointList)
 	graphicsController->draw(d);
 }
 
-std::shared_ptr<Spline<QVector2D>> MainWindow::createSpline(const std::vector<QVector2D> &pointList, const QString &splineType, bool isLooping, double alpha, bool includeEndpoints)
+std::shared_ptr<Spline<QVector2D>> MainWindow::createSpline(
+        const std::vector<QVector2D> &pointList,
+        const QString &splineType,
+        bool isLooping,
+        float alpha,
+        bool includeEndpoints
+        )
 {
     if(splineType == "Cubic Catmull-Rom Spline")
     {

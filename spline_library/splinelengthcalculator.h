@@ -145,8 +145,7 @@ floating_t SplineLengthCalculator<InterpolationType,floating_t>::computeLengthHe
     floating_t halfLengths = ((endPosition - midPosition).lengthSquared() + (midPosition - beginPosition).lengthSquared()) * 2;
 
     //if the difference bween the total lengh squared and the length squared for the two halves is small enough, return the length of the whole segment
-    //eps is a percentage
-    floating_t test = fullLength / halfLengths;
+    //eps is a percentage;
     floating_t limit = 1 - eps;
     if(fullLength / halfLengths > limit || (endT - beginT < RECURSIVE_MINIMUM_INTERVAL))
     {

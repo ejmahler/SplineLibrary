@@ -212,8 +212,8 @@ void GraphicsController::createDistanceField(const QString &filename)
 	//supersampling amount - 1 is no supersampling
     int supersampling = 4;
 	int totalSamples = supersampling * supersampling;
-	double base = 1 / (double(supersampling) * 2);
-	double step = 1 / double(supersampling);
+    float base = 1 / (float(supersampling) * 2);
+    float step = 1 / float(supersampling);
 
 	//for every pixel in the image, determine the closest T value
 	for(int y = 0; y < output.height(); y++)
@@ -227,7 +227,7 @@ void GraphicsController::createDistanceField(const QString &filename)
                     QVector2D realPoint(
 						x + base + dx * step,
                         y + base + dy * step);
-                    double tfast = calc.findClosestT(realPoint);
+                    float tfast = calc.findClosestT(realPoint);
                     colorVector += getColor(tfast);
 				}
 			}
@@ -248,9 +248,9 @@ void GraphicsController::createDistanceField(const QString &filename)
 	//draw lines
     painter.setPen(Qt::red);
 
-	double stepSize = 1.0 / 100;
-	double currentStep = stepSize;
-    double limit = mainSpline->getMaxT();
+    float stepSize = 1.0 / 100;
+    float currentStep = stepSize;
+    float limit = mainSpline->getMaxT();
     QVector2D previousPoint = mainSpline->getPosition(0);
 
 	painter.setPen(Qt::red);
@@ -376,11 +376,11 @@ QVector3D GraphicsController::getColor(float t) const
 void GraphicsController::drawSpline(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, const QColor &color)
 {
     //draw the spline
-    double stepSize = 0.25;
-    double currentStep = stepSize;
-    double limit = s->getMaxT() + 0.01;
+    float stepSize = 0.25;
+    float currentStep = stepSize;
+    float limit = s->getMaxT() + 0.01;
 
-    double thresholdAngle = 0.996;
+    float thresholdAngle = 0.996;
 
     painter.setPen(color);
 
@@ -391,7 +391,7 @@ void GraphicsController::drawSpline(QPainter &painter, const std::shared_ptr<Spl
     }
 }
 
-void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, double beginT, double endT, double thresholdAngle)
+void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, float beginT, float endT, float thresholdAngle)
 {
     auto beginData = s->getCurvature(beginT);
     auto endData = s->getCurvature(endT);
@@ -400,30 +400,30 @@ void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_
     QVector2D endNormalizedTangent = endData.tangent.normalized();
 
     //compute the angle between the two tangents
-    double cosAngle = QVector2D::dotProduct(beginNormalizedTangent, endNormalizedTangent);
+    auto cosAngle = QVector2D::dotProduct(beginNormalizedTangent, endNormalizedTangent);
 
     //if the angle is too low, subdivide this segment into two segments
-    double minDelta = .001;
+    auto minDelta = .001;
     if(cosAngle < thresholdAngle && (endT - beginT) > minDelta)
     {
         //we dont want the exact middle, give a bias to the end whose curvature rejected against the tangent is longer
         //if one side's curvature rejection is larger, it means that side is turning faster, so we can reduce the number of segments
         //by making the segment division closer to that side
         //not completely necessary or practical here but it shows off a potential use of the tangent and curvature
-        double beginProjection = QVector2D::dotProduct(beginNormalizedTangent, beginData.curvature);
-        double endProjection = QVector2D::dotProduct(endNormalizedTangent, endData.curvature);
+        auto beginProjection = QVector2D::dotProduct(beginNormalizedTangent, beginData.curvature);
+        auto endProjection = QVector2D::dotProduct(endNormalizedTangent, endData.curvature);
 
         QVector2D beginRejection = beginData.curvature - beginNormalizedTangent * beginProjection;
         QVector2D endRejection = endData.curvature - endNormalizedTangent * endProjection;
 
-        double beginRejectionLength = beginRejection.length();
-        double endRejectionLength = endRejection.length();
+        auto beginRejectionLength = beginRejection.length();
+        auto endRejectionLength = endRejection.length();
 
-        double lengthSum = (beginRejectionLength + endRejectionLength) * 0.05;
+        auto lengthSum = (beginRejectionLength + endRejectionLength) * 0.05;
 
-        double beginPercent = (beginRejectionLength + lengthSum) / (lengthSum * 2 + beginRejectionLength + endRejectionLength);
+        auto beginPercent = (beginRejectionLength + lengthSum) / (lengthSum * 2 + beginRejectionLength + endRejectionLength);
 
-        double middle = beginT + (endT - beginT) * (1 - beginPercent);
+        auto middle = beginT + (endT - beginT) * (1 - beginPercent);
         drawSplineSegment(painter, s, beginT, middle, thresholdAngle);
         drawSplineSegment(painter, s, middle, endT, thresholdAngle);
     }

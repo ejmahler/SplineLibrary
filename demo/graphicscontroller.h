@@ -53,7 +53,12 @@ protected:
 private:
 
     void drawSpline(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, const QColor &color);
-    void drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, double beginT, double endT, double thresholdAngle);
+    void drawSplineSegment(
+            QPainter &painter,
+            const std::shared_ptr<Spline<QVector2D>> &s,
+            float beginT,
+            float endT,
+            float thresholdAngle);
 
     void drawPoints(QPainter &painter, const std::vector<QVector2D> &points);
 
