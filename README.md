@@ -38,11 +38,15 @@ The root of the repository is a Qt Creator project that demonstrates some uses o
 Requirements
 -------------
 
-Both the demo and the spline_library code require a fully compliant C++11 compiler. Visual Studio 2012 currently compiles it correctly, but this is not guaranteed to be the case in the future: VS2012 isn't fully compliant, missing useful features like std::initializer_list.
-
-The spline_library code has no third-party dependencies, so it's safe to drop that folder directly in the source folder of your own project.
+Both the demo and the spline_library code require a fully compliant C++11 compiler.
 
 The demo project requires Qt 5. To build it, either run qmake with the .pro file to generate a makefile, or open the .pro file in qt Creator.
+
+When actually using splines in your own project, drop the spline_library directory in the root source folder. It's header-only, so from here all you need to do is import it from your own code.
+
+`spline_library/spline_inverter.h` depends on Boost's Math module. If you don't want to install Boost and you don't need the spline inverter's functionality, you can safely avoid including `spline_library/spline_inverter.h` - nothing else includes it, and nothing else relies on Boost.
+
+There are no other third-party dependencies within the spline_library directoryt.
 
 License
 -------------
