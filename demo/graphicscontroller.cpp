@@ -182,6 +182,12 @@ QVector2D GraphicsController::convertPoint(const QPoint &point)
     return QVector2D(point.x(), point.y());
 }
 
+void GraphicsController::clearBackground(void)
+{
+    backgroundImagePath = "";
+    backgroundImage = nullptr;
+}
+
 void GraphicsController::createDistanceField(const QString &filename)
 {
 	QImage output(700,700, QImage::Format_ARGB32_Premultiplied);
@@ -240,7 +246,7 @@ void GraphicsController::createDistanceField(const QString &filename)
 				)
 			);
 		}
-	}
+    }
 
 	output.save(filename);
 }

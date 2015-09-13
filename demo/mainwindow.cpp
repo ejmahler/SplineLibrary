@@ -221,7 +221,7 @@ void MainWindow::rebuildSpline(std::vector<QVector2D> pointList)
     }
     graphicsController->setSecondarySpline(secondarySpline);
 
-    splineInverter = std::make_shared<SplineInverter<QVector2D>>(mainSpline, 100);
+    splineInverter = std::make_shared<SplineInverter<QVector2D>>(mainSpline, 10);
 
 	DisplayData d;
     d.showConnectingLines = settingsWidget->getOption("misc_showConnectingLines").toBool();
@@ -347,6 +347,7 @@ void MainWindow::createDistanceField(void)
 	if(saveFileName.length() > 0)
 	{
 		graphicsController->createDistanceField(saveFileName);
+        graphicsController->clearBackground();
         settingsWidget->setOption("misc_backgroundImagePath", saveFileName);
 	}
 }

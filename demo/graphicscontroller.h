@@ -43,6 +43,8 @@ public:
     QPoint convertPoint(const QVector2D &point);
     QVector2D convertPoint(const QPoint &point);
 
+    void clearBackground(void);
+
 	void createDistanceField(const QString &filename);
 
 	int pickVertex(const QPoint &screenPoint);
