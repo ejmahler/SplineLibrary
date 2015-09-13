@@ -96,18 +96,18 @@ floating_t SplineInverter<InterpolationType, floating_t, sampleDimension>::findC
     floating_t sampleDistanceSlope = distanceSlopeFunction(closestSampleT);
 
     //if the slope is very close to 0, just return the sampled point
-    if(abs(sampleDistanceSlope) < slopeTolerance)
+    if(std::abs(sampleDistanceSlope) < slopeTolerance)
         return closestSampleT;
 
     //if the spline is not a loop there are a few special cases to account for
     if(!spline->isLooping())
     {
         //if closest sample T is 0, we are on an end. so if the slope is positive, we have to just return the end
-        if(abs(closestSampleT) < .0001 && sampleDistanceSlope > 0)
+        if(std::abs(closestSampleT) < .0001 && sampleDistanceSlope > 0)
             return closestSampleT;
 
         //if the closest sample T is max T we are on an end. so if the slope is negative, just return the end
-        if(abs(closestSampleT / spline->getMaxT() - 1) < .0001 && sampleDistanceSlope < 0)
+        if(std::abs(closestSampleT / spline->getMaxT() - 1) < .0001 && sampleDistanceSlope < 0)
             return closestSampleT;
     }
 

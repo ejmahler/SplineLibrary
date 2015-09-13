@@ -50,7 +50,7 @@ floating_t Optimization::brentsMethod(Function f, floating_t a, floating_t fa, f
 
     floating_t minDelta = 0.001;
 
-    while(currentGuessValue > tolerance && std::abs(currentGuess - contrapoint) > tolerance)
+    while(std::abs(currentGuessValue) > tolerance && std::abs(currentGuess - contrapoint) > tolerance)
     {
         //s will be the next guess for the actual t value
         floating_t nextGuess;
@@ -91,6 +91,7 @@ floating_t Optimization::brentsMethod(Function f, floating_t a, floating_t fa, f
 
         oldGuess = prevGuess;
         prevGuess = currentGuess;
+        prevGuessValue = currentGuessValue;
 
         //choose the next a: if a and s have the same sign then s is the new a
         //if a and s have different signs then we keep the existing a
