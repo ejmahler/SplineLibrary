@@ -207,10 +207,10 @@ void GraphicsController::createDistanceField(const QString &filename)
 
 	painter.fillRect(0,0,output.width(),output.height(),Qt::white);
 
-    SplineInverter<QVector2D> calc(mainSpline, 40);
+    SplineInverter<QVector2D> calc(mainSpline, 10);
 
 	//supersampling amount - 1 is no supersampling
-    int supersampling = 4;
+    int supersampling = 1;
 	int totalSamples = supersampling * supersampling;
     float base = 1 / (float(supersampling) * 2);
     float step = 1 / float(supersampling);
@@ -241,33 +241,6 @@ void GraphicsController::createDistanceField(const QString &filename)
 			);
 		}
 	}
-
-    //draw points
-    drawPoints(painter, mainSpline->getOriginalPoints());
-
-	//draw lines
-    painter.setPen(Qt::red);
-
-    float stepSize = 1.0 / 100;
-    float currentStep = stepSize;
-    float limit = mainSpline->getMaxT();
-    QVector2D previousPoint = mainSpline->getPosition(0);
-
-	painter.setPen(Qt::red);
-
-	while(currentStep <= limit)
-	{
-        QVector2D currentPoint = mainSpline->getPosition(currentStep);
-
-		painter.drawLine(
-			QPointF(previousPoint.x(),previousPoint.y()),
-			QPointF(currentPoint.x(),currentPoint.y())
-			);
-
-
-		currentStep += stepSize;
-		previousPoint = currentPoint;
-    }
 
 	output.save(filename);
 }

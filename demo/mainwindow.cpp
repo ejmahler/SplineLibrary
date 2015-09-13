@@ -347,6 +347,7 @@ void MainWindow::createDistanceField(void)
 	if(saveFileName.length() > 0)
 	{
 		graphicsController->createDistanceField(saveFileName);
+        settingsWidget->setOption("misc_backgroundImagePath", saveFileName);
 	}
 }
 

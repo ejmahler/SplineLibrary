@@ -14,7 +14,8 @@ public:
 	SettingsWidget(QWidget *parent = 0);
 	~SettingsWidget();
 
-	QVariant getOption(const QString &option) const;
+    QVariant getOption(const QString &option) const;
+    void setOption(const QString &option, const QVariant &value);
 
 signals:
 	void settingChanged(void);

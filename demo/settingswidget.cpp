@@ -28,6 +28,13 @@ QVariant SettingsWidget::getOption(const QString &option) const
 	return options.value(option);
 }
 
+void SettingsWidget::setOption(const QString &option, const QVariant &value)
+{
+    options[option] = value;
+
+    emit settingChanged();
+}
+
 
 
 void SettingsWidget::on_lineEdit_changed(const QString &text)
