@@ -5,6 +5,8 @@
 #include <array>
 #include <memory>
 
+#include <boost/math/tools/minima.hpp>
+
 #include "spline_library/spline.h"
 #include "spline_library/utils/splinesample_adaptor.h"
 #include "utils/optimization.h"
@@ -27,9 +29,6 @@ private: //data
     //distance in t between samples
     floating_t sampleStep;
 
-	//when we find a T whose abs(distance slope) is less than this tolerance, we return
-    floating_t slopeTolerance;
-
     //inner class used to provide an abstraction between the spline inverter and nanoflann
     std::unique_ptr<SplineSampleTree<sampleDimension, floating_t>> sampleTree;
 };
@@ -38,7 +37,7 @@ template<class InterpolationType, typename floating_t, int sampleDimension>
 SplineInverter<InterpolationType, floating_t, sampleDimension>::SplineInverter(
         const std::shared_ptr<Spline<InterpolationType,floating_t>> &spline,
         int samplesPerT)
-    :spline(spline), sampleStep(1.0 / floating_t(samplesPerT)), slopeTolerance(0.01)
+    :spline(spline), sampleStep(1.0 / floating_t(samplesPerT))
 {
     SplineSamples<sampleDimension, floating_t> samples;
 
@@ -81,23 +80,10 @@ floating_t SplineInverter<InterpolationType, floating_t, sampleDimension>::findC
     auto convertedQueryPoint = convertPoint<InterpolationType, floating_t, sampleDimension>(queryPoint);
     floating_t closestSampleT = sampleTree->findClosestSample(convertedQueryPoint);
 
-    //define a lambda to compute the slope of the distance to the querypoint at T
-    auto splineInstance = spline;
-    auto distanceSlopeFunction = [splineInstance, queryPoint](floating_t t) {
-        auto result = splineInstance->getTangent(t);
-
-        //get the displacement from the spline at T to the query point
-        InterpolationType displacement = result.position - queryPoint;
-
-        //find projection of spline velocity onto displacement
-        return InterpolationType::dotProduct(displacement.normalized(), result.tangent);
-    };
-
-    floating_t sampleDistanceSlope = distanceSlopeFunction(closestSampleT);
-
-    //if the slope is very close to 0, just return the sampled point
-    if(std::abs(sampleDistanceSlope) < slopeTolerance)
-        return closestSampleT;
+    //compute the first derivative of distance to spline at the sample point
+    auto sampleResult = spline->getTangent(closestSampleT);
+    InterpolationType sampleDisplacement = sampleResult.position - queryPoint;
+    floating_t sampleDistanceSlope = InterpolationType::dotProduct(sampleDisplacement.normalized(), sampleResult.tangent);
 
     //if the spline is not a loop there are a few special cases to account for
     if(!spline->isLooping())
@@ -116,17 +102,27 @@ floating_t SplineInverter<InterpolationType, floating_t, sampleDimension>::findC
     //otherwise that sample would be closer
     //note: this assumption is only true if the samples are close together
 
-    floating_t a = closestSampleT;
-
     //if sample distance slope is positive we want to move backwards in t, otherwise forwards
-    floating_t b = closestSampleT - sampleStep * sign(sampleDistanceSlope);
+    floating_t a, b;
+    if(sampleDistanceSlope > 0)
+    {
+        a = closestSampleT - sampleStep;
+        b = closestSampleT;
+    }
+    else
+    {
+        a = closestSampleT;
+        b = closestSampleT + sampleStep;
+    }
 
-    floating_t aValue = sampleDistanceSlope;
-    floating_t bValue = distanceSlopeFunction(b);
+    auto distanceFunction = [this, queryPoint](floating_t t) {
+        return (spline->getPosition(t) - queryPoint).lengthSquared();
+    };
 
     //we know that the actual closest T is now between a and b
     //use brent's method to find the actual closest point, using a and b as bounds
-    return Optimization::brentsMethod(distanceSlopeFunction, a, aValue, b, bValue);
+    auto result = boost::math::tools::brent_find_minima(distanceFunction, a, b, 16);
+    return result.first;
 }
 
 #endif // SplineInverter_H

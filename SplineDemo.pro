@@ -36,7 +36,6 @@ HEADERS  += \
     spline_library/utils/splinesample_adaptor.h \
     spline_library/linear/linear_spline.h \
     spline_library/linear/looping_linear_spline.h \
-    spline_library/utils/optimization.h \
     spline_library/utils/utils.h \
     spline_library/utils/spline_setup.h \
     spline_library/natural/natural_spline_kernel.h \
