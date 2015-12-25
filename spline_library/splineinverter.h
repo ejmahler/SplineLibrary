@@ -9,7 +9,6 @@
 
 #include "spline_library/spline.h"
 #include "spline_library/utils/splinesample_adaptor.h"
-#include "utils/optimization.h"
 
 template<class InterpolationType, typename floating_t, int sampleDimension>
 std::array<floating_t, sampleDimension> convertPoint(const InterpolationType& point);
@@ -56,7 +55,7 @@ SplineInverter<InterpolationType, floating_t, sampleDimension>::SplineInverter(
 
     //if the spline isn't a loop and the final t value isn't very very close to maxT, we have to add a sample for maxT
     floating_t lastT = samples.pts.at(samples.pts.size() - 1).t;
-    if(!spline->isLooping() && abs(lastT / maxT - 1) > .0001)
+    if(!spline->isLooping() && std::abs(lastT / maxT - 1) > .0001)
     {
         auto sampledPoint = convertPoint<InterpolationType, floating_t, sampleDimension>(spline->getPosition(currentT));
 

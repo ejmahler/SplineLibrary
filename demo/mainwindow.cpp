@@ -270,7 +270,18 @@ std::shared_ptr<Spline<QVector2D>> MainWindow::createSpline(
         }
         else
         {
-            return std::make_shared<NaturalSpline<QVector2D>>(pointList, includeEndpoints, alpha);
+            return std::make_shared<NaturalSpline<QVector2D>>(pointList, includeEndpoints, alpha, NaturalSpline<QVector2D>::Natural);
+        }
+    }
+    else if(splineType == "Cubic Natural Spline (\"Not-A-Knot\")")
+    {
+        if(isLooping)
+        {
+            return std::make_shared<LoopingNaturalSpline<QVector2D>>(pointList, alpha);
+        }
+        else
+        {
+            return std::make_shared<NaturalSpline<QVector2D>>(pointList, includeEndpoints, alpha, NaturalSpline<QVector2D>::NotAKnot);
         }
     }
     else

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>484</width>
-    <height>312</height>
+    <height>392</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -75,6 +75,11 @@
             <item>
              <property name="text">
               <string>Cubic Natural Spline</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Cubic Natural Spline (&quot;Not-A-Knot&quot;)</string>
              </property>
             </item>
             <item>
@@ -194,6 +199,11 @@
             <item>
              <property name="text">
               <string>Cubic Natural Spline</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Cubic Natural Spline (&quot;Not-A-Knot&quot;)</string>
              </property>
             </item>
             <item>

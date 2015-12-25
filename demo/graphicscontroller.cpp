@@ -115,6 +115,7 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 
     //draw the spline itself
     drawSpline(painter, mainSpline, Qt::red);
+    //drawSplineDerivative(painter, mainSpline, Qt::yellow);
     if(secondarySpline != nullptr)
     {
         drawSpline(painter, secondarySpline, Qt::blue);
@@ -365,55 +366,99 @@ void GraphicsController::drawSpline(QPainter &painter, const std::shared_ptr<Spl
 
     while(currentStep <= limit)
     {
-        drawSplineSegment(painter, s,currentStep - stepSize, currentStep, thresholdAngle);
+        drawSplineSegment(painter, s,currentStep - stepSize, currentStep);
         currentStep += stepSize;
     }
 }
 
-void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, float beginT, float endT, float thresholdAngle)
+void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, float beginT, float endT)
 {
-    auto beginData = s->getCurvature(beginT);
-    auto endData = s->getCurvature(endT);
+    auto beginData = s->getPosition(beginT);
+    auto endData = s->getPosition(endT);
 
-    QVector2D beginNormalizedTangent = beginData.tangent.normalized();
-    QVector2D endNormalizedTangent = endData.tangent.normalized();
+    float middleT = (beginT + endT) * .5;
 
-    //compute the angle between the two tangents
-    auto cosAngle = QVector2D::dotProduct(beginNormalizedTangent, endNormalizedTangent);
+    QVector2D midExpected = (beginData + endData) * .5;
+    auto midActual = s->getPosition((beginT + endT) * .5);
+
+
 
     //if the angle is too low, subdivide this segment into two segments
-    auto minDelta = .001;
-    if(cosAngle < thresholdAngle && (endT - beginT) > minDelta)
+    float minDelta = .001;
+    float maxDistance = .1;
+    if((endT - beginT) > minDelta)
     {
-        //we dont want the exact middle, give a bias to the end whose curvature rejected against the tangent is longer
-        //if one side's curvature rejection is larger, it means that side is turning faster, so we can reduce the number of segments
-        //by making the segment division closer to that side
-        //not completely necessary or practical here but it shows off a potential use of the tangent and curvature
-        auto beginProjection = QVector2D::dotProduct(beginNormalizedTangent, beginData.curvature);
-        auto endProjection = QVector2D::dotProduct(endNormalizedTangent, endData.curvature);
+        if((midExpected - midActual).lengthSquared() > maxDistance)
+        {
+            drawSplineSegment(painter, s, beginT, middleT);
+            drawSplineSegment(painter, s, middleT, endT);
+        }
+        else
+        {
 
-        QVector2D beginRejection = beginData.curvature - beginNormalizedTangent * beginProjection;
-        QVector2D endRejection = endData.curvature - endNormalizedTangent * endProjection;
-
-        auto beginRejectionLength = beginRejection.length();
-        auto endRejectionLength = endRejection.length();
-
-        auto lengthSum = (beginRejectionLength + endRejectionLength) * 0.05;
-
-        auto beginPercent = (beginRejectionLength + lengthSum) / (lengthSum * 2 + beginRejectionLength + endRejectionLength);
-
-        auto middle = beginT + (endT - beginT) * (1 - beginPercent);
-        drawSplineSegment(painter, s, beginT, middle, thresholdAngle);
-        drawSplineSegment(painter, s, middle, endT, thresholdAngle);
-    }
-    else
-    {
-        painter.drawLine(
-            QPointF(beginData.position.x(),beginData.position.y()),
-            QPointF(endData.position.x(),endData.position.y())
-            );
+            painter.drawLine(
+                QPointF(beginData.x(),beginData.y()),
+                QPointF(endData.x(),endData.y())
+                );
+        }
     }
 }
+
+
+
+void GraphicsController::drawSplineDerivative(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, const QColor &color)
+{
+    //draw the spline
+    float stepSize = 0.25;
+    float currentStep = stepSize;
+    float limit = s->getMaxT() + 0.01;
+
+    float thresholdAngle = 0.998;
+
+    painter.setPen(color);
+
+    while(currentStep <= limit)
+    {
+        drawSplineSegmentDerivative(painter, s,currentStep - stepSize, currentStep);
+        currentStep += stepSize;
+    }
+}
+
+void GraphicsController::drawSplineSegmentDerivative(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, float beginT, float endT)
+{
+    auto beginData = s->getTangent(beginT);
+    auto endData = s->getTangent(endT);
+
+    float middleT = (beginT + endT) * .5;
+
+    QVector2D midExpected = (beginData.tangent + endData.tangent) * .5;
+    auto midActual = s->getTangent((beginT + endT) * .5);
+
+
+
+    //if the angle is too low, subdivide this segment into two segments
+    float minDelta = .001;
+    float maxDistance = .1;
+    if((endT - beginT) > minDelta)
+    {
+        if((midExpected - midActual.tangent).lengthSquared() > maxDistance)
+        {
+            drawSplineSegmentDerivative(painter, s, beginT, middleT);
+            drawSplineSegmentDerivative(painter, s, middleT, endT);
+        }
+        else
+        {
+            QPointF offset(300,300);
+
+            painter.drawLine(
+                QPointF(beginData.tangent.x(),beginData.tangent.y()) + offset,
+                QPointF(endData.tangent.x(),endData.tangent.y()) + offset
+                );
+        }
+    }
+}
+
+
 
 void GraphicsController::drawPoints(QPainter &painter, const std::vector<QVector2D> &points)
 {

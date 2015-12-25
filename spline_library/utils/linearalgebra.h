@@ -21,6 +21,15 @@ public:
             std::vector<floating_t> secondaryDiagonal,
             std::vector<OutputType> inputVector);
 
+    //solve the given tridiagonal matrix system
+    template<class OutputType, typename floating_t>
+    static std::vector<OutputType> solveTridiagonal(
+
+            std::vector<floating_t> mainDiagonal,
+            std::vector<floating_t> upperDiagonal,
+            std::vector<floating_t> lowerDiagonal,
+            std::vector<OutputType> inputVector);
+
     //solve the given cyclic tridiagonal matrix system, with the assumption that the lower diagonal and upper diagonal (ie secondaryDiagonal) are identical
     //in other words, assume that the matrix is symmetric
     template<class OutputType, typename floating_t>
@@ -30,6 +39,37 @@ public:
             std::vector<floating_t> secondaryDiagonal,
             std::vector<OutputType> inputVector);
 };
+
+template<class OutputType, typename floating_t>
+std::vector<OutputType> LinearAlgebra::solveTridiagonal(
+
+        std::vector<floating_t> mainDiagonal,
+        std::vector<floating_t> upperDiagonal,
+        std::vector<floating_t> lowerDiagonal,
+        std::vector<OutputType> inputVector)
+{
+    //use the thomas algorithm to solve the tridiagonal matrix
+    // http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
+
+    //forward sweep
+    upperDiagonal[0] /= mainDiagonal[0];
+    inputVector[0] /= mainDiagonal[0];
+    for(size_t i = 1; i < inputVector.size(); i++)
+    {
+        upperDiagonal[i] /= (mainDiagonal[i] - lowerDiagonal[i - 1] * upperDiagonal[i - 1]);
+        inputVector[i] = (inputVector[i] - lowerDiagonal[i - 1] * inputVector[i - 1]) /
+                (mainDiagonal[i] - lowerDiagonal[i - 1] * upperDiagonal[i - 1]);
+    }
+
+    //back substitution
+    int finalIndex = inputVector.size() - 1;
+    for(int i = finalIndex - 1; i >= 0; i--)
+    {
+        inputVector[i] -= upperDiagonal[i] * inputVector[i + 1];
+    }
+
+    return inputVector;
+}
 
 template<class OutputType, typename floating_t>
 std::vector<OutputType> LinearAlgebra::solveSymmetricTridiagonal(
