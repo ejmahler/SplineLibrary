@@ -167,15 +167,6 @@ std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::comp
                 std::move(inputVector)
                 );
 
-    /*auto lowerDiagonal = upperDiagonal;
-
-    std::vector<InterpolationType> curvatures = LinearAlgebra::solveTridiagonal(
-                std::move(diagonal),
-                std::move(upperDiagonal),
-                std::move(lowerDiagonal),
-                std::move(inputVector)
-                );*/
-
     //we didn't compute the first or last curvature, which will be 0
     curvatures.insert(curvatures.begin(), InterpolationType());
     curvatures.push_back(InterpolationType());
@@ -246,7 +237,7 @@ std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::comp
     upperDiagonal[0] = deltaT[1] - deltaT[0]*deltaT[0]/deltaT[1];
 
     //the last value in the upper diagonal is different than normal
-    lowerDiagonal[secondaryDiagonalSize - 1] = deltaT[size - 2] - deltaT[size - 2]*deltaT[size - 1]/deltaT[size - 2];
+    lowerDiagonal[secondaryDiagonalSize - 1] = deltaT[size - 2] - deltaT[size - 1]*deltaT[size - 1]/deltaT[size - 2];
 
     //solve the tridiagonal system to get the curvature at each point
     std::vector<InterpolationType> curvatures = LinearAlgebra::solveTridiagonal(
