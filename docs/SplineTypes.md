@@ -11,13 +11,13 @@ Simple Types
 If you're not sure which one to use, start with these three.
 
 ### Natural Spline
-The Natural Spline computes the curvature for each point, using a formula that involves every point in the input, then interpolates the spline based on the list of points and the corresponding list of curvatures.
+The Natural Spline computes the curvature for each point, based on the position of every point, then interpolates the spline based on the list of points and the corresponding list of curvatures.
 
 To use, import the appropriate header:
 `#include "spline_library/natural/natural_spline.h"`
 
 Create a Natural Spline by passing a std::vector<Vector3D> to the constructor, containing a list of points to interpolate through:
-`std::shared_ptr<Spline> mySpline(new NaturalSpline(myPointList));`
+`std::shared_ptr<Spline> mySpline = std::make_shared<NaturalSpline<QVector2D>>(myPointList);`
 
 ##### Advantages
 * Curvature is continuous [(?)](Glossary.md#continuous-curvature)
@@ -26,13 +26,13 @@ Create a Natural Spline by passing a std::vector<Vector3D> to the constructor, c
 * No local control [(?)](Glossary.md#local-control)
 
 ### Catmull-Rom Spline
-A Catmull-Rom Spline computes the tangent for a point from the positions of the two closest points, then interpolates based on both the position and the tangent.
+A Catmull-Rom Spline computes the tangent for each point from the positions of the two closest points, then interpolates based on both the position and the tangent.
 
 To use, import the appropriate header:
-`#include "spline_library/hermite/cubic/cr_spline.h"`
+`#include "spline_library/hermite/cubic/cubic_hermite_spline.h"`
 
 Create a catmull-rom spline by passing a std::vector<Vector3D> to the constructor, containing a list of points to interpolate through:
-`std::shared_ptr<Spline> mySpline(new CRSpline(myPointList));`
+`std::shared_ptr<Spline> mySpline = std::make_shared<CubicHermiteSpline<QVector2D>>(myPointList);`
 
 ##### Advantages
 * Local control [(?)](Glossary.md#local-control)
@@ -51,7 +51,7 @@ To use, import the appropriate header:
 `#include "spline_library/basis/cubic_b_spline.h"`
 
 Create a Cubic B-Spline by passing a std::vector<Vector3D> to the constructor, containing a list of control points:
-`std::shared_ptr<Spline> mySpline(new CubicBSpline(myPointList));`
+`std::shared_ptr<Spline> mySpline = std::make_shared<CubicBSpline<QVector2D>>(myPointList);`
 
 ##### Advantages
 * Local control [(?)](Glossary.md#local-control)
@@ -68,7 +68,7 @@ If one of the simple types above doesn't meet your needs, the following types ar
 ### Centripetal Catmull-Rom Spline
 The Centripetal CR Spline is a variation of the Catmull-Rom Spline formula. Instead of spacing each point exactly one T apart, the distance in T between any two points will be proportional to the square root of distance between the two points. Thus, points that are very far apart will be further apart in T than points that are close together.
 
-To use it, provide a value for the optional `alpha` parameter in the `CRSpline` constructor. A value of 0.5 will produce a centripetal Catmull-Rom Spline, while a value of 0.0 (default) will revert to the standard formula. Other values are allowed too - a value of 1.0 will result in a "chordal" variation, and the formula will work with any number, negative or positive. Values other than 0.0 or 0.5 should be very rare, however.
+To use it, provide a value for the optional `alpha` parameter in the `CubicHermiteSpline` constructor. A value of 0.5 will produce a centripetal Catmull-Rom Spline, while a value of 0.0 (default) will revert to the standard formula. Other values are allowed too - a value of 1.0 will result in a "chordal" variation, and the formula will work with any number, negative or positive. Values other than 0.0 or 0.5 should be very rare, however.
 
 It has been proven mathematically that the centripetal variation avoids certain types of self-intersections, cusps, and overshoots, producing a more aesthetically pleasing spline.
 
@@ -79,7 +79,7 @@ It has been proven mathematically that the centripetal variation avoids certain 
 * Modifies T values of points - points that are close together will have a smaller T distance and vice versa. This may be a problem if the points are keyframes for an animation, for example, or any other data series where the T values have some external meaning
 
 ### Cubic Hermite Spline
-The Cubic Hermite Spline takes a list of points, and a corresponding list of tangents for each point. The Catmull-Rom Spline is a subclass of the Cubic Hermite Spline which automatically computes the tangents, rather than expecting the user to supply them.
+The Cubic Hermite Spline takes a list of points, and a corresponding list of tangents for each point. The Catmull-Rom Spline is a special type of the Cubic Hermite Spline which automatically computes the tangents, rather than expecting the user to supply them.
 
 An example use case for this spline type is for physical simulation time series data, where spline->getPosition(t) returns the object's position at time T. If you know the object's velocity in addition to its position, you can make the interpolation more accurate by providing that velocity as the tangent.
 
@@ -87,7 +87,7 @@ To use, import the appropriate header:
 `#include "spline_library/hermite/cubic/cubic_hermite_spline.h"`
 
 Create a Cubic Hermite Spline by passing two equal-length std::vector<Vector3D> to the constructor, one containing a list of points to interpolate through, and the other containing the corresponding tangent for each point:
-`std::shared_ptr<Spline> mySpline(new CubicHermiteSpline(myPointList, myTangentList));`
+`std::shared_ptr<Spline> mySpline = std::make_shared<CubicHermiteSpline<QVector2D>>(myPointList, myTangentList);`
 
 ##### Advantages
 * Local control [(?)](Glossary.md#local-control)
@@ -107,7 +107,7 @@ To use, import the appropriate header:
 `#include "spline_library/hermite/quintic/quintic_hermite_spline.h"`
 
 Create a Quintic Hermite Spline by passing three equal-length std::vector<Vector3D> to the constructor, one containing a list of points to interpolate through, another containing the corresponding tangent for each point, and a third containing the corresponding curvature for each point:
-`std::shared_ptr<Spline> mySpline(new QuinticHermiteSpline(myPointList, myTangentList, myCurvatureList));`
+`std::shared_ptr<Spline> mySpline = std::make_shared<QuinticHermiteSpline<QVector2D>>(myPointList, myTangentList, myCurvatureList);`
 
 ##### Advantages
 * Local control [(?)](Glossary.md#local-control)
