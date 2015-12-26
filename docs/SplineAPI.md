@@ -3,6 +3,10 @@ Spline API
 
 The `Spline` class is an abstract class that serves as the base class of all spline types. This file documents its public methods.
 
+The Spline class (and all subclasses) is a template class. It takes two template arguments: The first is the type of data to be interpolated (IE, a 2d vector, or a 3d vector). It expects the vector to have an API matching Qt's QVector2D class, but will support data with any dimension. Custom classes may be used as long as they provide the same public methods as QVector2D. Custom classes can ven use double instead of float as the internal data type if more precision is needed.
+
+The second templae marameter is the floating point type to use for internal calculations (IE, float, double, some BigDecimal class). This defaults to float and it's safe to leave this a float for most applications, but if you use an InterpolationType custom class that stores its data as doubles, you'll get more precision by telling the Spline to use doubles as well.
+
 #### getPosition(t)
 This method computes the interpolated position at T.
 
