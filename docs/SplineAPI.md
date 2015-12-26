@@ -1,9 +1,9 @@
 Spline API
 =============
 
-The `Spline` class is a pure-virtual abstract class that serves as the base class of all spline types. This file documents its public methods. All interaction with splines is intended happen via this parent class.
+The `Spline` class is an abstract class that serves as the base class of all spline types. This file documents its public methods.
 
-#### Vector3D getPosition(t) const
+#### getPosition(t)
 This method computes the interpolated position at T.
 
 The interpolated position is always continuous, IE there are never any "gaps" in the spline.
@@ -12,8 +12,8 @@ For looping splines, if the input T is outside of the allowable range (Ie less t
 
 For non-looping splines, if the input T is outside of the allowable range, the results are undefined.
 
-#### Vector3D getTangent(t) const
-This method interpolates the position and derivative of the position (aka the tangent) at T, and returns a struct containing both. There is no way to compute only the tangent.
+#### getTangent(t)
+This method interpolates the position and derivative of the position (aka the tangent) at T, and returns a struct containing both. While it's possible to compute only the tangent, the API doesn't support it, in the interest of simplifying the API.
 
 The interpolated tangent is always continuous.
 
@@ -21,8 +21,8 @@ The derivative is determined analytically at compile-time, as opposed to numeric
 
 The behavior when the T value is out of range is the same as for the getPosition method.
 
-#### Vector3D getCurvature(t) const
-This method interpolates the position, the first derivative of position (AKA the tangent), the second derivative of position (AKA the curvature), and returns a struct containing all three. There is no way to compute only the curvature.
+#### getCurvature(t)
+This method interpolates the position, the first derivative of position (AKA the tangent), the second derivative of position (AKA the curvature), and returns a struct containing all three. While it's possible to compute only the curvature, the API doesn't support it, in the interest of simplifying the API.
 
 The interpolated curvature is sometimes continuous - see the [Spline Types](SplineTypes.md) entry for your chosen spline type to find out whether or not its curvature is continuous.
 
@@ -31,7 +31,7 @@ The derivatives are determined analytically at compile-time, as opposed to numer
 The behavior when the T value is out of range is the same as for the getPosition method.
 
 #### Vector3D getWiggle(t) const
-This method interpolates the position, the first derivative of position (AKA the tangent), the second derivative of position (AKA the curvature), the third derivative of position (AKA the wiggle), and returns a struct containing all four. There is no way to compute only the wiggle.
+This method interpolates the position, the first derivative of position (AKA the tangent), the second derivative of position (AKA the curvature), the third derivative of position (AKA the wiggle), and returns a struct containing all four. While it's possible to compute only the wiggle, the API doesn't support it, in the interest of simplifying the API.
 
 For all current spline types, the wiggle is never continuous from segment to segment. For cubic splines, it is always a constant within each segment, although it may change from segment to segment.
 
