@@ -1,12 +1,12 @@
 SplineLibrary
 =============
-A C++ library to collect many useful spline functions into one place.
+A C++ library created to provide open-source reference implementations of many spline functions, e.g. Natural Splines and Catmull-Rom Splines. It's a challenge to find well-documented and FOSS implementations of these useful tools, and mathematical defintions of these things are really hard to decipher, so my hope is that this library will provide a starting point for others.
 
 A spline is a formula for smoothly transitioning from one data point to the next in a data set. For example, you could create a spline containing ten colors (each stored as R, G, and B values) to create a color gradient that smoothly transitions from one color to the next.
 
 Features
 -------------
-* Interpolation of standard catmull-rom splines
+* Interpolation of catmull-rom splines
     * Include `spline_library/hermite/cubic/cubic_hermite_spline.h`, create a `CubicHermiteSpline` object, and call its `getPosition` method.
     * Several more spline types. See [Spline Types](docs/SplineTypes.md) for the full list
 * Looping Splines
@@ -15,7 +15,7 @@ Features
 * Compute the inverse of a spline
     * Given a data point (not necessarily on the spline, or even close to it), what T value brings the spline closest to that data point?
     * Create a SplineInverter object and call its findClosestT method
-* Interpolation of the first, second, and third derivatives of the spline
+* Computation of the first, second, and third derivatives of the spline
     * The first derivative is called the "tangent" - this is how quickly and in what direction the interpolated position is changing, per T
     * The second derivative is called the "curvature" - this is how quickly and in what direction the interpolated tangent is changing, per T
     * The third derivative is called the "wiggle" - this is how quickly and in what direction the interpolated curvature is changing, per T
@@ -46,13 +46,13 @@ When actually using splines in your own project, drop the spline_library directo
 
 `spline_library/spline_inverter.h` depends on Boost's Math module. If you don't want to install Boost and you don't need the spline inverter's functionality, you can safely avoid including `spline_library/spline_inverter.h` - nothing else includes it, and nothing else relies on Boost.
 
-There are no other third-party dependencies within the spline_library directoryt.
+There are no other third-party dependencies within the spline_library directory.
 
 License
 -------------
-This code is available under the terms of the [Simplified BSD License](http://opensource.org/licenses/BSD-2-Clause)
+This code is available under the [Simplified BSD License](http://opensource.org/licenses/BSD-2-Clause)
 
-This project includes the [nanoflann](https://code.google.com/p/nanoflann/) library for fast nearest-neighbor queries, which is also available under the [Simplified BSD License](http://opensource.org/licenses/BSD-2-Clause)
+This project includes the [nanoflann](https://github.com/jlblancoc/nanoflann) library for fast nearest-neighbor queries, which is also available under the [Simplified BSD License](http://opensource.org/licenses/BSD-2-Clause)
 
 To-Do
 -------------
