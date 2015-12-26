@@ -70,11 +70,12 @@ floating_t SplineLengthCalculator<InterpolationType,floating_t>::findLength(floa
         endT = (endT < 0) ? (endT + maxT) : endT;
 
         //make sure beginT is less than endT
-        floating_t actualBeginT = std::min(beginT, endT);
-        floating_t actualEndT = std::max(beginT,endT);
+        if(beginT > endT) {
+            std::swap(beginT, endT);
+        }
 
         //compute length
-        floating_t computedLength = computeLength(actualBeginT, actualEndT, eps);
+        floating_t computedLength = computeLength(beginT, endT, eps);
 
         floating_t splineLength = atomic_splineLength.load(std::memory_order_consume);
 
@@ -94,10 +95,11 @@ floating_t SplineLengthCalculator<InterpolationType,floating_t>::findLength(floa
     else
     {
         //make sure beginT is less than endT
-        floating_t actualBeginT = std::min(beginT, endT);
-        floating_t actualEndT = std::max(beginT,endT);
+        if(beginT > endT) {
+            std::swap(beginT, endT);
+        }
 
-        return computeLength(actualBeginT, actualEndT, eps);
+        return computeLength(beginT, endT, eps);
     }
 }
 
