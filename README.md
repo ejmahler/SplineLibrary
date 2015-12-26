@@ -38,9 +38,9 @@ The root of the repository is a Qt Creator project that demonstrates some uses o
 Requirements
 -------------
 
-Both the demo and the spline_library code require a fully compliant C++11 compiler.
+Both the demo and the spline_library code require a fully compliant C++14 compiler.
 
-The demo project requires Qt 5. To build it, either run qmake with the .pro file to generate a makefile, or open the .pro file in qt Creator.
+The demo project requires Qt 5.5. To build it, either run qmake with the .pro file to generate a makefile, or open the .pro file in qt Creator.
 
 When actually using splines in your own project, drop the spline_library directory in the root source folder. It's header-only, so from here all you need to do is import it from your own code.
 

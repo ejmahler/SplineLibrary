@@ -17,36 +17,45 @@ template<class InterpolationType, typename floating_t=float, int sampleDimension
 class SplineInverter
 {
 public:
-    SplineInverter(const std::shared_ptr<Spline<InterpolationType, floating_t>> &spline, int samplesPerT = 10);
-	~SplineInverter();
+    SplineInverter(const Spline<InterpolationType, floating_t> &spline, int samplesPerT = 10);
 
     floating_t findClosestT(const InterpolationType &queryPoint) const;
 
+private: //methods
+    SplineSamples<sampleDimension, floating_t> makeSplineSamples(void) const;
+
 private: //data
-    std::shared_ptr<Spline<InterpolationType, floating_t>> spline;
+    const Spline<InterpolationType, floating_t> &spline;
 
     //distance in t between samples
     floating_t sampleStep;
 
-    //inner class used to provide an abstraction between the spline inverter and nanoflann
-    std::unique_ptr<SplineSampleTree<sampleDimension, floating_t>> sampleTree;
+    SplineSampleTree<sampleDimension, floating_t> sampleTree;
 };
 
 template<class InterpolationType, typename floating_t, int sampleDimension>
 SplineInverter<InterpolationType, floating_t, sampleDimension>::SplineInverter(
-        const std::shared_ptr<Spline<InterpolationType,floating_t>> &spline,
+        const Spline<InterpolationType, floating_t> &spline,
         int samplesPerT)
-    :spline(spline), sampleStep(1.0 / floating_t(samplesPerT))
+    :spline(spline),
+      sampleStep(1.0 / floating_t(samplesPerT)),
+      sampleTree(makeSplineSamples())
+{
+
+}
+
+template<class InterpolationType, typename floating_t, int sampleDimension>
+SplineSamples<sampleDimension, floating_t> SplineInverter<InterpolationType, floating_t, sampleDimension>::makeSplineSamples(void) const
 {
     SplineSamples<sampleDimension, floating_t> samples;
 
     //first step is to populate the splineSamples map
     //we're going to have sampled T values sorted by x coordinate
     floating_t currentT = 0;
-    floating_t maxT = spline->getMaxT();
+    floating_t maxT = spline.getMaxT();
     while(currentT < maxT)
     {
-        auto sampledPoint = convertPoint<InterpolationType, floating_t, sampleDimension>(spline->getPosition(currentT));
+        auto sampledPoint = convertPoint<InterpolationType, floating_t, sampleDimension>(spline.getPosition(currentT));
 
         samples.pts.emplace_back(sampledPoint, currentT);
 
@@ -55,45 +64,37 @@ SplineInverter<InterpolationType, floating_t, sampleDimension>::SplineInverter(
 
     //if the spline isn't a loop and the final t value isn't very very close to maxT, we have to add a sample for maxT
     floating_t lastT = samples.pts.at(samples.pts.size() - 1).t;
-    if(!spline->isLooping() && std::abs(lastT / maxT - 1) > .0001)
+    if(!spline.isLooping() && std::abs(lastT / maxT - 1) > .0001)
     {
-        auto sampledPoint = convertPoint<InterpolationType, floating_t, sampleDimension>(spline->getPosition(currentT));
+        auto sampledPoint = convertPoint<InterpolationType, floating_t, sampleDimension>(spline.getPosition(currentT));
 
         samples.pts.emplace_back(sampledPoint, currentT);
     }
 
-    //populate the sample kd-tree
-    sampleTree = std::unique_ptr<SplineSampleTree<sampleDimension, floating_t>>(
-                new SplineSampleTree<sampleDimension, floating_t>(samples));
-}
-
-template<class InterpolationType, typename floating_t, int sampleDimension>
-SplineInverter<InterpolationType, floating_t, sampleDimension>::~SplineInverter()
-{
-
+    return samples;
 }
 
 template<class InterpolationType, typename floating_t, int sampleDimension>
 floating_t SplineInverter<InterpolationType, floating_t, sampleDimension>::findClosestT(const InterpolationType &queryPoint) const
 {
     auto convertedQueryPoint = convertPoint<InterpolationType, floating_t, sampleDimension>(queryPoint);
-    floating_t closestSampleT = sampleTree->findClosestSample(convertedQueryPoint);
+    floating_t closestSampleT = sampleTree.findClosestSample(convertedQueryPoint);
 
     //compute the first derivative of distance to spline at the sample point
-    auto sampleResult = spline->getTangent(closestSampleT);
+    auto sampleResult = spline.getTangent(closestSampleT);
     InterpolationType sampleDisplacement = sampleResult.position - queryPoint;
     floating_t sampleDistanceSlope = InterpolationType::dotProduct(sampleDisplacement.normalized(), sampleResult.tangent);
 
     //if the spline is not a loop there are a few special cases to account for
-    if(!spline->isLooping())
+    if(!spline.isLooping())
     {
         //if closest sample T is 0, we are on an end. so if the slope is positive, we have to just return the end
-        if(std::abs(closestSampleT) < .0001 && sampleDistanceSlope > 0)
-            return closestSampleT;
+        if(closestSampleT == 0 && sampleDistanceSlope > 0)
+            return 0;
 
         //if the closest sample T is max T we are on an end. so if the slope is negative, just return the end
-        if(std::abs(closestSampleT / spline->getMaxT() - 1) < .0001 && sampleDistanceSlope < 0)
-            return closestSampleT;
+        if(closestSampleT == spline.getMaxT() && sampleDistanceSlope < 0)
+            return spline.getMaxT();
     }
 
     //step forwards or backwards in the spline until we find a point where the distance slope has flipped sign.
@@ -114,8 +115,8 @@ floating_t SplineInverter<InterpolationType, floating_t, sampleDimension>::findC
         b = closestSampleT + sampleStep;
     }
 
-    auto distanceFunction = [this, queryPoint](floating_t t) {
-        return (spline->getPosition(t) - queryPoint).lengthSquared();
+    auto distanceFunction = [&spline = spline, queryPoint](floating_t t) {
+        return (spline.getPosition(t) - queryPoint).lengthSquared();
     };
 
     //we know that the actual closest T is now between a and b

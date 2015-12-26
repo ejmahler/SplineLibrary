@@ -5,7 +5,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = SplineDemo
 TEMPLATE = app
 
-CONFIG += c++11
+CONFIG += c++14
 
 #on mac we want to look for boost in homebrew folder
 macx:INCLUDEPATH += /usr/local/Cellar/boost/1.59.0/include

@@ -13,7 +13,7 @@
 
 #include "spline_library/splineinverter.h"
 #include "spline_library/splinelengthcalculator.h"
-#include "spline_library/hermite/cubic/cubic_hermite_spline.h"
+#include "spline_library/natural/natural_spline.h"
 #include "spline_library/hermite/cubic/looping_cubic_hermite_spline.h"
 
 GraphicsController::GraphicsController(QWidget *parent)
@@ -210,14 +210,14 @@ void GraphicsController::createDistanceField(const QString &filename)
     if(mainSpline->isLooping())
         colorSpline = std::make_shared<LoopingCubicHermiteSpline<QVector3D>>(colorList);
     else
-        colorSpline = std::make_shared<CubicHermiteSpline<QVector3D>>(colorList);
+        colorSpline = std::make_shared<NaturalSpline<QVector3D>>(colorList);
 
 	painter.fillRect(0,0,output.width(),output.height(),Qt::white);
 
-    SplineInverter<QVector2D> calc(mainSpline, 10);
+    SplineInverter<QVector2D> calc(*mainSpline.get(), 10);
 
 	//supersampling amount - 1 is no supersampling
-    int supersampling = 1;
+    int supersampling = 2;
 	int totalSamples = supersampling * supersampling;
     float base = 1 / (float(supersampling) * 2);
     float step = 1 / float(supersampling);
