@@ -33,7 +33,6 @@ private:
     //a vector containing pre-computed datasets, one per segment
     //there will be lots of duplication of data here,
     //but precomputing this really speeds up the interpolation
-    int numSegments;
     std::vector<LinearSplineKernel::InterpolationData<InterpolationType>> segmentData;
 
     floating_t maxT;
@@ -49,7 +48,7 @@ LinearSpline<InterpolationType,floating_t>::LinearSpline(const std::vector<Inter
     assert(points.size() >= 2);
 
     int size = points.size();
-    numSegments = size - 1;
+    int numSegments = size - 1;
 
     //compute the T values for each point
     indexToT = SplineSetup::computeTValues(points, alpha, 0);

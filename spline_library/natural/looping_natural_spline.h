@@ -33,7 +33,6 @@ private:
     //a vector containing pre-computed datasets, one per segment
     //there will be lots of duplication of data here,
     //but precomputing this really speeds up the interpolation
-    int numSegments;
     std::vector<NaturalSplineKernel::InterpolationData<InterpolationType, floating_t>> segmentData;
 
     floating_t maxT;
@@ -51,7 +50,7 @@ LoopingNaturalSpline<InterpolationType,floating_t>::LoopingNaturalSpline(const s
     std::unordered_map<int, InterpolationType> pointMap;
 
     size_t size = points.size();
-    numSegments = size;
+    int numSegments = size;
 
     //compute the T values for each point
     indexToT = SplineSetup::computeLoopingTValues(points, alpha, 1);
@@ -134,9 +133,9 @@ template<class InterpolationType, typename floating_t>
 InterpolationType LoopingNaturalSpline<InterpolationType,floating_t>::getPosition(floating_t globalT) const
 {
     //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, numSegments);
+    globalT = fmod(globalT, segmentData.size());
     if(globalT < 0)
-        globalT += numSegments;
+        globalT += segmentData.size();
 
     auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
     auto localT = segment.computeLocalT(globalT);
@@ -149,9 +148,9 @@ typename Spline<InterpolationType,floating_t>::InterpolatedPT
     LoopingNaturalSpline<InterpolationType,floating_t>::getTangent(floating_t globalT) const
 {
     //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, numSegments);
+    globalT = fmod(globalT, segmentData.size());
     if(globalT < 0)
-        globalT += numSegments;
+        globalT += segmentData.size();
 
     auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
     auto localT = segment.computeLocalT(globalT);
@@ -167,9 +166,9 @@ typename Spline<InterpolationType,floating_t>::InterpolatedPTC
     LoopingNaturalSpline<InterpolationType,floating_t>::getCurvature(floating_t globalT) const
 {
     //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, numSegments);
+    globalT = fmod(globalT, segmentData.size());
     if(globalT < 0)
-        globalT += numSegments;
+        globalT += segmentData.size();
 
     auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
     auto localT = segment.computeLocalT(globalT);
@@ -186,9 +185,9 @@ typename Spline<InterpolationType,floating_t>::InterpolatedPTCW
     LoopingNaturalSpline<InterpolationType,floating_t>::getWiggle(floating_t globalT) const
 {
     //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, numSegments);
+    globalT = fmod(globalT, segmentData.size());
     if(globalT < 0)
-        globalT += numSegments;
+        globalT += segmentData.size();
 
     auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
     auto localT = segment.computeLocalT(globalT);

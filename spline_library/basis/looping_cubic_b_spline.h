@@ -31,7 +31,6 @@ protected:
     //a vector containing pre-computed datasets, one per segment
     //there will be lots of duplication of data here,
     //but precomputing this really speeds up the interpolation
-    int numSegments;
     std::vector<CubicBSplineKernel::InterpolationData<InterpolationType, floating_t>> segmentData;
 
     floating_t maxT;
@@ -48,7 +47,7 @@ LoopingCubicBSpline<InterpolationType,floating_t>::LoopingCubicBSpline(const std
     floating_t alpha = 0.0;
 
     int size = points.size();
-    numSegments = size;
+    int numSegments = size;
 
     //compute the T values for each point
     int padding = 1;
@@ -56,7 +55,7 @@ LoopingCubicBSpline<InterpolationType,floating_t>::LoopingCubicBSpline(const std
     maxT = indexToT.at(size);
 
     //pre-arrange the data needed for interpolation
-    for(int i = 0; i < size + 1; i++)
+    for(int i = 0; i < numSegments; i++)
     {
         CubicBSplineKernel::InterpolationData<InterpolationType, floating_t> segment;
 
@@ -76,9 +75,9 @@ template<class InterpolationType, typename floating_t>
 InterpolationType LoopingCubicBSpline<InterpolationType,floating_t>::getPosition(floating_t globalT) const
 {
     //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, numSegments);
+    globalT = fmod(globalT, segmentData.size());
     if(globalT < 0)
-        globalT += numSegments;
+        globalT += segmentData.size();
 
     auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
     auto localT = segment.computeLocalT(globalT);
@@ -91,9 +90,9 @@ typename Spline<InterpolationType,floating_t>::InterpolatedPT
     LoopingCubicBSpline<InterpolationType,floating_t>::getTangent(floating_t globalT) const
 {
     //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, numSegments);
+    globalT = fmod(globalT, segmentData.size());
     if(globalT < 0)
-        globalT += numSegments;
+        globalT += segmentData.size();
 
     auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
     auto localT = segment.computeLocalT(globalT);
@@ -109,9 +108,9 @@ typename Spline<InterpolationType,floating_t>::InterpolatedPTC
     LoopingCubicBSpline<InterpolationType,floating_t>::getCurvature(floating_t globalT) const
 {
     //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, numSegments);
+    globalT = fmod(globalT, segmentData.size());
     if(globalT < 0)
-        globalT += numSegments;
+        globalT += segmentData.size();
 
     auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
     auto localT = segment.computeLocalT(globalT);
@@ -128,9 +127,9 @@ typename Spline<InterpolationType,floating_t>::InterpolatedPTCW
     LoopingCubicBSpline<InterpolationType,floating_t>::getWiggle(floating_t globalT) const
 {
     //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, numSegments);
+    globalT = fmod(globalT, segmentData.size());
     if(globalT < 0)
-        globalT += numSegments;
+        globalT += segmentData.size();
 
     auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
     auto localT = segment.computeLocalT(globalT);

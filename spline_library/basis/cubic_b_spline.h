@@ -31,7 +31,6 @@ protected:
     //a vector containing pre-computed datasets, one per segment
     //there will be lots of duplication of data here,
     //but precomputing this really speeds up the interpolation
-    int numSegments;
     std::vector<CubicBSplineKernel::InterpolationData<InterpolationType, floating_t>> segmentData;
 
     floating_t maxT;
@@ -49,7 +48,7 @@ CubicBSpline<InterpolationType,floating_t>::CubicBSpline(const std::vector<Inter
 
     int size = points.size();
     int padding = 1;
-    numSegments = size - 3;
+    int numSegments = size - 3;
 
     //compute the T values for each point
     indexToT = SplineSetup::computeTValues(points, alpha, padding);

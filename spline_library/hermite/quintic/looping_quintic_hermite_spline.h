@@ -38,7 +38,6 @@ private:
     //a vector containing pre-computed datasets, one per segment
     //there will be lots of duplication of data here,
     //but precomputing this really speeds up the interpolation
-    int numSegments;
     std::vector<QuinticHermiteSplineKernel::InterpolationData<InterpolationType, floating_t>> segmentData;
 
     floating_t maxT;
@@ -61,7 +60,7 @@ LoopingQuinticHermiteSpline<InterpolationType,floating_t>::LoopingQuinticHermite
     assert(points.size() == curvatures.size());
 
     int size = points.size();
-    numSegments = size;
+    int numSegments = size;
 
     //compute the T values for each point
     int padding = 0;
@@ -101,7 +100,7 @@ LoopingQuinticHermiteSpline<InterpolationType,floating_t>::LoopingQuinticHermite
     assert(points.size() >= 3);
 
     int size = points.size();
-    numSegments = size;
+    int numSegments = size;
 
     //compute the T values for each point
     int padding = 2;
@@ -185,9 +184,9 @@ template<class InterpolationType, typename floating_t>
 InterpolationType LoopingQuinticHermiteSpline<InterpolationType,floating_t>::getPosition(floating_t globalT) const
 {
     //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, numSegments);
+    globalT = fmod(globalT, segmentData.size());
     if(globalT < 0)
-        globalT += numSegments;
+        globalT += segmentData.size();
 
     auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
     auto localT = segment.computeLocalT(globalT);
@@ -200,9 +199,9 @@ typename Spline<InterpolationType,floating_t>::InterpolatedPT
     LoopingQuinticHermiteSpline<InterpolationType,floating_t>::getTangent(floating_t globalT) const
 {
     //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, numSegments);
+    globalT = fmod(globalT, segmentData.size());
     if(globalT < 0)
-        globalT += numSegments;
+        globalT += segmentData.size();
 
     auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
     auto localT = segment.computeLocalT(globalT);
@@ -218,9 +217,9 @@ typename Spline<InterpolationType,floating_t>::InterpolatedPTC
     LoopingQuinticHermiteSpline<InterpolationType,floating_t>::getCurvature(floating_t globalT) const
 {
     //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, numSegments);
+    globalT = fmod(globalT, segmentData.size());
     if(globalT < 0)
-        globalT += numSegments;
+        globalT += segmentData.size();
 
     auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
     auto localT = segment.computeLocalT(globalT);
@@ -237,9 +236,9 @@ typename Spline<InterpolationType,floating_t>::InterpolatedPTCW
     LoopingQuinticHermiteSpline<InterpolationType,floating_t>::getWiggle(floating_t globalT) const
 {
     //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, numSegments);
+    globalT = fmod(globalT, segmentData.size());
     if(globalT < 0)
-        globalT += numSegments;
+        globalT += segmentData.size();
 
     auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
     auto localT = segment.computeLocalT(globalT);

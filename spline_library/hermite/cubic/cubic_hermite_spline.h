@@ -33,7 +33,6 @@ private:
     //a vector containing pre-computed datasets, one per segment
     //there will be lots of duplication of data here,
     //but precomputing this really speeds up the interpolation
-    int numSegments;
     std::vector<CubicHermiteSplineKernel::InterpolationData<InterpolationType, floating_t>> segmentData;
 
     floating_t maxT;
@@ -55,7 +54,7 @@ CubicHermiteSpline<InterpolationType,floating_t>::CubicHermiteSpline(
 
     int size = points.size();
     int firstTangent = 0;
-    numSegments = size - 1;
+    int numSegments = size - 1;
 
     //compute the T values for each point
     indexToT = SplineSetup::computeTValues(points, alpha, firstTangent);
@@ -91,7 +90,7 @@ CubicHermiteSpline<InterpolationType,floating_t>::CubicHermiteSpline(const std::
 
     int size = points.size();
     int firstTangent = 1;
-    numSegments = size - 3;
+    int numSegments = size - 3;
 
     //compute the T values for each point
     indexToT = SplineSetup::computeTValues(points, alpha, firstTangent);

@@ -37,7 +37,6 @@ private:
 	//a vector containing pre-computed datasets, one per segment
     //there will be lots of duplication of data here,
     //but precomputing this really speeds up the interpolation
-	int numSegments;
     std::vector<QuinticHermiteSplineKernel::InterpolationData<InterpolationType, floating_t>> segmentData;
 
     floating_t maxT;
@@ -61,7 +60,7 @@ QuinticHermiteSpline<InterpolationType,floating_t>::QuinticHermiteSpline(
 
     int size = points.size();
     int padding = 0;
-    numSegments = size - 1;
+    int numSegments = size - 1;
 
     //compute the T values for each point
     indexToT = SplineSetup::computeTValues(points, alpha, padding);
@@ -103,7 +102,7 @@ QuinticHermiteSpline<InterpolationType,floating_t>::QuinticHermiteSpline(const s
     int firstTangent = 1;
     int lastTangent = size - 2;
     int firstCurvature = 2;
-    numSegments = size - 5;
+    int numSegments = size - 5;
 
     //compute the T values for each point
     indexToT = SplineSetup::computeTValues(points, alpha, firstCurvature);

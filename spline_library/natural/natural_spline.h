@@ -44,7 +44,6 @@ private:
     //a vector containing pre-computed datasets, one per segment
     //there will be lots of duplication of data here,
     //but precomputing this really speeds up the interpolation
-    int numSegments;
     std::vector<NaturalSplineKernel::InterpolationData<InterpolationType, floating_t>> segmentData;
 
     floating_t maxT;
@@ -63,6 +62,7 @@ NaturalSpline<InterpolationType,floating_t>::NaturalSpline(const std::vector<Int
     size_t size = points.size();
     int firstPoint;
 
+    int numSegments;
     if(includeEndpoints)
     {
         assert(points.size() >= 3);
