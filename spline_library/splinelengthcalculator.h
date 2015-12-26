@@ -11,7 +11,7 @@ template<class InterpolationType, typename floating_t=float>
 class SplineLengthCalculator
 {
 public:
-    SplineLengthCalculator(const std::shared_ptr<Spline<InterpolationType,floating_t>> &spline);
+    SplineLengthCalculator(const Spline<InterpolationType,floating_t> &spline);
 
     //precise but possibly slower method to find an approximation of the spline length from the begin T to the end T
     //if the spline is a looping spline and useShortestPath is true, this will try to find a shorter path around the spline by going "backwards" if possible
@@ -27,7 +27,7 @@ private: //methods
 
 private: //data
 
-    std::shared_ptr<Spline<InterpolationType,floating_t>> spline;
+    const Spline<InterpolationType,floating_t> &spline;
     floating_t maxT;
     mutable std::atomic<floating_t> atomic_splineLength;
 
@@ -43,10 +43,10 @@ const floating_t SplineLengthCalculator<InterpolationType,floating_t>::LENGTH_IN
 
 template<class InterpolationType, typename floating_t>
 SplineLengthCalculator<InterpolationType,floating_t>::SplineLengthCalculator(
-        const std::shared_ptr<Spline<InterpolationType,floating_t>> &spline)
+        const Spline<InterpolationType,floating_t> &spline)
     :
       spline(spline),
-      maxT(spline->getMaxT()),
+      maxT(spline.getMaxT()),
 
       //the spline length will be lazy-computed when it's needed
       atomic_splineLength(-1)
@@ -59,7 +59,7 @@ floating_t SplineLengthCalculator<InterpolationType,floating_t>::findLength(floa
 {
 
     //if this is a looping spline and the calles had requested the shortest path, the behavior will be slightly different
-    if(useShortestPath && spline->isLooping())
+    if(useShortestPath && spline.isLooping())
     {
         //use fmod on both args to make sure we're not going around the loop multiple times
         beginT = fmod(beginT, maxT);
@@ -113,14 +113,14 @@ floating_t SplineLengthCalculator<InterpolationType,floating_t>::computeLength(f
     floating_t interval = tDistance / numSegments;
 
     //for each segment, compute the length of a circle arc passing though that segment's endpoints
-    auto previousData = spline->getPosition(beginT);
+    auto previousData = spline.getPosition(beginT);
     floating_t lengthSum = 0;
 
     for(int i = 0; i < numSegments; i++)
     {
         floating_t currentT = beginT + (i + 1) * interval;
 
-        auto currentData = spline->getPosition(currentT);
+        auto currentData = spline.getPosition(currentT);
         lengthSum += computeLengthHelper(
                     currentT - interval,    previousData,
                     currentT,               currentData, eps);
@@ -138,7 +138,7 @@ floating_t SplineLengthCalculator<InterpolationType,floating_t>::computeLengthHe
 {
     //compute the midpoint between the start and end
     floating_t midT = (beginT + endT) * 0.5;
-    InterpolationType midPosition = spline->getPosition(midT);
+    InterpolationType midPosition = spline.getPosition(midT);
 
     //compute the length squared for start->mid plus mid->end
     floating_t fullLength = (endPosition - beginPosition).lengthSquared();

@@ -123,7 +123,7 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	
 	painter.restore();
 
-    SplineLengthCalculator<QVector2D> lengthCalc(mainSpline);
+    SplineLengthCalculator<QVector2D> lengthCalc(*mainSpline.get());
 
 	//draw container for diagnostic data
 	painter.setOpacity(0.75);
