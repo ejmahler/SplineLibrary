@@ -1,5 +1,5 @@
-#ifndef GENERIC_B_SPLINE
-#define GENERIC_B_SPLINE
+#ifndef LOOPING_GENERIC_B_SPLINE
+#define LOOPING_GENERIC_B_SPLINE
 
 
 #include "spline_library/spline.h"
@@ -8,11 +8,11 @@
 #include <unordered_map>
 
 template<class InterpolationType, typename floating_t=float>
-class GenericBSpline final : public Spline<InterpolationType, floating_t>
+class LoopingGenericBSpline final : public Spline<InterpolationType, floating_t>
 {
 //constructors
 public:
-    GenericBSpline(const std::vector<InterpolationType> &points, int degree);
+    LoopingGenericBSpline(const std::vector<InterpolationType> &points, int degree);
 
 //methods
 public:
@@ -21,16 +21,15 @@ public:
     typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t x) const override;
     typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t x) const override;
 
-    floating_t getT(int index) const override;
-    floating_t getMaxT(void) const override;
+    floating_t getT(int index) const override { indexToT.at(index); }
+    floating_t getMaxT(void) const override { return maxT; }
 
-    bool isLooping(void) const override { return false; }
+    bool isLooping(void) const override { return true; }
 
 //methods
 private:
     InterpolationType computeDeboor(size_t knotIndex, int degree, float globalT) const;
     InterpolationType computeDeboorDerivative(size_t knotIndex, int degree, float globalT, int derivativeLevel) const;
-
 //data
 private:
     std::vector<InterpolationType> positions;
@@ -45,7 +44,7 @@ private:
 };
 
 template<class InterpolationType, typename floating_t>
-GenericBSpline<InterpolationType,floating_t>::GenericBSpline(const std::vector<InterpolationType> &points, int degree)
+LoopingGenericBSpline<InterpolationType,floating_t>::LoopingGenericBSpline(const std::vector<InterpolationType> &points, int degree)
     :Spline<InterpolationType,floating_t>(points), splineDegree(degree)
 {
     assert(points.size() > splineDegree);
@@ -54,69 +53,78 @@ GenericBSpline<InterpolationType,floating_t>::GenericBSpline(const std::vector<I
     int padding = degree - 1;
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeBSplineKnots(points, 0.0f, padding);
-    maxT = indexToT[size - degree];
+    indexToT = SplineSetup::computeLoopingBSplineKnots(points, 0.0f, padding);
+    maxT = indexToT[size];
 
-    //we need enough space to repeat the first and last elements (degree - 1) times
-    positions = points;
-    knots = std::vector<floating_t>(indexToT.size());
+    //we need enough space to repeat the last 'degree' elements
+    positions = std::vector<InterpolationType>(points.size() + degree);
+    positions[0] = points[size - 1];
+    std::copy(points.begin(), points.end(), positions.begin() + 1);
+    std::copy_n(points.begin(), padding, positions.end() -padding);
 
-    for(int i = -padding; i < size + padding; i++)
+    knots = std::vector<floating_t>(indexToT.size() - 1);
+
+    for(int i = -padding; i < size + padding + 1; i++)
     {
         knots[i + padding] = indexToT[i];
     }
 }
 
 template<class InterpolationType, typename floating_t>
-InterpolationType GenericBSpline<InterpolationType,floating_t>::getPosition(floating_t globalT) const
+InterpolationType LoopingGenericBSpline<InterpolationType,floating_t>::getPosition(floating_t globalT) const
 {
-    size_t startIndex = SplineSetup::getIndexForT(knots, globalT);
-    return computeDeboor(startIndex + 1, splineDegree, globalT);
+    floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
+    size_t startIndex = SplineSetup::getIndexForT(knots, wrappedT);
+
+    return computeDeboor(startIndex + 1, splineDegree, wrappedT);
 }
 
 
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPT
-    GenericBSpline<InterpolationType,floating_t>::getTangent(floating_t globalT) const
+    LoopingGenericBSpline<InterpolationType,floating_t>::getTangent(floating_t globalT) const
 {
-    size_t startIndex = SplineSetup::getIndexForT(knots, globalT);
+    floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
+    size_t startIndex = SplineSetup::getIndexForT(knots, wrappedT);
 
     return typename Spline<InterpolationType,floating_t>::InterpolatedPT(
-                computeDeboor(startIndex + 1, splineDegree, globalT),
-                computeDeboorDerivative(startIndex + 1, splineDegree, globalT, 1)
+                computeDeboor(startIndex + 1, splineDegree, wrappedT),
+                computeDeboorDerivative(startIndex + 1, splineDegree, wrappedT, 1)
                 );
 }
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTC
-    GenericBSpline<InterpolationType,floating_t>::getCurvature(floating_t globalT) const
+    LoopingGenericBSpline<InterpolationType,floating_t>::getCurvature(floating_t globalT) const
 {
-    size_t startIndex = SplineSetup::getIndexForT(knots, globalT);
+    floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
+    size_t startIndex = SplineSetup::getIndexForT(knots, wrappedT);
 
     return typename Spline<InterpolationType,floating_t>::InterpolatedPTC(
-                computeDeboor(startIndex + 1, splineDegree, globalT),
-                computeDeboorDerivative(startIndex + 1, splineDegree, globalT, 1),
-                computeDeboorDerivative(startIndex + 1, splineDegree, globalT, 2)
+                computeDeboor(startIndex + 1, splineDegree, wrappedT),
+                computeDeboorDerivative(startIndex + 1, splineDegree, wrappedT, 1),
+                computeDeboorDerivative(startIndex + 1, splineDegree, wrappedT, 2)
                 );
 }
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTCW
-    GenericBSpline<InterpolationType,floating_t>::getWiggle(floating_t globalT) const
+    LoopingGenericBSpline<InterpolationType,floating_t>::getWiggle(floating_t globalT) const
 {
-    size_t startIndex = SplineSetup::getIndexForT(knots, globalT);
+    floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
+    size_t startIndex = SplineSetup::getIndexForT(knots, wrappedT);
 
     return typename Spline<InterpolationType,floating_t>::InterpolatedPTCW(
-                computeDeboor(startIndex + 1, splineDegree, globalT),
-                computeDeboorDerivative(startIndex + 1, splineDegree, globalT, 1),
-                computeDeboorDerivative(startIndex + 1, splineDegree, globalT, 2),
-                computeDeboorDerivative(startIndex + 1, splineDegree, globalT, 3)
+                computeDeboor(startIndex + 1, splineDegree, wrappedT),
+                computeDeboorDerivative(startIndex + 1, splineDegree, wrappedT, 1),
+                computeDeboorDerivative(startIndex + 1, splineDegree, wrappedT, 2),
+                computeDeboorDerivative(startIndex + 1, splineDegree, wrappedT, 3)
                 );
 }
 
 template<class InterpolationType, typename floating_t>
-InterpolationType GenericBSpline<InterpolationType,floating_t>::computeDeboor(size_t knotIndex, int degree, float globalT) const
+InterpolationType LoopingGenericBSpline<InterpolationType,floating_t>::computeDeboor(size_t knotIndex, int degree, float globalT) const
 {
     if(degree == 0)
     {
@@ -136,7 +144,7 @@ InterpolationType GenericBSpline<InterpolationType,floating_t>::computeDeboor(si
 }
 
 template<class InterpolationType, typename floating_t>
-InterpolationType GenericBSpline<InterpolationType,floating_t>::computeDeboorDerivative(size_t knotIndex, int degree, float globalT, int derivativeLevel) const
+InterpolationType LoopingGenericBSpline<InterpolationType,floating_t>::computeDeboorDerivative(size_t knotIndex, int degree, float globalT, int derivativeLevel) const
 {
     if(degree == 0)
     {
@@ -165,17 +173,5 @@ InterpolationType GenericBSpline<InterpolationType,floating_t>::computeDeboorDer
     }
 }
 
-template<class InterpolationType, typename floating_t>
-floating_t GenericBSpline<InterpolationType,floating_t>::getT(int index) const
-{
-    return indexToT.at(index);
-}
-
-template<class InterpolationType, typename floating_t>
-floating_t GenericBSpline<InterpolationType,floating_t>::getMaxT(void) const
-{
-    return maxT;
-}
-
-#endif // GENERIC_B_SPLINE
+#endif // LOOPING_GENERIC_B_SPLINE
 

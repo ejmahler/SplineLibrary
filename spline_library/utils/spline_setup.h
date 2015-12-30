@@ -52,6 +52,16 @@ namespace SplineSetup
     //given a list of knots and a t value, return the index of the knot the t value falls within
     template<typename floating_t>
     size_t getIndexForT(const std::vector<floating_t> &knotData, floating_t t);
+
+    template<typename floating_t>
+    inline floating_t wrapGlobalT(floating_t globalT, floating_t maxT)
+    {
+        globalT = fmod(globalT, maxT);
+        if(globalT < 0)
+            return globalT + maxT;
+        else
+            return globalT;
+    }
 }
 
 template<class SegmentType, typename floating_t>
