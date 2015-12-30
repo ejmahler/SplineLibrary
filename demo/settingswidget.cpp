@@ -301,9 +301,9 @@ void SettingsWidget::setSignals(void)
 	{
 		connect(
 			x,
-			SIGNAL(valueChanged(double)),
+            SIGNAL(valueChanged(int)),
 			this,
-			SLOT(on_spinBox_changed(double))
+            SLOT(on_spinBox_changed(int))
 			);
 	}
 }

@@ -89,6 +89,11 @@
             </item>
             <item>
              <property name="text">
+              <string>Generic B-Spline</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
               <string>Quintic Catmull-Rom Spline</string>
              </property>
             </item>
@@ -213,6 +218,11 @@
             </item>
             <item>
              <property name="text">
+              <string>Generic B-Spline</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
               <string>Quintic Catmull-Rom Spline</string>
              </property>
             </item>
@@ -280,7 +290,7 @@
      </widget>
      <widget class="QWidget" name="layout_tab">
       <attribute name="title">
-       <string>Natural Spline</string>
+       <string>Spline Parameters</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="spacing">
@@ -289,7 +299,7 @@
        <item>
         <widget class="QLabel" name="label_13">
          <property name="text">
-          <string>Set constants for a natural spline here</string>
+          <string>Natural Spline Parameters</string>
          </property>
         </widget>
        </item>
@@ -341,6 +351,45 @@
               </widget>
              </item>
             </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>Generic B-Spline Parameters</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frame_5">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QFormLayout" name="formLayout_5">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>Generic B-Spline Degree</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="bSpline_degree">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>8</number>
+            </property>
+            <property name="value">
+             <number>3</number>
+            </property>
            </widget>
           </item>
          </layout>

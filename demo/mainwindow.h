@@ -45,7 +45,8 @@ private: //methods
             const QString &splineType,
             bool looping,
             float alpha,
-            bool includeEndpoints
+            bool includeEndpoints,
+            int bSplineDegree
             );
 
 	void redraw(void);

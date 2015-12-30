@@ -25,6 +25,7 @@
 #include "spline_library/hermite/cubic/cubic_hermite_spline.h"
 #include "spline_library/hermite/cubic/looping_cubic_hermite_spline.h"
 #include "spline_library/basis/cubic_b_spline.h"
+#include "spline_library/basis/generic_b_spline.h"
 #include "spline_library/basis/looping_cubic_b_spline.h"
 #include "spline_library/natural/natural_spline.h"
 #include "spline_library/natural/looping_natural_spline.h"
@@ -60,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
     points.push_back(QVector2D(300,600));
     points.push_back(QVector2D(300,300));
     points.push_back(QVector2D(100,200));
+    points.push_back(QVector2D(100,400));
 
 	rebuildSpline(points);
 }
@@ -206,13 +208,14 @@ void MainWindow::rebuildSpline(std::vector<QVector2D> pointList)
     float secondaryAlpha = settingsWidget->getOption("secondary_alpha").toFloat() / 10;
 
     bool includeEndpoints = settingsWidget->getOption("naturalSpline_includeEndpoints").toBool();
+    int genericBsplineDegree = settingsWidget->getOption("bSpline_degree").toInt();
 
-    mainSpline = createSpline(pointList, mainSplineType, mainIsLooping, mainAlpha, includeEndpoints);
+    mainSpline = createSpline(pointList, mainSplineType, mainIsLooping, mainAlpha, includeEndpoints,genericBsplineDegree);
     graphicsController->setMainSpline(mainSpline);
 
     if(enableSecondary)
     {
-        secondarySpline = createSpline(pointList, secondarySplineType, secondaryIsLooping, secondaryAlpha, includeEndpoints);
+        secondarySpline = createSpline(pointList, secondarySplineType, secondaryIsLooping, secondaryAlpha, includeEndpoints, genericBsplineDegree);
     }
     else
     {
@@ -237,7 +240,8 @@ std::shared_ptr<Spline<QVector2D>> MainWindow::createSpline(
         const QString &splineType,
         bool isLooping,
         float alpha,
-        bool includeEndpoints
+        bool includeEndpoints,
+        int genericDegree
         )
 {
     if(splineType == "Cubic Catmull-Rom Spline")
@@ -260,6 +264,17 @@ std::shared_ptr<Spline<QVector2D>> MainWindow::createSpline(
         else
         {
             return std::make_shared<CubicBSpline<QVector2D>>(pointList);
+        }
+    }
+    else if(splineType == "Generic B-Spline")
+    {
+        if(isLooping)
+        {
+            return std::make_shared<GenericBSpline<QVector2D>>(pointList, genericDegree, true);
+        }
+        else
+        {
+            return std::make_shared<GenericBSpline<QVector2D>>(pointList, genericDegree, false);
         }
     }
     else if(splineType == "Cubic Natural Spline")

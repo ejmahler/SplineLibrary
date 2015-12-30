@@ -140,6 +140,8 @@ void GraphicsController::paintEvent(QPaintEvent *event)
     painter.setPen(Qt::white);
 
     drawDiagnosticText(painter, 5, "Spline Length", QString::number(lengthCalc.findLength(0, mainSpline->getMaxT())));
+    if(displayData.highlightT)
+        drawDiagnosticText(painter, 25, "Closest T", QString::number(displayData.highlightedT));
 
 	//draw container for control data
     int controlBoxWidth = 225;
