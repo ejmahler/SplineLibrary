@@ -29,6 +29,7 @@ public:
 //methods
 private:
     InterpolationType computeDeboor(size_t knotIndex, int degree, float globalT) const;
+    InterpolationType computeDeboorDerivative(size_t knotIndex, int degree, float globalT, int derivativeLevel) const;
 
 //data
 private:
@@ -76,7 +77,7 @@ GenericBSpline<InterpolationType,floating_t>::GenericBSpline(const std::vector<I
         indexToT = SplineSetup::computeLoopingBSplineKnots(points, 0.0f, padding);
         maxT = indexToT[size];
 
-        //we need enough space to repeat the first and last elements (degree - 1) times
+        //we need enough space to repeat the last 'degree' elements
         positions = std::vector<InterpolationType>(points.size() + degree);
         std::copy(points.begin(), points.end(), positions.begin());
         std::copy_n(points.begin(), degree, positions.begin() + size);
@@ -103,9 +104,11 @@ template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPT
     GenericBSpline<InterpolationType,floating_t>::getTangent(floating_t globalT) const
 {
+    size_t startIndex = SplineSetup::getIndexForT(knots, globalT);
+
     return typename Spline<InterpolationType,floating_t>::InterpolatedPT(
-                InterpolationType(),
-                InterpolationType()
+                computeDeboor(startIndex + 1, splineDegree, globalT),
+                computeDeboorDerivative(startIndex + 1, splineDegree, globalT, 1)
                 );
 }
 
@@ -113,10 +116,12 @@ template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTC
     GenericBSpline<InterpolationType,floating_t>::getCurvature(floating_t globalT) const
 {
+    size_t startIndex = SplineSetup::getIndexForT(knots, globalT);
+
     return typename Spline<InterpolationType,floating_t>::InterpolatedPTC(
-                InterpolationType(),
-                InterpolationType(),
-                InterpolationType()
+                computeDeboor(startIndex + 1, splineDegree, globalT),
+                computeDeboorDerivative(startIndex + 1, splineDegree, globalT, 1),
+                computeDeboorDerivative(startIndex + 1, splineDegree, globalT, 2)
                 );
 }
 
@@ -124,11 +129,13 @@ template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTCW
     GenericBSpline<InterpolationType,floating_t>::getWiggle(floating_t globalT) const
 {
+    size_t startIndex = SplineSetup::getIndexForT(knots, globalT);
+
     return typename Spline<InterpolationType,floating_t>::InterpolatedPTCW(
-                InterpolationType(),
-                InterpolationType(),
-                InterpolationType(),
-                InterpolationType()
+                computeDeboor(startIndex + 1, splineDegree, globalT),
+                computeDeboorDerivative(startIndex + 1, splineDegree, globalT, 1),
+                computeDeboorDerivative(startIndex + 1, splineDegree, globalT, 2),
+                computeDeboorDerivative(startIndex + 1, splineDegree, globalT, 3)
                 );
 }
 
@@ -149,6 +156,36 @@ InterpolationType GenericBSpline<InterpolationType,floating_t>::computeDeboor(si
         InterpolationType blended = leftRecursive * (1 - alpha) + rightRecursive * alpha;
 
         return blended;
+    }
+}
+
+template<class InterpolationType, typename floating_t>
+InterpolationType GenericBSpline<InterpolationType,floating_t>::computeDeboorDerivative(size_t knotIndex, int degree, float globalT, int derivativeLevel) const
+{
+    if(degree == 0)
+    {
+        return InterpolationType();
+    }
+    else
+    {
+        float multiplier = degree / (knots[knotIndex + splineDegree - degree] - knots[knotIndex - 1]);
+
+        if(derivativeLevel <= 1)
+        {
+            //once we reach this point we don't want to compute the derivative anymore
+            return multiplier *
+                    (computeDeboor(knotIndex, degree - 1, globalT)
+                   - computeDeboor(knotIndex - 1, degree - 1, globalT)
+                     );
+        }
+        else
+        {
+            //recursively call the derivative function to compute a higher derivative
+            return multiplier *
+                    (computeDeboorDerivative(knotIndex, degree - 1, globalT, derivativeLevel - 1)
+                   - computeDeboorDerivative(knotIndex - 1, degree - 1, globalT, derivativeLevel - 1)
+                     );
+        }
     }
 }
 
