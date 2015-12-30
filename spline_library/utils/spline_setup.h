@@ -20,15 +20,6 @@ namespace SplineSetup
     std::unordered_map<int, floating_t> computeTValues(const std::vector<SegmentType> &points, floating_t alpha, int padding);
 
 
-    template<class InterpolationType, typename floating_t>
-    std::unordered_map<int, floating_t> computeBSplineKnots(const std::vector<InterpolationType> &points, floating_t alpha, int splineDimension);
-
-    template<class InterpolationType, typename floating_t>
-    std::unordered_map<int, floating_t> computeLoopingBSplineKnots(const std::vector<InterpolationType> &points,
-                                                                         floating_t alpha,
-                                                                         int padding);
-
-
     //compute the T values for the given points, with the given alpha.
     //if padding is zero, this method will return points.size() + 1 points - the "extra" point is because the first point in the list is represented twice
     //once for the beginning and a second time when we wrap around at the end
@@ -37,6 +28,18 @@ namespace SplineSetup
     //these won't actually add any extra information, but may simplify calculations that have to wrap around the loop
     template<class SegmentType, typename floating_t>
     std::unordered_map<int, floating_t> computeLoopingTValues(const std::vector<SegmentType> &points, floating_t alpha, int padding);
+
+
+    //compute knot values for the B-Spline
+    //thesw work largely the same as the two above functions
+    //except that the non-looping variant computes size + padding * 2 knots, by adding them to either end, rather than returning 'size'
+    template<class InterpolationType, typename floating_t>
+    std::unordered_map<int, floating_t> computeBSplineKnots(const std::vector<InterpolationType> &points, floating_t alpha, int splineDimension);
+
+    template<class InterpolationType, typename floating_t>
+    std::unordered_map<int, floating_t> computeLoopingBSplineKnots(const std::vector<InterpolationType> &points,
+                                                                         floating_t alpha,
+                                                                         int padding);
 
 
 
