@@ -46,7 +46,8 @@ HEADERS  += \
     spline_library/hermite/cubic/cubic_hermite_spline_kernel.h \
     spline_library/hermite/quintic/quintic_hermite_spline_kernel.h \
     spline_library/basis/generic_b_spline.h \
-    spline_library/basis/looping_generic_b_spline.h
+    spline_library/basis/looping_generic_b_spline.h \
+    spline_library/basis/generic_b_spline_common.h
 
 FORMS    += \
     demo/settingswidget.ui \
