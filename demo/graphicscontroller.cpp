@@ -114,11 +114,11 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	}
 
     //draw the spline itself
-    drawSpline(painter, mainSpline, Qt::red);
+    drawSpline(painter, *mainSpline.get(), Qt::red);
     //drawSplineDerivative(painter, mainSpline, Qt::yellow);
     if(secondarySpline != nullptr)
     {
-        drawSpline(painter, secondarySpline, Qt::blue);
+        drawSpline(painter, *secondarySpline.get(), Qt::blue);
     }
 	
 	painter.restore();
@@ -355,41 +355,41 @@ QVector3D GraphicsController::getColor(float t) const
         qBound(0.0f,value.z() * 255.0f, 255.0f));
 }
 
-void GraphicsController::drawSpline(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, const QColor &color)
+void GraphicsController::drawSpline(QPainter &painter, const Spline<QVector2D> &s, const QColor &color)
 {
     //draw the spline
     float stepSize = 0.25;
     float currentStep = stepSize;
-    float limit = s->getMaxT() + 0.01;
-
-    float thresholdAngle = 0.996;
+    float limit = s.getMaxT() + 0.01;
 
     painter.setPen(color);
 
     while(currentStep <= limit)
     {
-        drawSplineSegment(painter, s,currentStep - stepSize, currentStep);
+        drawSplineSegment(painter, s, currentStep - stepSize, currentStep);
         currentStep += stepSize;
     }
 }
 
-void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, float beginT, float endT)
+void GraphicsController::drawSplineSegment(QPainter &painter, const Spline<QVector2D> &s, float beginT, float endT)
 {
-    auto beginData = s->getPosition(beginT);
-    auto endData = s->getPosition(endT);
+    auto beginData = s.getPosition(beginT);
+    auto endData = s.getPosition(endT);
 
     float middleT = (beginT + endT) * .5;
 
     QVector2D midExpected = (beginData + endData) * .5;
-    auto midActual = s->getPosition((beginT + endT) * .5);
+    auto midActual = s.getPosition((beginT + endT) * .5);
 
 
 
-    //if the angle is too low, subdivide this segment into two segments
+    //if the difference in T is too small, we're almost certainly at a break point in the spline
+    //this obviously isn't supposed to happen, but if there's a bug in the spline code that creates a break, we want to show it
     float minDelta = .001;
     float maxDistance = .1;
     if((endT - beginT) > minDelta)
     {
+        //if the actual midpoint is too far away from the expected midpoint, subdivide and try again
         if((midExpected - midActual).lengthSquared() > maxDistance)
         {
             drawSplineSegment(painter, s, beginT, middleT);
@@ -408,14 +408,12 @@ void GraphicsController::drawSplineSegment(QPainter &painter, const std::shared_
 
 
 
-void GraphicsController::drawSplineDerivative(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, const QColor &color)
+void GraphicsController::drawSplineDerivative(QPainter &painter, const Spline<QVector2D> &s, const QColor &color)
 {
     //draw the spline
     float stepSize = 0.25;
     float currentStep = stepSize;
-    float limit = s->getMaxT() + 0.01;
-
-    float thresholdAngle = 0.998;
+    float limit = s.getMaxT() + 0.01;
 
     painter.setPen(color);
 
@@ -426,19 +424,18 @@ void GraphicsController::drawSplineDerivative(QPainter &painter, const std::shar
     }
 }
 
-void GraphicsController::drawSplineSegmentDerivative(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, float beginT, float endT)
+void GraphicsController::drawSplineSegmentDerivative(QPainter &painter, const Spline<QVector2D> &s, float beginT, float endT)
 {
-    auto beginData = s->getTangent(beginT);
-    auto endData = s->getTangent(endT);
+    auto beginData = s.getTangent(beginT);
+    auto endData = s.getTangent(endT);
 
     float middleT = (beginT + endT) * .5;
 
     QVector2D midExpected = (beginData.tangent + endData.tangent) * .5;
-    auto midActual = s->getTangent((beginT + endT) * .5);
+    auto midActual = s.getTangent((beginT + endT) * .5);
 
 
 
-    //if the angle is too low, subdivide this segment into two segments
     float minDelta = .001;
     float maxDistance = .1;
     if((endT - beginT) > minDelta)

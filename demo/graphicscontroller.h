@@ -54,17 +54,17 @@ protected:
 
 private:
 
-     void drawSpline(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, const QColor &color);
+     void drawSpline(QPainter &painter, const Spline<QVector2D> &s, const QColor &color);
      void drawSplineSegment(
              QPainter &painter,
-             const std::shared_ptr<Spline<QVector2D>> &s,
+             const Spline<QVector2D> &s,
              float beginT,
              float endT);
 
-     void drawSplineDerivative(QPainter &painter, const std::shared_ptr<Spline<QVector2D>> &s, const QColor &color);
+     void drawSplineDerivative(QPainter &painter, const Spline<QVector2D> &s, const QColor &color);
      void drawSplineSegmentDerivative(
              QPainter &painter,
-             const std::shared_ptr<Spline<QVector2D>> &s,
+             const Spline<QVector2D> &s,
              float beginT,
              float endT);
 
