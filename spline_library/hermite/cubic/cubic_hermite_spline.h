@@ -57,7 +57,7 @@ CubicHermiteSpline<InterpolationType,floating_t>::CubicHermiteSpline(
     int numSegments = size - 1;
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeTValues(points, alpha, firstTangent);
+    indexToT = SplineSetup::computeTValuesWithInnerPadding(points, alpha, firstTangent);
     maxT = indexToT.at(firstTangent + numSegments);
 
     //pre-arrange the data needed for interpolation
@@ -93,7 +93,7 @@ CubicHermiteSpline<InterpolationType,floating_t>::CubicHermiteSpline(const std::
     int numSegments = size - 3;
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeTValues(points, alpha, firstTangent);
+    indexToT = SplineSetup::computeTValuesWithInnerPadding(points, alpha, firstTangent);
     maxT = indexToT.at(firstTangent + numSegments);
 
     //compute the tangents

@@ -51,7 +51,7 @@ CubicBSpline<InterpolationType,floating_t>::CubicBSpline(const std::vector<Inter
     int numSegments = size - 3;
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeTValues(points, alpha, padding);
+    indexToT = SplineSetup::computeTValuesWithInnerPadding(points, alpha, padding);
     maxT = indexToT.at(padding + numSegments);
 
     //pre-arrange the data needed for interpolation

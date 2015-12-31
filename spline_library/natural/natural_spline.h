@@ -77,7 +77,7 @@ NaturalSpline<InterpolationType,floating_t>::NaturalSpline(const std::vector<Int
     }
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeTValues(points, alpha, firstPoint);
+    indexToT = SplineSetup::computeTValuesWithInnerPadding(points, alpha, firstPoint);
     maxT = indexToT.at(firstPoint + numSegments);
 
     //next we compute curvatures

@@ -8,38 +8,40 @@ namespace SplineSetup
 {
     //compute the T values for the given points, with the given alpha.
     //the distance in T between adjacent points is the magitude of the distance, raised to the power alpha
-
-    template<class floating_t>
-    floating_t computeTForDistanceSq(floating_t distanceSq, floating_t alpha);
-
-    //if padding is > 0, the element whose index is equal to padding wil lbe zero and everything to the left will be negative
-    //additionally, the T values will be normalized to a maximum of (points.size() - 2 * padding)
-    //the implication of the above two lines is that the leftmost and rightmost elements in the array will be "excluded" from the final calculation,
-    //with the padding indicating how many to exclude
-    template<class SegmentType, typename floating_t>
-    std::unordered_map<int, floating_t> computeTValues(const std::vector<SegmentType> &points, floating_t alpha, int padding);
+    template<class InterpolationType, typename floating_t>
+    floating_t computeTDiff(InterpolationType p1, InterpolationType p2, floating_t alpha);
 
 
-    //compute the T values for the given points, with the given alpha.
-    //if padding is zero, this method will return points.size() + 1 points - the "extra" point is because the first point in the list is represented twice
-    //once for the beginning and a second time when we wrap around at the end
+    //compute t values for the given points, based on the alpha value
+    //if innerPadding > 0, the first 'innerPadding' values will be negative, and the (innerPadding+1)'th value will be 0
+    //so the spline will effectively begin at innerPadding + 1
+    //this is used for splines like catmull-rom, where the first and last point are used ONLY to calculate tangent
+    template<class InterpolationType, typename floating_t>
+    std::unordered_map<int, floating_t> computeTValuesWithInnerPadding(
+            const std::vector<InterpolationType> &points,
+            floating_t alpha,
+            int innerPadding
+            );
 
+    //compute compute t values for the given points, based on the alpha value
+    //if outerPadding > 0, 'outerPadding' values will be added to both the beginning and ending
+    //in addition to computing one t value for each point
+    template<class InterpolationType, typename floating_t>
+    std::unordered_map<int, floating_t> computeTValuesWithOuterPadding(
+            const std::vector<InterpolationType> &points,
+            floating_t alpha,
+            int outerPadding
+            );
+
+
+
+    //compute the T values for the given points, with the given alpha, for use in a looping spline
+    //if padding is zero, this method will return points.size() + 1 points
+    //the "extra" point is because the first point in the list is represented at the beginning AND end
     //if padding is > 0, this method will also compute "extra" T values before the beginning and after the end
-    //these won't actually add any extra information, but may simplify calculations that have to wrap around the loop
-    template<class SegmentType, typename floating_t>
-    std::unordered_map<int, floating_t> computeLoopingTValues(const std::vector<SegmentType> &points, floating_t alpha, int padding);
-
-
-    //compute knot values for the B-Spline
-    //thesw work largely the same as the two above functions
-    //except that the non-looping variant computes size + padding * 2 knots, by adding them to either end, rather than returning 'size'
+    //these won't actually add any extra information, but help simplify calculations that wrap around the loop
     template<class InterpolationType, typename floating_t>
-    std::unordered_map<int, floating_t> computeBSplineKnots(const std::vector<InterpolationType> &points, floating_t alpha, int splineDimension);
-
-    template<class InterpolationType, typename floating_t>
-    std::unordered_map<int, floating_t> computeLoopingBSplineKnots(const std::vector<InterpolationType> &points,
-                                                                         floating_t alpha,
-                                                                         int padding);
+    std::unordered_map<int, floating_t> computeLoopingTValues(const std::vector<InterpolationType> &points, floating_t alpha, int padding);
 
 
 
@@ -62,6 +64,162 @@ namespace SplineSetup
         else
             return globalT;
     }
+}
+
+
+template<class InterpolationType, typename floating_t>
+floating_t SplineSetup::computeTDiff(InterpolationType p1, InterpolationType p2, floating_t alpha)
+{
+    auto distanceSq = (p1 - p2).lengthSquared();
+
+    //if these points are right on top of each other, don't bother with the power calculation
+    if(distanceSq < .0001)
+    {
+        return 0;
+    }
+    else
+    {
+        //multiply alpha by 0.5 so that we tke the square root of distanceSq
+        //ie: result = distance ^ alpha, and distance = (distanceSq)^(0.5)
+        //so: result = (distanceSq^0.5)^(alpha) = (distanceSq)^(0.5*alpha)
+        //this way we don't have to do a pow AND a sqrt
+        return pow(distanceSq, alpha * 0.5);
+    }
+}
+
+template<class InterpolationType, typename floating_t>
+std::unordered_map<int, floating_t> SplineSetup::computeTValuesWithInnerPadding(
+        const std::vector<InterpolationType> &points,
+        floating_t alpha,
+        int innerPadding
+        )
+{
+    int size = points.size();
+    int endPaddingIndex = size - 1 - innerPadding;
+    int desiredMaxT = size - 2 * innerPadding - 1;
+
+    std::unordered_map<int, floating_t> indexToT;
+    indexToT.reserve(size);
+
+    //we know points[padding] will have a t value of 0
+    indexToT[innerPadding] = 0;
+
+    //loop backwards from padding to give the earlier points negative t values
+    for(int i = innerPadding - 1; i >= 0; i--)
+    {
+        //Points inside the padding will not be interpolated
+        //so give it a negative t value, so that the first actual point can have a t value of 0
+        indexToT[i] = indexToT.at(i + 1) - computeTDiff(points.at(i), points.at(i + 1), alpha);
+    }
+
+    //compute the t values of the other points
+    for(int i = innerPadding + 1; i < size; i++)
+    {
+        indexToT[i] = indexToT.at(i - 1) + computeTDiff(points.at(i), points.at(i - 1), alpha);
+    }
+
+    //we want to know the t value of the last segment so that we can normalize them all
+    floating_t maxTRaw = indexToT.at(endPaddingIndex);
+
+    //now that we have all ouf our t values and indexes figured out, normalize the t values by dividing them by maxT
+    floating_t multiplier = desiredMaxT / maxTRaw;
+    for(auto &entry: indexToT)
+    {
+        entry.second *= multiplier;
+    }
+
+    return indexToT;
+}
+
+template<class InterpolationType, typename floating_t>
+std::unordered_map<int, floating_t> SplineSetup::computeTValuesWithOuterPadding(
+        const std::vector<InterpolationType> &points,
+        floating_t alpha,
+        int outerPadding
+        )
+{
+    int size = points.size();
+
+    std::unordered_map<int, floating_t> indexToT;
+    indexToT.reserve(size + outerPadding * 2);
+
+    //compute the t values each point
+    indexToT[0] = 0;
+    for(int i = 1; i < size; i++)
+    {
+        indexToT[i] = indexToT.at(i - 1) + computeTDiff(points.at(i), points.at(i - 1), alpha);
+    }
+
+    //we want to know the t value of the last segment so that we can normalize them all
+    floating_t maxTRaw = indexToT.at(size - 1);
+
+    //now that we have all ouf our t values and indexes figured out, normalize the t values by dividing them by maxT
+    floating_t desiredMaxT = size - 1;
+    floating_t multiplier = desiredMaxT / maxTRaw;
+    for(auto &entry: indexToT)
+    {
+        entry.second *= multiplier;
+    }
+
+    //add padding in addition to the points - 2 on each end
+    //we calculate the padding by taking the difference in t between the nearest real T values
+    for(int i = size; i < outerPadding + size; i++)
+    {
+        floating_t tDiff = indexToT.at(i - 1) - indexToT.at(i - 2);
+        indexToT[i] = indexToT.at(i - 1) + tDiff;
+    }
+    for(int i = -1; i >= -outerPadding; i--)
+    {
+        floating_t tDiff = indexToT.at(i + 2) - indexToT.at(i + 1);
+        indexToT[i] = indexToT.at(i + 1) - tDiff;
+    }
+
+    return indexToT;
+}
+
+template<class InterpolationType, typename floating_t>
+std::unordered_map<int, floating_t> SplineSetup::computeLoopingTValues(
+        const std::vector<InterpolationType> &points,
+        floating_t alpha,
+        int padding)
+{
+    int size = points.size();
+
+    std::unordered_map<int, floating_t> indexToT;
+    indexToT.reserve(size + padding * 2);
+
+    //compute the t values each point
+    indexToT[0] = 0;
+    for(int i = 1; i < size + 1; i++)
+    {
+        indexToT[i] = indexToT.at(i - 1) + computeTDiff(points.at(i%size), points.at(i - 1), alpha);
+    }
+
+    //we want to know the t value of the last segment so that we can normalize them all
+    floating_t maxTRaw = indexToT.at(size);
+
+    //now that we have all ouf our t values and indexes figured out, normalize the t values by dividing them by maxT
+    floating_t desiredMaxT = size;
+    floating_t multiplier = desiredMaxT / maxTRaw;
+    for(auto &entry: indexToT)
+    {
+        entry.second *= multiplier;
+    }
+
+    //add padding in addition to the points - 2 on each end
+    //we calculate the padding by basically wraping the difference in T values
+    for(int i = 1; i < padding + 1; i++)
+    {
+        floating_t tDiff = indexToT.at(i) - indexToT.at(i - 1);
+        indexToT[i + size] = indexToT.at(i + size - 1) + tDiff;
+    }
+    for(int i = -1; i >= -padding; i--)
+    {
+        floating_t tDiff = indexToT.at(i + size + 1) - indexToT.at(i + size);
+        indexToT[i] = indexToT.at(i + 1) - tDiff;
+    }
+
+    return indexToT;
 }
 
 template<class SegmentType, typename floating_t>
@@ -133,197 +291,6 @@ size_t SplineSetup::getIndexForT(const std::vector<floating_t> &knotData, floati
         currentIndex = (currentMin + currentMax) / 2;
     }
     return currentIndex;
-}
-
-template<class floating_t>
-floating_t SplineSetup::computeTForDistanceSq(floating_t distanceSq, floating_t alpha)
-{
-    //if these points are right on top of each other, don't bother with the power calculation
-    if(distanceSq < .0001)
-    {
-        return 0;
-    }
-    else
-    {
-        //multiply alpha by 0.5 so that we tke the square root of distanceSq
-        //ie: (distanceSq)^(0.5) = distance
-        //and result = distance ^ alpha
-        //so result = (distanceSq^alpha)^(0.5) = (distanceSq)^(0.5*alpha)
-        //this way we don't have to do a pow AND a sqrt
-        return pow(distanceSq, alpha * 0.5);
-    }
-}
-
-template<class SegmentType, typename floating_t>
-std::unordered_map<int, floating_t> SplineSetup::computeTValues(
-        const std::vector<SegmentType> &points,
-        floating_t alpha,
-        int padding)
-{
-    int size = points.size();
-    int endPaddingIndex = size - 1 - padding;
-    int desiredMaxT = size - 2 * padding - 1;
-
-    std::unordered_map<int, floating_t> indexToT;
-    indexToT.reserve(size);
-
-    //we know points[padding] will have a t value of 0
-    indexToT[padding] = 0;
-
-    //loop backwards from padding to give the earlier points negative t values
-    for(int i = padding - 1; i >= 0; i--)
-    {
-        //Points inside the padding will not be interpolated
-        //so give it a negative t value, so that the first actual point can have a t value of 0
-        indexToT[i] = indexToT.at(i + 1) + computeTForDistanceSq((points.at(i) - points.at(i + 1)).lengthSquared(), alpha);
-    }
-
-    //compute the t values of the other points
-    for(int i = padding + 1; i < size; i++)
-    {
-        indexToT[i] = indexToT.at(i - 1) + computeTForDistanceSq((points.at(i) - points.at(i - 1)).lengthSquared(), alpha);
-    }
-
-    //we want to know the t value of the last segment so that we can normalize them all
-    floating_t maxTRaw = indexToT.at(endPaddingIndex);
-
-    //now that we have all ouf our t values and indexes figured out, normalize the t values by dividing them by maxT
-    floating_t multiplier = desiredMaxT / maxTRaw;
-    for(auto &entry: indexToT)
-    {
-        entry.second *= multiplier;
-    }
-
-    return indexToT;
-}
-
-template<class InterpolationType, typename floating_t>
-std::unordered_map<int, floating_t> SplineSetup::computeBSplineKnots(const std::vector<InterpolationType> &points,
-                                                                     floating_t alpha,
-                                                                     int padding)
-{
-    int size = points.size();
-
-    std::unordered_map<int, floating_t> indexToT;
-    indexToT.reserve(size + padding * 2);
-
-    //compute the t values each point
-    indexToT[0] = 0;
-    for(int i = 1; i < size; i++)
-    {
-        indexToT[i] = indexToT.at(i - 1) + computeTForDistanceSq((points.at(i) - points.at(i - 1)).lengthSquared(), alpha);
-    }
-
-    //we want to know the t value of the last segment so that we can normalize them all
-    floating_t maxTRaw = indexToT.at(size - 1);
-
-    //now that we have all ouf our t values and indexes figured out, normalize the t values by dividing them by maxT
-    floating_t desiredMaxT = size - 1;
-    floating_t multiplier = desiredMaxT / maxTRaw;
-    for(auto &entry: indexToT)
-    {
-        entry.second *= multiplier;
-    }
-
-    //add padding in addition to the points - 2 on each end
-    //we calculate the padding by taking the difference in t between the nearest real T values
-    for(int i = size; i < padding + size; i++)
-    {
-        floating_t tDiff = indexToT.at(i - 1) - indexToT.at(i - 2);
-        indexToT[i] = indexToT.at(i - 1) + tDiff;
-    }
-    for(int i = -1; i >= -padding; i--)
-    {
-        floating_t tDiff = indexToT.at(i + 2) - indexToT.at(i + 1);
-        indexToT[i] = indexToT.at(i + 1) - tDiff;
-    }
-
-    return indexToT;
-}
-
-template<class InterpolationType, typename floating_t>
-std::unordered_map<int, floating_t> SplineSetup::computeLoopingBSplineKnots(const std::vector<InterpolationType> &points,
-                                                                     floating_t alpha,
-                                                                     int padding)
-{
-    int size = points.size();
-
-    std::unordered_map<int, floating_t> indexToT;
-    indexToT.reserve(size + padding * 2);
-
-    //compute the t values each point
-    indexToT[0] = 0;
-    for(int i = 1; i < size + 1; i++)
-    {
-        indexToT[i] = indexToT.at(i - 1) + computeTForDistanceSq((points.at(i%size) - points.at(i - 1)).lengthSquared(), alpha);
-    }
-
-    //we want to know the t value of the last segment so that we can normalize them all
-    floating_t maxTRaw = indexToT.at(size);
-
-    //now that we have all ouf our t values and indexes figured out, normalize the t values by dividing them by maxT
-    floating_t desiredMaxT = size;
-    floating_t multiplier = desiredMaxT / maxTRaw;
-    for(auto &entry: indexToT)
-    {
-        entry.second *= multiplier;
-    }
-
-    //add padding in addition to the points - 2 on each end
-    //we calculate the padding by basically wraping the difference in T values
-    for(int i = 1; i < padding + 1; i++)
-    {
-        floating_t tDiff = indexToT.at(i) - indexToT.at(i - 1);
-        indexToT[i + size] = indexToT.at(i + size - 1) + tDiff;
-    }
-    for(int i = -1; i >= -padding; i--)
-    {
-        floating_t tDiff = indexToT.at(i + size + 1) - indexToT.at(i + size);
-        indexToT[i] = indexToT.at(i + 1) - tDiff;
-    }
-
-    return indexToT;
-}
-
-template<class SegmentType, typename floating_t>
-std::unordered_map<int, floating_t> SplineSetup::computeLoopingTValues(
-        const std::vector<SegmentType> &points,
-        floating_t alpha,
-        int padding)
-{
-    int size = points.size();
-
-    std::unordered_map<int, floating_t> indexToT;
-    indexToT.reserve(size + padding * 2);
-
-    //we know points[0] will have a t value of 0
-    indexToT[0] = 0;
-
-    //loop backwards from 0 to give the earlier points negative t values
-    for(int i = -1; i >= -padding; i--)
-    {
-        floating_t distance = (points.at(i + size) - points.at((i + 1 + size)%size)).length();
-        indexToT[i] = indexToT.at(i + 1) - pow(distance, alpha);
-    }
-
-    //compute the t values of the other points
-    for(int i = 1; i <= size + padding; i++)
-    {
-        floating_t distance = (points.at(i%size) - points.at((i - 1)%size)).length();
-        indexToT[i] = indexToT.at(i - 1) + pow(distance, alpha);
-    }
-
-    //we want to know the t value of the last segment so that we can normalize them all
-    floating_t maxTRaw = indexToT.at(size);
-
-    //now that we have all ouf our t values and indexes figured out, normalize the t values by dividing them by maxT
-    floating_t multiplier = size / maxTRaw;
-    for(auto &entry: indexToT)
-    {
-        entry.second *= multiplier;
-    }
-
-    return indexToT;
 }
 
 #endif // T_CALCULATOR_H

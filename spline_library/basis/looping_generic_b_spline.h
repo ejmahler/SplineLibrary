@@ -22,7 +22,7 @@ public:
     typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t x) const override;
     typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t x) const override;
 
-    floating_t getT(int index) const override { indexToT.at(index); }
+    floating_t getT(int index) const override { return indexToT.at(index); }
     floating_t getMaxT(void) const override { return maxT; }
 
     bool isLooping(void) const override { return true; }
@@ -41,13 +41,13 @@ template<class InterpolationType, typename floating_t>
 LoopingGenericBSpline<InterpolationType,floating_t>::LoopingGenericBSpline(const std::vector<InterpolationType> &points, int degree)
     :Spline<InterpolationType,floating_t>(points)
 {
-    assert(points.size() > degree);
+    assert(points.size() > size_t(degree));
 
     int size = points.size();
     int padding = degree - 1;
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeLoopingBSplineKnots(points, 0.0f, padding);
+    indexToT = SplineSetup::computeLoopingTValues(points, 0.0f, padding);
     maxT = indexToT[size];
 
     //we need enough space to repeat the last 'degree' elements

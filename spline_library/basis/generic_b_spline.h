@@ -47,13 +47,13 @@ template<class InterpolationType, typename floating_t>
 GenericBSpline<InterpolationType,floating_t>::GenericBSpline(const std::vector<InterpolationType> &points, int degree)
     :Spline<InterpolationType,floating_t>(points)
 {
-    assert(points.size() > degree);
+    assert(points.size() > size_t(degree));
 
     int size = points.size();
     int padding = degree - 1;
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeBSplineKnots(points, 0.0f, padding);
+    indexToT = SplineSetup::computeTValuesWithOuterPadding(points, 0.0f, padding);
     maxT = indexToT[size - degree];
 
     //we need enough space to repeat the first and last elements (degree - 1) times

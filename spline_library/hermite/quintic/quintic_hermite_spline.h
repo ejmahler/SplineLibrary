@@ -63,7 +63,7 @@ QuinticHermiteSpline<InterpolationType,floating_t>::QuinticHermiteSpline(
     int numSegments = size - 1;
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeTValues(points, alpha, padding);
+    indexToT = SplineSetup::computeTValuesWithInnerPadding(points, alpha, padding);
     maxT = indexToT.at(numSegments);
 
     //pre-arrange the data needed for interpolation
@@ -105,7 +105,7 @@ QuinticHermiteSpline<InterpolationType,floating_t>::QuinticHermiteSpline(const s
     int numSegments = size - 5;
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeTValues(points, alpha, firstCurvature);
+    indexToT = SplineSetup::computeTValuesWithInnerPadding(points, alpha, firstCurvature);
     maxT = indexToT.at(firstCurvature + numSegments);
 
 
