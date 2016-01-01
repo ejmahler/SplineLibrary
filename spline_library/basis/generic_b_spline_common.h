@@ -51,12 +51,11 @@ public:
                     );
     }
 
-//methods
-private:
+private: //methods
     InterpolationType computeDeboor(size_t knotIndex, int degree, float globalT) const;
     InterpolationType computeDeboorDerivative(size_t knotIndex, int degree, float globalT, int derivativeLevel) const;
 
-private:
+private: //data
     std::vector<InterpolationType> positions;
     std::vector<floating_t> knots;
     int splineDegree;
@@ -87,6 +86,8 @@ InterpolationType GenericBSplineCommon<InterpolationType,floating_t>::computeDeb
 {
     if(degree == 0)
     {
+        //if we hit degree 0 before derivative level 0, then this spline's
+        //degree isn't high enough to support whatever derivative level was requested
         return InterpolationType();
     }
     else
@@ -95,7 +96,8 @@ InterpolationType GenericBSplineCommon<InterpolationType,floating_t>::computeDeb
 
         if(derivativeLevel <= 1)
         {
-            //once we reach this point we don't want to compute the derivative anymore
+            //once we reach this point, the derivative calculation is "complete"
+            //in that from here, we go back to the normal deboor calculation deeper in the recursive tree
             return multiplier *
                     (computeDeboor(knotIndex, degree - 1, globalT)
                    - computeDeboor(knotIndex - 1, degree - 1, globalT)

@@ -56,9 +56,9 @@ GenericBSpline<InterpolationType,floating_t>::GenericBSpline(const std::vector<I
     indexToT = SplineSetup::computeTValuesWithOuterPadding(points, 0.0f, padding);
     maxT = indexToT[size - degree];
 
-    //we need enough space to repeat the first and last elements (degree - 1) times
+    //for purposes of actual interpolation, we don't need the negative indexes found in indexToT
+    //so we're going to add the minimum possible value to every entry and stick them in a vector
     std::vector<floating_t> knots = std::vector<floating_t>(indexToT.size());
-
     for(int i = -padding; i < size + padding; i++)
     {
         knots[i + padding] = indexToT[i];

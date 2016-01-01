@@ -52,12 +52,20 @@ LoopingGenericBSpline<InterpolationType,floating_t>::LoopingGenericBSpline(const
 
     //we need enough space to repeat the last 'degree' elements
     std::vector<InterpolationType> positions(points.size() + degree);
+
+    //it would be easiest to just copy the points vector to the position vector, then copy the first 'degree' elements again
+    //this DOES work, but interpolation begins in the wrong place (ie getPosition(0) occurs at the wrong place on the spline)
+    //to fix this, we effectively "rotate" the position vector backwards, by copying point[size-1] to the beginning
+    //then copying the points vector in after, then copying degree-1 elements from the beginning
     positions[0] = points[size - 1];
     std::copy(points.begin(), points.end(), positions.begin() + 1);
-    std::copy_n(points.begin(), padding, positions.end() -padding);
+    std::copy_n(points.begin(), padding, positions.end() - padding);
 
+    //the index to t calculation computes an extra T value that we don't need, we just discard it here when creating the knot vector
     std::vector<floating_t> knots(indexToT.size() - 1);
 
+    //for purposes of actual interpolation, we don't need the negative indexes found in indexToT
+    //so we're going to add the minimum possible value to every entry and stick them in a vector
     for(int i = -padding; i < size + padding + 1; i++)
     {
         knots[i + padding] = indexToT[i];
