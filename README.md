@@ -56,6 +56,6 @@ This project includes the [nanoflann](https://github.com/jlblancoc/nanoflann) li
 
 To-Do
 -------------
-* Implement a Generic B-Sline type that supports arbitrary powers, in addition to the cubic-only version. The generic one would almost certainly have worse performance and numerical stability than the cubic-only version, so it's worth keeping both.
-* Add support for arbitrary T value differences in the Cubic B-Spline
 * Implement "composite splines", ie a spline that is made by combining two or more splines. Current ideas include a "sum spline" where the output for a given T is a sum of all the child spline results at T, and a "concatenation spline" formed simply by starting one spline where the previous leaves off.
+* More spline types as I discover them
+* Find an actual mathematical definition for the quintic catmull-rom spline. The quintic cubic hermite spline is well-defined, but I basically guessed on how to automatically compute the tangents and curvatures based on the input points for the catmull-rom equivalent.
