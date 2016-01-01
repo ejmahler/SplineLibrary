@@ -9,7 +9,10 @@
 #include <QKeyEvent>
 #include <QFile>
 #include <QDir>
+#include <QTime>
 #include <QFileDialog>
+#include <QDialogButtonBox>
+#include <QDebug>
 
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -19,6 +22,7 @@
 
 #include "graphicscontroller.h"
 #include "settingswidget.h"
+#include "benchmarker.h"
 
 #include "spline_library/hermite/quintic/quintic_hermite_spline.h"
 #include "spline_library/hermite/quintic/looping_quintic_hermite_spline.h"
@@ -36,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
 	: QWidget(parent),
     settingsWidget(new SettingsWidget(this)),
 	graphicsController(new GraphicsController(this)),
+    benchmarker(new Benchmarker(this)),
 
 	leftMousePressed(0),
 	rightMousePressed(0),
@@ -88,8 +93,11 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 		settingsWidget->raise();
 		break;
     case Qt::Key_G:
-		createDistanceField();
-		break;
+        createDistanceField();
+        break;
+    case Qt::Key_B:
+        runBenchmark();
+        break;
     case Qt::Key_I:
 		addVertex();
 		break;
@@ -377,6 +385,28 @@ void MainWindow::createDistanceField(void)
         graphicsController->clearBackground();
         settingsWidget->setOption("misc_backgroundImagePath", saveFileName);
 	}
+}
+
+void MainWindow::runBenchmark(void)
+{
+    float firstTime = 0, secondTime = 0;
+
+    {
+        QTime t;
+        t.start();
+        benchmarker->cubicBSplineQuery(10, 10000, 10000);
+        firstTime = float(t.elapsed()) / 1000.0;
+    }
+
+    {
+        QTime t;
+        t.start();
+        benchmarker->genericBSplineQuery(10, 10000, 10000);
+        secondTime = float(t.elapsed()) / 1000.0;
+    }
+
+    qDebug() << "Cubic: " << firstTime;
+    qDebug() << "Generic: " << secondTime;
 }
 
 template<>

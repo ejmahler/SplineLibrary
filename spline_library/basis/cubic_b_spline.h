@@ -5,6 +5,7 @@
 #include "spline_library/basis/cubic_b_spline_kernel.h"
 #include "spline_library/utils/spline_setup.h"
 
+#include <cassert>
 #include <unordered_map>
 
 template<class InterpolationType, typename floating_t=float>

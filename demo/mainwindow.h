@@ -17,6 +17,7 @@ class GraphicsController;
 class Graph;
 class FpsCalculator;
 class SettingsWidget;
+class Benchmarker;
 
 
 class MainWindow : public QWidget
@@ -52,9 +53,11 @@ private: //methods
 	void redraw(void);
 
 	void addVertex(void);
-	void deleteVertex(void);
+    void deleteVertex(void);
 
 	void createDistanceField(void);
+
+    void runBenchmark(void);
 
 
 private: //data
@@ -67,6 +70,7 @@ private: //data
 	SettingsWidget *settingsWidget;
 
 	GraphicsController *graphicsController;
+    Benchmarker *benchmarker;
 
 	bool leftMousePressed;
 	bool rightMousePressed;

@@ -62,8 +62,8 @@ std::vector<OutputType> LinearAlgebra::solveTridiagonal(
     }
 
     //back substitution
-    int finalIndex = inputVector.size() - 1;
-    for(int i = finalIndex - 1; i >= 0; i--)
+    size_t finalIndex = inputVector.size() - 1;
+    for(size_t i = finalIndex - 1; i >= 0; i--)
     {
         inputVector[i] -= upperDiagonal[i] * inputVector[i + 1];
     }
@@ -91,9 +91,9 @@ std::vector<OutputType> LinearAlgebra::solveSymmetricTridiagonal(
     }
 
     //back substitution
-    int finalIndex = inputVector.size() - 1;
+    size_t finalIndex = inputVector.size() - 1;
     outputVector[finalIndex] = inputVector.at(finalIndex) / mainDiagonal.at(finalIndex);
-    for(int i = finalIndex - 1; i >= 0; i--)
+    for(size_t i = finalIndex - 1; i >= 0; i--)
     {
         outputVector[i] = (inputVector.at(i) - secondaryDiagonal.at(i) * outputVector.at(i + 1)) / mainDiagonal.at(i);
     }
@@ -128,11 +128,6 @@ std::vector<OutputType> LinearAlgebra::solveCyclicSymmetricTridiagonal(
     correctionInputU[0] = gamma;
     correctionInputU[size - 1] = cornerValue;
 
-    //corrective vector V: should be all 0, except for 1 in the first element, and cornerValue/gamma at the end
-    std::vector<floating_t> correctionV(size);
-    correctionV[0] = 1;
-    correctionV[size - 1] = cornerMultiplier;
-
     //modify the main diagonal of the matrix to account for the correction vector
     mainDiagonal[0] -= gamma;
     mainDiagonal[size - 1] -= cornerValue * cornerMultiplier;
@@ -154,8 +149,12 @@ std::vector<OutputType> LinearAlgebra::solveCyclicSymmetricTridiagonal(
     //compute the corrective OutputType to apply to each initial output
     //this involves a couple dot products, but all of the elements on the correctionV vector are 0 except the first and last
     //so just compute those directly instead of looping through and multplying a bunch of 0s
-    //OutputType factor = vectorDotProduct(initialOutput, correctionV) / (1 + vectorDotProduct(correctionV, correctionOutput));
     OutputType factor = (initialOutput.at(0) + initialOutput.at(size - 1) * cornerMultiplier) / (1 + correctionOutput.at(0) + correctionOutput.at(size - 1) * cornerMultiplier);
+
+    /*std::vector<floating_t> correctionV(size);
+    correctionV[0] = 1;
+    correctionV[size - 1] = cornerMultiplier;
+    OutputType factor = vectorDotProduct(initialOutput, correctionV) / (1 + vectorDotProduct(correctionV, correctionOutput));*/
 
     //use the correction factor to modify the result
     for(size_t i = 0; i < size; i++)

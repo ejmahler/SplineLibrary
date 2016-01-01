@@ -15,7 +15,8 @@ SOURCES += \
     demo/settings.cpp \
     demo/mainwindow.cpp \
     demo/main.cpp \
-    demo/graphicscontroller.cpp
+    demo/graphicscontroller.cpp \
+    demo/benchmarker.cpp
 
 HEADERS  += \
     demo/settingswidget.h \
@@ -47,7 +48,8 @@ HEADERS  += \
     spline_library/hermite/quintic/quintic_hermite_spline_kernel.h \
     spline_library/basis/generic_b_spline.h \
     spline_library/basis/looping_generic_b_spline.h \
-    spline_library/basis/generic_b_spline_common.h
+    spline_library/basis/generic_b_spline_common.h \
+    demo/benchmarker.h
 
 FORMS    += \
     demo/settingswidget.ui \
