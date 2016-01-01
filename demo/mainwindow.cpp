@@ -9,10 +9,11 @@
 #include <QKeyEvent>
 #include <QFile>
 #include <QDir>
-#include <QTime>
 #include <QFileDialog>
-#include <QDialogButtonBox>
-#include <QDebug>
+#include <QProgressDialog>
+#include <QMessageBox>
+#include <QtConcurrent>
+#include <QFutureWatcher>
 
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -39,8 +40,8 @@
 MainWindow::MainWindow(QWidget *parent)
 	: QWidget(parent),
     settingsWidget(new SettingsWidget(this)),
-	graphicsController(new GraphicsController(this)),
-    benchmarker(new Benchmarker(this)),
+    graphicsController(new GraphicsController(this)),
+    benchmarker(nullptr),
 
 	leftMousePressed(0),
 	rightMousePressed(0),
@@ -389,24 +390,60 @@ void MainWindow::createDistanceField(void)
 
 void MainWindow::runBenchmark(void)
 {
-    float firstTime = 0, secondTime = 0;
+    //if the benchmarker is non-null, there's already one running
+    if(benchmarker != nullptr)
+        return;
 
+    benchmarker = new Benchmarker(this);
+
+    //use a progress dialog to make sur ethe user knows how long it's going to take
+    QProgressDialog dialog(this, Qt::Dialog);
+    dialog.setAutoReset(false);
+    connect(benchmarker, &Benchmarker::setProgressText, &dialog, &QProgressDialog::setLabelText);
+    connect(benchmarker, &Benchmarker::setProgressRange, &dialog, &QProgressDialog::setRange);
+    connect(benchmarker, &Benchmarker::setProgressValue, &dialog, &QProgressDialog::setValue);
+    connect(&dialog, &QProgressDialog::canceled, benchmarker, &Benchmarker::cancel);
+
+    //begin the task
+    auto future = QtConcurrent::run(benchmarker, &Benchmarker::runBenchmark);
+
+    //use a futurewatcher to know when the task is complete. when it is, close the progress dialog
+    QFutureWatcher<void> watcher;
+    watcher.setFuture(future);
+    connect(&watcher, &QFutureWatcher<void>::finished, &dialog, &QProgressDialog::reset);
+
+    //wait for the task to complete
+    dialog.exec();
+
+    //if the task was canceled, make sure we wait for the thread to clean up before returning
+    if(dialog.wasCanceled())
     {
-        QTime t;
-        t.start();
-        benchmarker->cubicBSplineQuery(10, 10000, 10000);
-        firstTime = float(t.elapsed()) / 1000.0;
+        future.waitForFinished();
+    }
+    else
+    {
+        //build the string that we're going to display to the user
+        QString resultText;
+        auto result = future.result();
+        for(auto it = result.cbegin(); it != result.cend(); it++)
+        {
+            resultText += QString("%1: %2s\n").arg(it.key(), QString::number(it.value(), 'f', 2));
+        }
+
+
+        //create a messagebox to display the results
+        QMessageBox resultBox(this);
+        resultBox.setText("Benchmark Results");
+        resultBox.setInformativeText(resultText);
+        resultBox.setWindowModality(Qt::WindowModal);
+
+        //wait for the user to acknowledge the box
+        resultBox.exec();
     }
 
-    {
-        QTime t;
-        t.start();
-        benchmarker->genericBSplineQuery(10, 10000, 10000);
-        secondTime = float(t.elapsed()) / 1000.0;
-    }
-
-    qDebug() << "Cubic: " << firstTime;
-    qDebug() << "Generic: " << secondTime;
+    //clean up
+    delete benchmarker;
+    benchmarker = nullptr;
 }
 
 template<>

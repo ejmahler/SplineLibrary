@@ -91,9 +91,9 @@ std::vector<OutputType> LinearAlgebra::solveSymmetricTridiagonal(
     }
 
     //back substitution
-    size_t finalIndex = inputVector.size() - 1;
+    int finalIndex = inputVector.size() - 1;
     outputVector[finalIndex] = inputVector.at(finalIndex) / mainDiagonal.at(finalIndex);
-    for(size_t i = finalIndex - 1; i >= 0; i--)
+    for(int i = finalIndex - 1; i >= 0; i--)
     {
         outputVector[i] = (inputVector.at(i) - secondaryDiagonal.at(i) * outputVector.at(i + 1)) / mainDiagonal.at(i);
     }

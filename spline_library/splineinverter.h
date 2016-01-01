@@ -115,7 +115,7 @@ floating_t SplineInverter<InterpolationType, floating_t, sampleDimension>::findC
         b = closestSampleT + sampleStep;
     }
 
-    auto distanceFunction = [&spline = spline, queryPoint](floating_t t) {
+    auto distanceFunction = [this, queryPoint](floating_t t) {
         return (spline.getPosition(t) - queryPoint).lengthSquared();
     };
 

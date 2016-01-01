@@ -1,8 +1,10 @@
 #include "benchmarker.h"
 
 #include <vector>
+#include <memory>
 
 #include <QVector2D>
+#include <QTime>
 
 #include "spline_library/basis/cubic_b_spline.h"
 #include "spline_library/basis/generic_b_spline.h"
@@ -12,41 +14,29 @@ Benchmarker::Benchmarker(QObject *parent) : QObject(parent)
 
 }
 
-void Benchmarker::cubicBSplineConstructor(int repeat, size_t size)
+QMap<QString, float> Benchmarker::runBenchmark(void)
 {
-    qsrand(10);
+    canceled = false;
 
-    for(int i = 0; i < repeat; i++)
-    {
-        std::vector<QVector2D> inputPoints(size);
-        for(size_t s = 0; s < size; s++)
-        {
-            inputPoints[s] = randomPoint2D(1000);
-        }
-        auto s = std::make_shared<CubicBSpline<QVector2D>>(inputPoints);
-        s->getMaxT();
-    }
+    QMap<QString, float> results;
+
+    results["Cubic B-Spline Queries"] = timeFunction(&Benchmarker::cubicBSplineQuery, 10, 100000, 100000);
+    results["Generic B-Spline Queries"] = timeFunction(&Benchmarker::genericBSplineQuery, 10, 100000, 100000);
+
+    return results;
 }
 
-void Benchmarker::genericBSplineConstructor(int repeat, size_t size)
+void Benchmarker::cancel(void)
 {
-    qsrand(10);
-
-    for(int i = 0; i < repeat; i++)
-    {
-        std::vector<QVector2D> inputPoints(size);
-        for(size_t s = 0; s < size; s++)
-        {
-            inputPoints[s] = randomPoint2D(1000);
-        }
-        auto s = std::make_shared<GenericBSpline<QVector2D>>(inputPoints, 3);
-        s->getMaxT();
-    }
+    canceled = true;
 }
 
-void Benchmarker::cubicBSplineQuery(int repeat, int queries,  size_t size)
+void Benchmarker::cubicBSplineQuery(int repeat, int queries, size_t size)
 {
     qsrand(10);
+
+    emit setProgressText("Running Cubic B-Spline Queries");
+    emit setProgressRange(0, repeat * queries);
 
     for(int i = 0; i < repeat; i++)
     {
@@ -58,16 +48,27 @@ void Benchmarker::cubicBSplineQuery(int repeat, int queries,  size_t size)
         auto s = std::make_shared<CubicBSpline<QVector2D>>(inputPoints);
 
         float max = s->getMaxT();
-        for(int i = 0; i < queries; i++)
+        for(int q = 0; q < queries; q++)
         {
+            if(q % 100 == 0)
+            {
+                emit setProgressValue(i * queries + q);
+                if(canceled)
+                    return;
+            }
+
             float t = randomFloat(max);
             s->getPosition(t);
         }
     }
+    emit setProgressValue(repeat * queries);
 }
 
 void Benchmarker::genericBSplineQuery(int repeat, int queries, size_t size)
 {
+    emit setProgressText("Running Generic B-Spline Queries");
+    emit setProgressRange(0, repeat * queries);
+
     for(int i = 0; i < repeat; i++)
     {
         std::vector<QVector2D> inputPoints(size);
@@ -78,12 +79,20 @@ void Benchmarker::genericBSplineQuery(int repeat, int queries, size_t size)
         auto s = std::make_shared<GenericBSpline<QVector2D>>(inputPoints, 3);
 
         float max = s->getMaxT();
-        for(int i = 0; i < queries; i++)
+        for(int q = 0; q < queries; q++)
         {
+            if(q % 100 == 0)
+            {
+                emit setProgressValue(i * queries + q);
+                if(canceled)
+                    return;
+            }
+
             float t = randomFloat(max);
             s->getPosition(t);
         }
     }
+    emit setProgressValue(repeat * queries);
 }
 
 QVector2D Benchmarker::randomPoint2D(float maxComponent)
