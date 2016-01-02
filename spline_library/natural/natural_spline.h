@@ -8,6 +8,7 @@
 #include "spline_library/utils/spline_setup.h"
 
 #include <unordered_map>
+#include <cassert>
 
 template<class InterpolationType, typename floating_t=float>
 class NaturalSpline final : public Spline<InterpolationType, floating_t>

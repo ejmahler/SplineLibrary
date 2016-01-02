@@ -5,6 +5,8 @@
 #include <QMap>
 #include <QTime>
 
+#include <vector>
+
 class Benchmarker : public QObject
 {
     Q_OBJECT
@@ -27,10 +29,13 @@ private:
 
     void cubicBSplineQuery(int repeat, int queries,  size_t size);
     void genericBSplineQuery(int repeat, int queries, size_t size);
+    void naturalSplineQueryBalanced(int repeat, int queries, size_t size, float alpha);
+    void naturalSplineQueryUnbalanced(int repeat, int queries, size_t size, float alpha);
 
 private://support stuff
 
-    QVector2D randomPoint2D(float maxComponent);
+    std::vector<QVector2D> randomPoints2D_Uniform(size_t size, float maxComponent);
+    std::vector<QVector2D> randomPoints2D_Unbalanced(size_t size, float maxComponent);
     float randomFloat(float max);
 
     template <class Function, typename... Args>

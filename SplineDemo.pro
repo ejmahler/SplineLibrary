@@ -54,3 +54,9 @@ HEADERS  += \
 FORMS    += \
     demo/settingswidget.ui \
     demo/mainwindow.ui
+
+
+#uncomment these to enable debug info in release mode
+#QMAKE_CXXFLAGS_RELEASE += -g
+#QMAKE_CFLAGS_RELEASE += -g
+#QMAKE_LFLAGS_RELEASE =

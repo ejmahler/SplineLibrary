@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <cmath>
 
 namespace SplineSetup
 {
@@ -225,35 +226,49 @@ std::unordered_map<int, floating_t> SplineSetup::computeLoopingTValues(
 template<class SegmentType, typename floating_t>
 const SegmentType& SplineSetup::getSegmentForT(const std::vector<SegmentType> &segmentData, floating_t t)
 {
-    //we want to find the segment whos t0 and t1 values bound x
+    //we want to find the segment whos t0 and t1 values bound t
 
-    //if no segments bound x, return -1
-    if(t < segmentData[0].t0)
-        return segmentData[0];
-    if(t > segmentData[segmentData.size() - 1].t1)
-        return segmentData[segmentData.size() - 1];
+    //if no segments bound t, return the first or last
+    if(t < segmentData.front().t1)
+        return segmentData.front();
+    if(t >= segmentData.back().t0)
+        return segmentData.back();
 
-    //perform a binary search on segmentData
-    size_t currentMin = 0;
-    size_t currentMax = segmentData.size() - 1;
-    size_t currentIndex = (currentMin + currentMax) / 2;
+    //our initial guess will be to subtract the minimum t value, then take the floor
+    int currentIndex = std::floor(t - segmentData.front().t0);
+    int size = segmentData.size();
 
-    //keep looping as long as this segment does not bound x
+    //move left or right in the array until we've found the correct index
 
-    while(t < segmentData[currentIndex].t0 || t > segmentData[currentIndex].t1)
+    //rather than just incrementing the index by 1, increment it by a number that increases each iteration
+    //so the longer we search, the more numbers we're trying
+    int searchSize = 1;
+    while(t < segmentData[currentIndex].t0)
     {
-        //if t0 is greater than x, search the left half of the array
-        if(segmentData[currentIndex].t0 > t)
+        while(currentIndex >= 0 && t < segmentData[currentIndex].t0)
         {
-            currentMax = currentIndex - 1;
+            searchSize++;
+            currentIndex -= searchSize;
+        }
+        if(currentIndex < 0 || t >= segmentData[currentIndex].t1)
+        {
+            currentIndex += searchSize;
+            searchSize /= 4;
         }
 
-        //the only other possibility is that t1 is less than x, so search the right half of the array
-        else
+    }
+    while(t >= segmentData[currentIndex].t1)
+    {
+        while(currentIndex < size && t >= segmentData[currentIndex].t1)
         {
-            currentMin = currentIndex + 1;
+            searchSize++;
+            currentIndex += searchSize;
         }
-        currentIndex = (currentMin + currentMax) / 2;
+        if(currentIndex >= size || t < segmentData[currentIndex].t0)
+        {
+            currentIndex -= searchSize;
+            searchSize /= 4;
+        }
     }
     return segmentData[currentIndex];
 }
@@ -264,31 +279,43 @@ size_t SplineSetup::getIndexForT(const std::vector<floating_t> &knotData, floati
     //we want to find the segment whos t0 and t1 values bound x
 
     //if no segments bound x, return -1
-    if(t < knotData.front())
+    if(t <= knotData.front())
         return 0;
     if(t >= knotData.back())
         return knotData.size() - 1;
 
-    //perform a binary search on segmentData
-    size_t currentMin = 0;
-    size_t currentMax = knotData.size() - 2;
-    size_t currentIndex = (currentMin + currentMax) / 2;
+    //our initial guess will be to subtract the minimum t value, then take the floor
+    int currentIndex = std::floor(t - knotData.front());
+    int size = knotData.size();
 
-    //keep looping as long as this segment does not bound x
-    while(t < knotData[currentIndex] || t >= knotData[currentIndex + 1])
+    //move left or right in the array until we've found the correct index
+    int searchSize = 1;
+    while(t < knotData[currentIndex])
     {
-        //if t0 is greater than x, search the left half of the array
-        if(t < knotData[currentIndex])
+        while(currentIndex >= 0 && t < knotData[currentIndex])
         {
-            currentMax = currentIndex - 1;
+            searchSize++;
+            currentIndex -= searchSize;
+        }
+        if(currentIndex < 0 || t > knotData[currentIndex + 1])
+        {
+            currentIndex += searchSize;
+            searchSize /= 4;
         }
 
-        //the only other possibility is that t1 is less than x, so search the right half of the array
-        else
+    }
+    while(t >= knotData[currentIndex + 1])
+    {
+        while(currentIndex < size && t >= knotData[currentIndex])
         {
-            currentMin = currentIndex + 1;
+            searchSize++;
+            currentIndex += searchSize;
         }
-        currentIndex = (currentMin + currentMax) / 2;
+        if(currentIndex >= size || t < knotData[currentIndex])
+        {
+            currentIndex -= searchSize;
+            searchSize /= 4;
+        }
     }
     return currentIndex;
 }
