@@ -10,7 +10,8 @@
 #include "spline_library/basis/cubic_b_spline.h"
 #include "spline_library/basis/generic_b_spline.h"
 
-Benchmarker::Benchmarker(QObject *parent) : QObject(parent)
+Benchmarker::Benchmarker(QObject *parent)
+    :QObject(parent), bigDistribution(0, 1000), smallDistribution(0,1)
 {
 
 }
@@ -20,12 +21,9 @@ QMap<QString, float> Benchmarker::runBenchmark(void)
     canceled = false;
 
     QMap<QString, float> results;
-    results["unBalanced Natural"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced, 1000, 100000, 10000, 1);
-    results["unBalanced Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced, 1000, 100000, 100, 1);
-    results["Balanced Natural"] = timeFunction(&Benchmarker::naturalSplineQueryBalanced, 1000, 100000, 10000, 1);
-    results["Balanced Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryBalanced, 1000, 100000, 100, 1);
-    results["Alpha0 Natural"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced, 1000, 100000, 10000, 0);
-    results["Alpha0 Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced, 1000, 100000, 100, 0);
+    results["unBalanced Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced, 10000, 100000, 100, 1);
+    results["Balanced Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryBalanced, 10000, 100000, 100, 1);
+    results["Alpha0 Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced, 10000, 100000, 100, 0);
 
     return results;
 }
@@ -37,7 +35,7 @@ void Benchmarker::cancel(void)
 
 void Benchmarker::naturalSplineQueryBalanced(int repeat, int queries, size_t size, float alpha)
 {
-    qsrand(10);
+    srand(10);
 
     emit setProgressText(QString("Running Balanced Natural With Alpha") + QString::number(alpha));
     emit setProgressRange(0, repeat);
@@ -48,7 +46,7 @@ void Benchmarker::naturalSplineQueryBalanced(int repeat, int queries, size_t siz
         if(canceled)
             return;
 
-        std::vector<QVector2D> inputPoints = randomPoints2D_Uniform(size, 1000);
+        std::vector<QVector2D> inputPoints = randomPoints2D_Uniform(size);
         auto s = std::make_shared<NaturalSpline<QVector2D>>(inputPoints, false, alpha);
 
         float max = s->getMaxT();
@@ -63,7 +61,7 @@ void Benchmarker::naturalSplineQueryBalanced(int repeat, int queries, size_t siz
 
 void Benchmarker::naturalSplineQueryUnbalanced(int repeat, int queries, size_t size, float alpha)
 {
-    qsrand(10);
+    gen.seed(10);
 
     emit setProgressText(QString("Running Unbalanced Natural With Alpha") + QString::number(alpha));
     emit setProgressRange(0, repeat);
@@ -74,7 +72,7 @@ void Benchmarker::naturalSplineQueryUnbalanced(int repeat, int queries, size_t s
         if(canceled)
             return;
 
-        std::vector<QVector2D> inputPoints = randomPoints2D_Unbalanced(size, 1000);
+        std::vector<QVector2D> inputPoints = randomPoints2D_Unbalanced(size);
         auto s = std::make_shared<NaturalSpline<QVector2D>>(inputPoints, false, alpha);
 
         float max = s->getMaxT();
@@ -89,7 +87,7 @@ void Benchmarker::naturalSplineQueryUnbalanced(int repeat, int queries, size_t s
 
 void Benchmarker::cubicBSplineQuery(int repeat, int queries, size_t size)
 {
-    qsrand(10);
+    gen.seed(10);
 
     emit setProgressText("Running Cubic B-Spline Queries");
     emit setProgressRange(0, repeat);
@@ -100,7 +98,7 @@ void Benchmarker::cubicBSplineQuery(int repeat, int queries, size_t size)
         if(canceled)
             return;
 
-        std::vector<QVector2D> inputPoints = randomPoints2D_Uniform(size, 1000);
+        std::vector<QVector2D> inputPoints = randomPoints2D_Uniform(size);
         auto s = std::make_shared<CubicBSpline<QVector2D>>(inputPoints);
 
         float max = s->getMaxT();
@@ -115,6 +113,8 @@ void Benchmarker::cubicBSplineQuery(int repeat, int queries, size_t size)
 
 void Benchmarker::genericBSplineQuery(int repeat, int queries, size_t size)
 {
+    gen.seed(10);
+
     emit setProgressText("Running Generic B-Spline Queries");
     emit setProgressRange(0, repeat);
 
@@ -124,7 +124,7 @@ void Benchmarker::genericBSplineQuery(int repeat, int queries, size_t size)
         if(canceled)
             return;
 
-        std::vector<QVector2D> inputPoints = randomPoints2D_Uniform(size, 1000);
+        std::vector<QVector2D> inputPoints = randomPoints2D_Uniform(size);
         auto s = std::make_shared<GenericBSpline<QVector2D>>(inputPoints, 3);
 
         float max = s->getMaxT();
@@ -137,37 +137,31 @@ void Benchmarker::genericBSplineQuery(int repeat, int queries, size_t size)
     emit setProgressValue(repeat);
 }
 
-std::vector<QVector2D> Benchmarker::randomPoints2D_Uniform(size_t size, float maxComponent)
+std::vector<QVector2D> Benchmarker::randomPoints2D_Uniform(size_t size)
 {
-    float multiplier = maxComponent / RAND_MAX;
-
     std::vector<QVector2D> result(size);
     for(size_t s = 0; s < size; s++)
     {
-        result[s] = QVector2D(qrand() * multiplier, qrand() * multiplier);
+        result[s] = QVector2D(bigDistribution(gen), bigDistribution(gen));
     }
     return result;
 }
 
-std::vector<QVector2D> Benchmarker::randomPoints2D_Unbalanced(size_t size, float maxComponent)
+std::vector<QVector2D> Benchmarker::randomPoints2D_Unbalanced(size_t size)
 {
-    float multiplier = maxComponent / RAND_MAX;
-    float smallMultiplier = .001 * maxComponent / RAND_MAX;
-
     std::vector<QVector2D> result(size);
     for(size_t s = 0; s < size; s++)
     {
         if(s < size/2)
-            result[s] = QVector2D(qrand() * smallMultiplier, qrand() * smallMultiplier);
+            result[s] = QVector2D(smallDistribution(gen), smallDistribution(gen));
         else
-            result[s] = QVector2D(qrand() * multiplier, qrand() * multiplier);
+            result[s] = QVector2D(bigDistribution(gen), bigDistribution(gen));
     }
     return result;
 }
 
 float Benchmarker::randomFloat(float max)
 {
-    float multiplier = max / RAND_MAX;
-    return qrand() * multiplier;
+    return smallDistribution(gen) * max;
 }
 

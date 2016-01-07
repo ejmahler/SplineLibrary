@@ -6,6 +6,7 @@
 #include <QTime>
 
 #include <vector>
+#include <random>
 
 class Benchmarker : public QObject
 {
@@ -34,8 +35,8 @@ private:
 
 private://support stuff
 
-    std::vector<QVector2D> randomPoints2D_Uniform(size_t size, float maxComponent);
-    std::vector<QVector2D> randomPoints2D_Unbalanced(size_t size, float maxComponent);
+    std::vector<QVector2D> randomPoints2D_Uniform(size_t size);
+    std::vector<QVector2D> randomPoints2D_Unbalanced(size_t size);
     float randomFloat(float max);
 
     template <class Function, typename... Args>
@@ -48,6 +49,9 @@ private://support stuff
     }
 
 private: //data
+    std::minstd_rand gen;
+    std::uniform_real_distribution<float> bigDistribution;
+    std::uniform_real_distribution<float> smallDistribution;
     bool canceled;
 };
 
