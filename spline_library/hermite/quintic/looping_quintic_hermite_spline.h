@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include "spline_library/spline.h"
-#include "spline_library/hermite/quintic/quintic_hermite_spline_kernel.h"
+#include "spline_library/hermite/quintic/quintic_hermite_spline_common.h"
 
 #include "spline_library/utils/spline_setup.h"
 
@@ -28,17 +28,14 @@ public:
     typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t x) const override;
     typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t x) const override;
 
-    floating_t getT(int index) const override;
-    floating_t getMaxT(void) const override;
+    floating_t getT(int index) const override { return indexToT.at(index); }
+    floating_t getMaxT(void) const override { return maxT; }
 
-    bool isLooping(void) const override;
+    bool isLooping(void) const override { return true; }
 
 //data
 private:
-    //a vector containing pre-computed datasets, one per segment
-    //there will be lots of duplication of data here,
-    //but precomputing this really speeds up the interpolation
-    std::vector<QuinticHermiteSplineKernel::InterpolationData<InterpolationType, floating_t>> segmentData;
+    QuinticHermiteSplineCommon<InterpolationType, floating_t> common;
 
     floating_t maxT;
 
@@ -68,29 +65,18 @@ LoopingQuinticHermiteSpline<InterpolationType,floating_t>::LoopingQuinticHermite
     maxT = indexToT.at(size);
 
     //pre-arrange the data needed for interpolation
-    for(int i = 0; i < numSegments; i++)
+    std::vector<floating_t> knots(numSegments + 1);
+    std::vector<typename QuinticHermiteSplineCommon<InterpolationType, floating_t>::QuinticHermiteSplinePoint> positionData(numSegments + 1);
+    for(int i = 0; i < numSegments + 1; i++)
     {
-        QuinticHermiteSplineKernel::InterpolationData<InterpolationType, floating_t> segment;
+        knots[i] = indexToT.at(i);
 
-        segment.t0 = indexToT.at(i);
-        segment.t1 = indexToT.at(i + 1);
-
-        segment.p0 = points.at(i);
-        segment.p1 = points.at((i + 1)%size);
-
-        floating_t tDistance = segment.t1 - segment.t0;
-        segment.tDistanceInverse = 1 / tDistance;
-
-        //we scale the tangents by this segment's t distance, because wikipedia says so
-        segment.m0 = tangents.at(i) * tDistance;
-        segment.m1 = tangents.at((i + 1)%size) * tDistance;
-
-        //we scale the tangents by this segment's t distance, because wikipedia says so
-        segment.c0 = curvatures.at(i) * tDistance * tDistance * tDistance;
-        segment.c1 = curvatures.at((i + 1)%size) * tDistance * tDistance * tDistance;
-
-        segmentData.push_back(segment);
+        positionData[i].position = points.at(i);
+        positionData[i].tangent = tangents.at(i);
+        positionData[i].curvature = curvatures.at(i);
     }
+
+    common = QuinticHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
 }
 
 template<class InterpolationType, typename floating_t>
@@ -108,8 +94,8 @@ LoopingQuinticHermiteSpline<InterpolationType,floating_t>::LoopingQuinticHermite
     maxT = indexToT.at(size);
 
     //compute the tangents
-    std::unordered_map<int, InterpolationType> tangentMap;
-    for(int i = -1; i < size + 2; i++)
+    std::vector<InterpolationType> tangents(size + 1);
+    for(int i = 0; i < size + 1; i++)
     {
         floating_t tPrev = indexToT.at(i - 1);
         floating_t tCurrent = indexToT.at(i);
@@ -117,10 +103,10 @@ LoopingQuinticHermiteSpline<InterpolationType,floating_t>::LoopingQuinticHermite
 
         InterpolationType pPrev = points.at((i - 1 + size)%size);
         InterpolationType pCurrent = points.at((i + size)%size);
-        InterpolationType pNext = points.at((i + 1 + size)%size);
+        InterpolationType pNext = points.at((i + 1)%size);
 
         //the tangent is the standard catmull-rom spline tangent calculation
-        tangentMap[i] =
+        tangents[i] =
                   pPrev * (tCurrent - tNext) / ((tNext - tPrev) * (tCurrent - tPrev))
                 + pNext * (tCurrent - tPrev) / ((tNext - tPrev) * (tNext - tCurrent))
 
@@ -131,19 +117,19 @@ LoopingQuinticHermiteSpline<InterpolationType,floating_t>::LoopingQuinticHermite
     }
 
     //compute the curvatures
-    std::unordered_map<int, InterpolationType> curveMap;
+    std::vector<InterpolationType> curves(size + 1);
     for(int i = 0; i < size + 1; i++)
     {
         floating_t tPrev = indexToT.at(i - 1);
         floating_t tCurrent = indexToT.at(i);
         floating_t tNext = indexToT.at(i + 1);
 
-        InterpolationType pPrev = tangentMap.at(i - 1);
-        InterpolationType pCurrent = tangentMap.at(i);
-        InterpolationType pNext = tangentMap.at(i + 1);
+        InterpolationType pPrev = tangents.at((i - 1 + size)%size);
+        InterpolationType pCurrent = tangents.at(i);
+        InterpolationType pNext = tangents.at((i + 1)%size);
 
         //the tangent is the standard catmull-rom spline tangent calculation
-        curveMap[i] =
+        curves[i] =
                   pPrev * (tCurrent - tNext) / ((tNext - tPrev) * (tCurrent - tPrev))
                 + pNext * (tCurrent - tPrev) / ((tNext - tPrev) * (tNext - tCurrent))
 
@@ -155,118 +141,48 @@ LoopingQuinticHermiteSpline<InterpolationType,floating_t>::LoopingQuinticHermite
 
 
     //pre-arrange the data needed for interpolation
-    for(int i = 0; i < numSegments; i++)
+    std::vector<floating_t> knots(numSegments + 1);
+    std::vector<typename QuinticHermiteSplineCommon<InterpolationType, floating_t>::QuinticHermiteSplinePoint> positionData(numSegments + 1);
+    for(int i = 0; i < numSegments + 1; i++)
     {
-        QuinticHermiteSplineKernel::InterpolationData<InterpolationType, floating_t> segment;
-
-        segment.t0 = indexToT.at(i);
-        segment.t1 = indexToT.at(i + 1);
-
-        segment.p0 = points.at(i);
-        segment.p1 = points.at((i + 1)%size);
-
-        floating_t tDistance = segment.t1 - segment.t0;
-        segment.tDistanceInverse = 1 / tDistance;
-
-        //we scale the tangents by this segment's t distance, because wikipedia says so
-        segment.m0 = tangentMap.at(i) * tDistance;
-        segment.m1 = tangentMap.at(i + 1) * tDistance;
-
-        //we scale the tangents by this segment's t distance, because wikipedia says so
-        segment.c0 = curveMap.at(i) * tDistance * tDistance;
-        segment.c1 = curveMap.at(i + 1) * tDistance * tDistance;
-
-        segmentData.push_back(segment);
+        knots[i] = indexToT[i];
+        positionData[i].position = points[i%size];
+        positionData[i].tangent = tangents[i];
+        positionData[i].curvature = curves[i];
     }
+
+    common = QuinticHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
 }
+
 
 template<class InterpolationType, typename floating_t>
 InterpolationType LoopingQuinticHermiteSpline<InterpolationType,floating_t>::getPosition(floating_t globalT) const
 {
-    //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, segmentData.size());
-    if(globalT < 0)
-        globalT += segmentData.size();
-
-    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
-    auto localT = segment.computeLocalT(globalT);
-
-    return segment.computePosition(localT);
+    floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
+    return common.getPosition(wrappedT);
 }
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPT
     LoopingQuinticHermiteSpline<InterpolationType,floating_t>::getTangent(floating_t globalT) const
 {
-    //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, segmentData.size());
-    if(globalT < 0)
-        globalT += segmentData.size();
-
-    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
-    auto localT = segment.computeLocalT(globalT);
-
-    return typename Spline<InterpolationType,floating_t>::InterpolatedPT(
-        segment.computePosition(localT),
-        segment.computeTangent(localT)
-        );
+    floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
+    return common.getTangent(wrappedT);
 }
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTC
     LoopingQuinticHermiteSpline<InterpolationType,floating_t>::getCurvature(floating_t globalT) const
 {
-    //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, segmentData.size());
-    if(globalT < 0)
-        globalT += segmentData.size();
-
-    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
-    auto localT = segment.computeLocalT(globalT);
-
-    return typename Spline<InterpolationType,floating_t>::InterpolatedPTC(
-        segment.computePosition(localT),
-        segment.computeTangent(localT),
-        segment.computeCurvature(localT)
-        );
+    floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
+    return common.getCurvature(wrappedT);
 }
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTCW
     LoopingQuinticHermiteSpline<InterpolationType,floating_t>::getWiggle(floating_t globalT) const
 {
-    //use modular arithmetic to bring globalT into an acceptable range
-    globalT = fmod(globalT, segmentData.size());
-    if(globalT < 0)
-        globalT += segmentData.size();
-
-    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
-    auto localT = segment.computeLocalT(globalT);
-
-    return typename Spline<InterpolationType,floating_t>::InterpolatedPTCW(
-                segment.computePosition(localT),
-                segment.computeTangent(localT),
-                segment.computeCurvature(localT),
-                segment.computeWiggle(localT)
-                );
+    floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
+    return common.getWiggle(wrappedT);
 }
-
-template<class InterpolationType, typename floating_t>
-floating_t LoopingQuinticHermiteSpline<InterpolationType,floating_t>::getT(int index) const
-{
-    return indexToT.at(index);
-}
-
-template<class InterpolationType, typename floating_t>
-floating_t LoopingQuinticHermiteSpline<InterpolationType,floating_t>::getMaxT(void) const
-{
-    return maxT;
-}
-
-template<class InterpolationType, typename floating_t>
-bool LoopingQuinticHermiteSpline<InterpolationType,floating_t>::isLooping(void) const
-{
-    return true;
-}
-
 #endif // LOOPING_QUINTIC_HERMITE_SPLINE_H

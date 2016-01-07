@@ -93,7 +93,7 @@ LoopingCubicHermiteSpline<InterpolationType,floating_t>::LoopingCubicHermiteSpli
 
         InterpolationType pPrev = points.at((i - 1 + size)%size);
         InterpolationType pCurrent = points.at((i + size)%size);
-        InterpolationType pNext = points.at((i + 1 + size)%size);
+        InterpolationType pNext = points.at((i + 1)%size);
 
         //the tangent is the standard catmull-rom spline tangent calculation
         tangents[i] =
