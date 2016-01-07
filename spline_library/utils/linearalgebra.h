@@ -62,8 +62,8 @@ std::vector<OutputType> LinearAlgebra::solveTridiagonal(
     }
 
     //back substitution
-    size_t finalIndex = inputVector.size() - 1;
-    for(size_t i = finalIndex - 1; i >= 0; i--)
+    int finalIndex = inputVector.size() - 1;
+    for(int i = finalIndex - 1; i >= 0; i--)
     {
         inputVector[i] -= upperDiagonal[i] * inputVector[i + 1];
     }

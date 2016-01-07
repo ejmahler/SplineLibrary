@@ -25,6 +25,8 @@ QMap<QString, float> Benchmarker::runBenchmark(void)
     results["unBalanced Natural"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced,        1000,   100000, 10000, 1);
     results["Balanced Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryBalanced,       10000,  100000, 100, 1);
     results["Balanced Natural"] = timeFunction(&Benchmarker::naturalSplineQueryBalanced,            1000,   100000, 10000, 1);
+    results["Alpha0 Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced,       10000,  100000, 100, 0);
+    results["Alpha0 Natural"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced,            1000,   100000, 10000, 0);
 
     return results;
 }
