@@ -21,9 +21,10 @@ QMap<QString, float> Benchmarker::runBenchmark(void)
     canceled = false;
 
     QMap<QString, float> results;
-    results["unBalanced Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced, 10000, 100000, 100, 1);
-    results["Balanced Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryBalanced, 10000, 100000, 100, 1);
-    results["Alpha0 Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced, 10000, 100000, 100, 0);
+    results["unBalanced Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced,   10000,  100000, 100, 1);
+    results["unBalanced Natural"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced,        1000,   100000, 10000, 1);
+    results["Balanced Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryBalanced,       10000,  100000, 100, 1);
+    results["Balanced Natural"] = timeFunction(&Benchmarker::naturalSplineQueryBalanced,            1000,   100000, 10000, 1);
 
     return results;
 }
@@ -35,7 +36,7 @@ void Benchmarker::cancel(void)
 
 void Benchmarker::naturalSplineQueryBalanced(int repeat, int queries, size_t size, float alpha)
 {
-    srand(10);
+    gen.seed(10);
 
     emit setProgressText(QString("Running Balanced Natural With Alpha") + QString::number(alpha));
     emit setProgressRange(0, repeat);

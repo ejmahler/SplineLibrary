@@ -1,6 +1,4 @@
-QT       += core gui opengl
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets concurrent
+QT       += core gui opengl widgets concurrent
 
 TARGET = SplineDemo
 TEMPLATE = app
@@ -41,7 +39,6 @@ HEADERS  += \
     spline_library/linear/linear_spline.h \
     spline_library/linear/looping_linear_spline.h \
     spline_library/utils/spline_setup.h \
-    spline_library/natural/natural_spline_kernel.h \
     spline_library/linear/linear_spline_kernel.h \
     spline_library/basis/cubic_b_spline_kernel.h \
     spline_library/hermite/cubic/cubic_hermite_spline_kernel.h \
@@ -49,7 +46,8 @@ HEADERS  += \
     spline_library/basis/generic_b_spline.h \
     spline_library/basis/looping_generic_b_spline.h \
     spline_library/basis/generic_b_spline_common.h \
-    demo/benchmarker.h
+    demo/benchmarker.h \
+    spline_library/natural/natural_spline_common.h
 
 FORMS    += \
     demo/settingswidget.ui \

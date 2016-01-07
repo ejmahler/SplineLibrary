@@ -2,7 +2,7 @@
 #define NATURALSPLINE_H
 
 #include "spline_library/spline.h"
-#include "spline_library/natural/natural_spline_kernel.h"
+#include "spline_library/natural/natural_spline_common.h"
 
 #include "spline_library/utils/linearalgebra.h"
 #include "spline_library/utils/spline_setup.h"
@@ -30,10 +30,10 @@ public:
     typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t x) const override;
     typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t x) const override;
 
-    floating_t getT(int index) const override;
-    floating_t getMaxT(void) const override;
+    floating_t getT(int index) const override { return indexToT.at(index); }
+    floating_t getMaxT(void) const override { return maxT; }
 
-    bool isLooping(void) const override;
+    bool isLooping(void) const override { return false; }
 
 //methods
 private:
@@ -42,10 +42,7 @@ private:
 
 //data
 private:
-    //a vector containing pre-computed datasets, one per segment
-    //there will be lots of duplication of data here,
-    //but precomputing this really speeds up the interpolation
-    std::vector<NaturalSplineKernel::InterpolationData<InterpolationType, floating_t>> segmentData;
+    NaturalSplineCommon<InterpolationType, floating_t> common;
 
     floating_t maxT;
 
@@ -90,27 +87,25 @@ NaturalSpline<InterpolationType,floating_t>::NaturalSpline(const std::vector<Int
 
     //we now have 0 curvature for index 0 and n - 1, and the final (usually nonzero) curvature for every other point
     //use this curvature to determine a,b,c,and d to build each segment
-    for(int i = firstPoint; i < firstPoint + numSegments; i++) {
+    std::vector<floating_t> knots(numSegments);
+    std::vector<typename NaturalSplineCommon<InterpolationType, floating_t>::NaturalSplineSegment> segments(numSegments);
+    for(int i = firstPoint; i < numSegments + firstPoint; i++) {
 
-        NaturalSplineKernel::InterpolationData<InterpolationType, floating_t> segment;
-        segment.t0 = indexToT.at(i);
-        segment.t1 = indexToT.at(i + 1);
+        knots[i - firstPoint] = indexToT.at(i);
 
-        floating_t currentDeltaT = segment.t1 - segment.t0;
+        floating_t currentDeltaT = indexToT.at(i + 1) - indexToT.at(i);
         InterpolationType currentPoint = points.at(i);
         InterpolationType nextPoint = points.at(i + 1);
         InterpolationType currentCurvature = curvatures.at(i);
         InterpolationType nextCurvature = curvatures.at(i + 1);
 
-        segment.a = currentPoint;
-        segment.b = (nextPoint - currentPoint) / currentDeltaT - (currentDeltaT / 3) * (nextCurvature + 2*currentCurvature);
-        segment.c = currentCurvature;
-        segment.d = (nextCurvature - currentCurvature) / (3 * currentDeltaT);
-
-        segment.tDistanceInverse = 1 / currentDeltaT;
-
-        segmentData.push_back(segment);
+        segments[i - firstPoint].a = currentPoint;
+        segments[i - firstPoint].b = (nextPoint - currentPoint) / currentDeltaT - (currentDeltaT / 3) * (nextCurvature + 2*currentCurvature);
+        segments[i - firstPoint].c = currentCurvature;
+        segments[i - firstPoint].d = (nextCurvature - currentCurvature) / (3 * currentDeltaT);
     }
+
+    common = NaturalSplineCommon<InterpolationType, floating_t>(std::move(segments), std::move(knots));
 }
 
 template<class InterpolationType, typename floating_t>
@@ -256,73 +251,34 @@ std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::comp
     return curvatures;
 }
 
+
+
+
 template<class InterpolationType, typename floating_t>
 InterpolationType NaturalSpline<InterpolationType,floating_t>::getPosition(floating_t globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
-    auto localT = segment.computeLocalT(globalT);
-
-    return segment.computePosition(localT);
+    return common.getPosition(globalT);
 }
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPT
     NaturalSpline<InterpolationType,floating_t>::getTangent(floating_t globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
-    auto localT = segment.computeLocalT(globalT);
-
-    return typename Spline<InterpolationType,floating_t>::InterpolatedPT(
-                segment.computePosition(localT),
-                segment.computeTangent(localT)
-                );
+    return common.getTangent(globalT);
 }
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTC
     NaturalSpline<InterpolationType,floating_t>::getCurvature(floating_t globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
-    auto localT = segment.computeLocalT(globalT);
-
-    return typename Spline<InterpolationType,floating_t>::InterpolatedPTC(
-                segment.computePosition(localT),
-                segment.computeTangent(localT),
-                segment.computeCurvature(localT)
-                );
+    return common.getCurvature(globalT);
 }
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTCW
     NaturalSpline<InterpolationType,floating_t>::getWiggle(floating_t globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
-    auto localT = segment.computeLocalT(globalT);
-
-    return typename Spline<InterpolationType,floating_t>::InterpolatedPTCW(
-                segment.computePosition(localT),
-                segment.computeTangent(localT),
-                segment.computeCurvature(localT),
-                segment.computeWiggle()
-                );
-}
-
-template<class InterpolationType, typename floating_t>
-floating_t NaturalSpline<InterpolationType,floating_t>::getT(int index) const
-{
-    return indexToT.at(index);
-}
-
-template<class InterpolationType, typename floating_t>
-floating_t NaturalSpline<InterpolationType,floating_t>::getMaxT(void) const
-{
-    return maxT;
-}
-
-template<class InterpolationType, typename floating_t>
-bool NaturalSpline<InterpolationType,floating_t>::isLooping(void) const
-{
-    return false;
+    return common.getWiggle(globalT);
 }
 
 #endif // NATURALSPLINE_H
