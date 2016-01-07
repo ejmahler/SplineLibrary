@@ -27,10 +27,10 @@ public:
         if(knotIndex >= knots.size() - 1)
             knotIndex--;
 
-        floating_t inverseTdiff = 1 / (knots[knotIndex + 1] - knots[knotIndex]);
-        floating_t localT = (globalT - knots[knotIndex]) * inverseTdiff;
+        floating_t tDiff = (knots[knotIndex + 1] - knots[knotIndex]);
+        floating_t localT = (globalT - knots[knotIndex]) / tDiff;
 
-        return computePosition(knotIndex, localT);
+        return computePosition(knotIndex, localT, tDiff);
     }
 
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPT getTangent(floating_t globalT) const
@@ -40,12 +40,12 @@ public:
         if(knotIndex >= knots.size() - 1)
             knotIndex--;
 
-        floating_t inverseTdiff = 1 / (knots[knotIndex + 1] - knots[knotIndex]);
-        floating_t localT = (globalT - knots[knotIndex]) * inverseTdiff;
+        floating_t tDiff = (knots[knotIndex + 1] - knots[knotIndex]);
+        floating_t localT = (globalT - knots[knotIndex]) / tDiff;
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPT(
-                    computePosition(knotIndex, localT),
-                    computeTangent(knotIndex, localT, inverseTdiff)
+                    computePosition(knotIndex, localT, tDiff),
+                    computeTangent(knotIndex, localT, tDiff)
                     );
     }
 
@@ -56,13 +56,13 @@ public:
         if(knotIndex >= knots.size() - 1)
             knotIndex--;
 
-        floating_t inverseTdiff = 1 / (knots[knotIndex + 1] - knots[knotIndex]);
-        floating_t localT = (globalT - knots[knotIndex]) * inverseTdiff;
+        floating_t tDiff = (knots[knotIndex + 1] - knots[knotIndex]);
+        floating_t localT = (globalT - knots[knotIndex]) / tDiff;
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPTC(
-                    computePosition(knotIndex, localT),
-                    computeTangent(knotIndex, localT, inverseTdiff),
-                    computeCurvature(knotIndex, localT, inverseTdiff)
+                    computePosition(knotIndex, localT, tDiff),
+                    computeTangent(knotIndex, localT, tDiff),
+                    computeCurvature(knotIndex, localT, tDiff)
                     );
     }
 
@@ -73,20 +73,20 @@ public:
         if(knotIndex >= knots.size() - 1)
             knotIndex--;
 
-        floating_t inverseTdiff = 1 / (knots[knotIndex + 1] - knots[knotIndex]);
-        floating_t localT = (globalT - knots[knotIndex]) * inverseTdiff;
+        floating_t tDiff = (knots[knotIndex + 1] - knots[knotIndex]);
+        floating_t localT = (globalT - knots[knotIndex]) / tDiff;
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPTCW(
-                    computePosition(knotIndex, localT),
-                    computeTangent(knotIndex, localT, inverseTdiff),
-                    computeCurvature(knotIndex, localT, inverseTdiff),
-                    computeWiggle(knotIndex, inverseTdiff)
+                    computePosition(knotIndex, localT, tDiff),
+                    computeTangent(knotIndex, localT, tDiff),
+                    computeCurvature(knotIndex, localT, tDiff),
+                    computeWiggle(knotIndex, tDiff)
                     );
     }
 
 
 private: //methods
-    inline InterpolationType computePosition(size_t index, floating_t t) const
+    inline InterpolationType computePosition(size_t index, floating_t t, floating_t tDiff) const
     {
         auto oneMinusT = 1 - t;
 
@@ -98,18 +98,18 @@ private: //methods
 
         return
                 basis00 * points[index].position +
-                basis10 * points[index].tangent +
+                basis10 * tDiff * points[index].tangent +
 
-                basis11 * points[index + 1].tangent +
+                basis11 * tDiff * points[index + 1].tangent +
                 basis01 * points[index + 1].position;
     }
 
-    inline InterpolationType computeTangent(size_t index, floating_t t, floating_t inverseTdiff) const
+    inline InterpolationType computeTangent(size_t index, floating_t t, floating_t tDiff) const
     {
         auto oneMinusT = 1 - t;
 
-        auto d_basis00 = -6 * t * oneMinusT;
-        auto d_basis10 = -(3*t - 1) * oneMinusT;
+        auto d_basis00 = 6 * t * (t - 1);
+        auto d_basis10 = (1 - 3*t) * oneMinusT;
 
         auto d_basis11 = t * (3 * t - 2);
         auto d_basis01 = -d_basis00;
@@ -119,14 +119,14 @@ private: //methods
         //if you know why please let me know
         return (
                 d_basis00 * points[index].position +
-                d_basis10 * points[index].tangent +
+                d_basis10 * tDiff * points[index].tangent +
 
-                d_basis11 * points[index + 1].tangent +
+                d_basis11 * tDiff * points[index + 1].tangent +
                 d_basis01 * points[index + 1].position
-                ) * inverseTdiff;
+                ) / tDiff;
     }
 
-    inline InterpolationType computeCurvature(size_t index, floating_t t, floating_t inverseTdiff) const
+    inline InterpolationType computeCurvature(size_t index, floating_t t, floating_t tDiff) const
     {
         auto d2_basis00 = 6 * (2 * t - 1);
         auto d2_basis10 = 2 * (3 * t - 2);
@@ -139,21 +139,21 @@ private: //methods
         //if you know why please let me know
         return (
                 d2_basis00 * points[index].position +
-                d2_basis10 * points[index].tangent +
+                d2_basis10 * tDiff * points[index].tangent +
 
-                d2_basis11 * points[index + 1].tangent +
+                d2_basis11 * tDiff * points[index + 1].tangent +
                 d2_basis01 * points[index + 1].position
-                ) * (inverseTdiff * inverseTdiff);
+                ) / (tDiff * tDiff);
     }
 
-    inline InterpolationType computeWiggle(size_t index, floating_t inverseTdiff) const
+    inline InterpolationType computeWiggle(size_t index, floating_t tDiff) const
     {
         //tests and such have shown that we have to scale this by the inverse of the t distance, and i'm not sure why
         //intuitively it would just be the 2nd derivative of the position function and nothing else
         //if you know why please let me know
         return (
-                    12 * (points[index].position - points[index + 1].position) + 6 * (points[index].tangent + points[index + 1].tangent)
-                ) * (inverseTdiff * inverseTdiff * inverseTdiff);
+                    12 * (points[index].position - points[index + 1].position) + 6 * tDiff * (points[index].tangent + points[index + 1].tangent)
+                ) / (tDiff * tDiff * tDiff);
     }
 
 private: //data
