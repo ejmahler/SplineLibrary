@@ -2,9 +2,10 @@
 #define CUBICHERMITESPLINE_H
 
 #include <unordered_map>
+#include <cassert>
 
 #include "spline_library/spline.h"
-#include "spline_library/hermite/cubic/cubic_hermite_spline_kernel.h"
+#include "spline_library/hermite/cubic/cubic_hermite_spline_common.h"
 
 #include "spline_library/utils/spline_setup.h"
 
@@ -23,17 +24,14 @@ public:
     typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t x) const override;
     typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t x) const override;
 
-    floating_t getT(int index) const override;
-    floating_t getMaxT(void) const override;
+    floating_t getT(int index) const override { return indexToT.at(index); }
+    floating_t getMaxT(void) const override { return maxT; }
 
-    bool isLooping(void) const override;
+    bool isLooping(void) const override { return false; }
 
 //data
 private:
-    //a vector containing pre-computed datasets, one per segment
-    //there will be lots of duplication of data here,
-    //but precomputing this really speeds up the interpolation
-    std::vector<CubicHermiteSplineKernel::InterpolationData<InterpolationType, floating_t>> segmentData;
+    CubicHermiteSplineCommon<InterpolationType, floating_t> common;
 
     floating_t maxT;
 
@@ -61,25 +59,16 @@ CubicHermiteSpline<InterpolationType,floating_t>::CubicHermiteSpline(
     maxT = indexToT.at(firstTangent + numSegments);
 
     //pre-arrange the data needed for interpolation
-    for(int i = 0; i < numSegments; i++)
+    std::vector<floating_t> knots(numSegments + 1);
+    std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplineSegment> positionData(numSegments + 1);
+    for(int i = 0; i < numSegments + 1; i++)
     {
-        CubicHermiteSplineKernel::InterpolationData<InterpolationType, floating_t> segment;
-
-        segment.t0 = indexToT.at(i);
-        segment.t1 = indexToT.at(i + 1);
-
-        segment.p0 = points.at(i);
-        segment.p1 = points.at(i + 1);
-
-        floating_t tDistance = segment.t1 - segment.t0;
-        segment.tDistanceInverse = 1 / tDistance;
-
-        //we scale the tangents by this segment's t distance, because wikipedia says so
-        segment.m0 = tangents.at(i) * tDistance;
-        segment.m1 = tangents.at(i + 1) * tDistance;
-
-        segmentData.push_back(segment);
+        knots[i] = indexToT[i];
+        points[i].position = points[i];
+        points[i].tangent = tangents[i];
     }
+
+    common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
 }
 
 template<class InterpolationType, typename floating_t>
@@ -97,7 +86,7 @@ CubicHermiteSpline<InterpolationType,floating_t>::CubicHermiteSpline(const std::
     maxT = indexToT.at(firstTangent + numSegments);
 
     //compute the tangents
-    std::unordered_map<int, InterpolationType> tangentMap;
+    std::vector<InterpolationType> tangents(size);
     for(int i = firstTangent; i < firstTangent + numSegments + 1; i++)
     {
         floating_t tPrev = indexToT.at(i - 1);
@@ -109,7 +98,7 @@ CubicHermiteSpline<InterpolationType,floating_t>::CubicHermiteSpline(const std::
         InterpolationType pNext = points.at(i + 1);
 
         //the tangent is the standard catmull-rom spline tangent calculation
-        tangentMap[i] =
+        tangents[i] =
                             pPrev * (tCurrent - tNext) / ((tNext - tPrev) * (tCurrent - tPrev))
                             + pNext * (tCurrent - tPrev) / ((tNext - tPrev) * (tNext - tCurrent))
 
@@ -120,94 +109,43 @@ CubicHermiteSpline<InterpolationType,floating_t>::CubicHermiteSpline(const std::
     }
 
     //pre-arrange the data needed for interpolation
-    for(int i = firstTangent; i < firstTangent + numSegments; i++)
+    std::vector<floating_t> knots(numSegments + 1);
+    std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplinePoint> positionData(numSegments + 1);
+    for(int i = firstTangent; i < firstTangent + numSegments + 1; i++)
     {
-        CubicHermiteSplineKernel::InterpolationData<InterpolationType, floating_t> segment;
-
-        segment.t0 = indexToT.at(i);
-        segment.t1 = indexToT.at(i + 1);
-
-        segment.p0 = points.at(i);
-        segment.p1 = points.at(i + 1);
-
-        floating_t tDistance = segment.t1 - segment.t0;
-        segment.tDistanceInverse = 1 / tDistance;
-
-        //we scale the tangents by this segment's t distance, because wikipedia says so
-        segment.m0 = tangentMap.at(i) * tDistance;
-        segment.m1 = tangentMap.at(i + 1) * tDistance;
-
-        segmentData.push_back(segment);
+        knots[i - firstTangent] = indexToT[i];
+        positionData[i - firstTangent].position = points[i];
+        positionData[i - firstTangent].tangent = tangents[i];
     }
+
+    common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
 }
 
 template<class InterpolationType, typename floating_t>
 InterpolationType CubicHermiteSpline<InterpolationType,floating_t>::getPosition(floating_t globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
-    auto localT = segment.computeLocalT(globalT);
-
-    return segment.computePosition(localT);
+    return common.getPosition(globalT);
 }
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPT
     CubicHermiteSpline<InterpolationType,floating_t>::getTangent(floating_t globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
-    auto localT = segment.computeLocalT(globalT);
-
-    return typename Spline<InterpolationType,floating_t>::InterpolatedPT(
-                segment.computePosition(localT),
-                segment.computeTangent(localT)
-                );
+    return common.getTangent(globalT);
 }
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTC
     CubicHermiteSpline<InterpolationType,floating_t>::getCurvature(floating_t globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
-    auto localT = segment.computeLocalT(globalT);
-
-    return typename Spline<InterpolationType,floating_t>::InterpolatedPTC(
-                segment.computePosition(localT),
-                segment.computeTangent(localT),
-                segment.computeCurvature(localT)
-                );
+    return common.getCurvature(globalT);
 }
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTCW
     CubicHermiteSpline<InterpolationType,floating_t>::getWiggle(floating_t globalT) const
 {
-    auto segment = SplineSetup::getSegmentForT(segmentData, globalT);
-    auto localT = segment.computeLocalT(globalT);
-
-    return typename Spline<InterpolationType,floating_t>::InterpolatedPTCW(
-                segment.computePosition(localT),
-                segment.computeTangent(localT),
-                segment.computeCurvature(localT),
-                segment.computeWiggle()
-                );
-}
-
-template<class InterpolationType, typename floating_t>
-floating_t CubicHermiteSpline<InterpolationType,floating_t>::getT(int index) const
-{
-    return indexToT.at(index);
-}
-
-template<class InterpolationType, typename floating_t>
-floating_t CubicHermiteSpline<InterpolationType,floating_t>::getMaxT(void) const
-{
-    return maxT;
-}
-
-template<class InterpolationType, typename floating_t>
-bool CubicHermiteSpline<InterpolationType,floating_t>::isLooping(void) const
-{
-    return false;
+    return common.getWiggle(globalT);
 }
 
 #endif // CUBICHERMITESPLINE_H

@@ -6,6 +6,7 @@
 #include <QVector2D>
 #include <QTime>
 
+#include "spline_library/hermite/cubic/cubic_hermite_spline.h"
 #include "spline_library/natural/natural_spline.h"
 #include "spline_library/basis/cubic_b_spline.h"
 #include "spline_library/basis/generic_b_spline.h"
@@ -21,12 +22,12 @@ QMap<QString, float> Benchmarker::runBenchmark(void)
     canceled = false;
 
     QMap<QString, float> results;
-    results["unBalanced Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced,   10000,  100000, 100, 1);
-    results["unBalanced Natural"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced,        1000,   100000, 10000, 1);
-    results["Balanced Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryBalanced,       10000,  100000, 100, 1);
-    results["Balanced Natural"] = timeFunction(&Benchmarker::naturalSplineQueryBalanced,            1000,   100000, 10000, 1);
-    results["Alpha0 Natural[100]"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced,       10000,  100000, 100, 0);
-    results["Alpha0 Natural"] = timeFunction(&Benchmarker::naturalSplineQueryUnbalanced,            1000,   100000, 10000, 0);
+    results["unBalanced CR[100]"] = timeFunction(&Benchmarker::cubicHermiteSplineQueryUnbalanced,   10000,  100000, 100, 1);
+    results["unBalanced CR"] = timeFunction(&Benchmarker::cubicHermiteSplineQueryUnbalanced,        1000,   100000, 10000, 1);
+    results["Balanced CR[100]"] = timeFunction(&Benchmarker::cubicHermiteSplineQueryBalanced,       10000,  100000, 100, 1);
+    results["Balanced CR"] = timeFunction(&Benchmarker::cubicHermiteSplineQueryBalanced,            1000,   100000, 10000, 1);
+    results["Alpha0 CR[100]"] = timeFunction(&Benchmarker::cubicHermiteSplineQueryUnbalanced,       10000,  100000, 100, 0);
+    results["Alpha0 CR"] = timeFunction(&Benchmarker::cubicHermiteSplineQueryUnbalanced,            1000,   100000, 10000, 0);
 
     return results;
 }
@@ -36,11 +37,11 @@ void Benchmarker::cancel(void)
     canceled = true;
 }
 
-void Benchmarker::naturalSplineQueryBalanced(int repeat, int queries, size_t size, float alpha)
+void Benchmarker::cubicHermiteSplineQueryBalanced(int repeat, int queries, size_t size, float alpha)
 {
     gen.seed(10);
 
-    emit setProgressText(QString("Running Balanced Natural With Alpha") + QString::number(alpha));
+    emit setProgressText(QString("Running Balanced CR With Alpha ") + QString::number(alpha));
     emit setProgressRange(0, repeat);
 
     for(int i = 0; i < repeat; i++)
@@ -50,7 +51,7 @@ void Benchmarker::naturalSplineQueryBalanced(int repeat, int queries, size_t siz
             return;
 
         std::vector<QVector2D> inputPoints = randomPoints2D_Uniform(size);
-        auto s = std::make_shared<NaturalSpline<QVector2D>>(inputPoints, false, alpha);
+        auto s = std::make_shared<CubicHermiteSpline<QVector2D>>(inputPoints, alpha);
 
         float max = s->getMaxT();
         for(int q = 0; q < queries; q++)
@@ -62,11 +63,11 @@ void Benchmarker::naturalSplineQueryBalanced(int repeat, int queries, size_t siz
     emit setProgressValue(repeat);
 }
 
-void Benchmarker::naturalSplineQueryUnbalanced(int repeat, int queries, size_t size, float alpha)
+void Benchmarker::cubicHermiteSplineQueryUnbalanced(int repeat, int queries, size_t size, float alpha)
 {
     gen.seed(10);
 
-    emit setProgressText(QString("Running Unbalanced Natural With Alpha") + QString::number(alpha));
+    emit setProgressText(QString("Running Unbalanced CR With Alpha ") + QString::number(alpha));
     emit setProgressRange(0, repeat);
 
     for(int i = 0; i < repeat; i++)
@@ -76,7 +77,7 @@ void Benchmarker::naturalSplineQueryUnbalanced(int repeat, int queries, size_t s
             return;
 
         std::vector<QVector2D> inputPoints = randomPoints2D_Unbalanced(size);
-        auto s = std::make_shared<NaturalSpline<QVector2D>>(inputPoints, false, alpha);
+        auto s = std::make_shared<CubicHermiteSpline<QVector2D>>(inputPoints, alpha);
 
         float max = s->getMaxT();
         for(int q = 0; q < queries; q++)

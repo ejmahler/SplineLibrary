@@ -30,8 +30,8 @@ private:
 
     void cubicBSplineQuery(int repeat, int queries,  size_t size);
     void genericBSplineQuery(int repeat, int queries, size_t size);
-    void naturalSplineQueryBalanced(int repeat, int queries, size_t size, float alpha);
-    void naturalSplineQueryUnbalanced(int repeat, int queries, size_t size, float alpha);
+    void cubicHermiteSplineQueryBalanced(int repeat, int queries, size_t size, float alpha);
+    void cubicHermiteSplineQueryUnbalanced(int repeat, int queries, size_t size, float alpha);
 
 private://support stuff
 
