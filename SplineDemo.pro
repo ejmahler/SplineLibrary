@@ -44,7 +44,10 @@ HEADERS  += \
     spline_library/hermite/quintic/quintic_hermite_spline_common.h \
     spline_library/basis/uniform_cubic_bspline_common.h \
     spline_library/basis/uniform_cubic_bspline.h \
-    spline_library/basis/looping_uniform_cubic_bspline.h
+    spline_library/basis/looping_uniform_cubic_bspline.h \
+    spline_library/hermite/cubic/uniform_cr_spline.h \
+    spline_library/hermite/cubic/uniform_cr_spline_common.h \
+    spline_library/hermite/cubic/looping_uniform_cr_spline.h
 
 FORMS    += \
     demo/settingswidget.ui \

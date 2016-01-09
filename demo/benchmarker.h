@@ -30,9 +30,8 @@ private:
     //**********
     //all of these functions can change based on whatever you want - i just needed a common place to put performance comparisons
 
-    void naturalSpline3DQuery(int repeat, int queries,  size_t size);
-    void naturalSplineDouble3DQuery(int repeat, int queries,  size_t size);
-    void naturalSpline2DQuery(int repeat, int queries,  size_t size);
+    void cubicHermiteQuery(int repeat, int queries,  size_t size);
+    void uniformCRQuery(int repeat, int queries,  size_t size);
 
 private://support stuff
 

@@ -7,7 +7,8 @@
 #include <QVector3D>
 #include <QTime>
 
-#include "spline_library/natural/natural_spline.h"
+#include "spline_library/hermite/cubic/cubic_hermite_spline.h"
+#include "spline_library/hermite/cubic/uniform_cr_spline.h"
 
 Benchmarker::Benchmarker(QObject *parent)
     :QObject(parent), bigDistribution(0, 1000), smallDistribution(0,1)
@@ -20,12 +21,10 @@ QMap<QString, float> Benchmarker::runBenchmark(void)
     canceled = false;
 
     QMap<QString, float> results;
-    results["Natural 3D[f][100]"] = timeFunction(&Benchmarker::naturalSpline3DQuery,   10000,  100000, 100);
-    results["Natural 3D[f][10000]"] = timeFunction(&Benchmarker::naturalSpline3DQuery, 10000,   100000, 10000);
-    results["Natural 3D[d][100]"] = timeFunction(&Benchmarker::naturalSplineDouble3DQuery,   10000,  100000, 100);
-    results["Natural 3D[d][10000]"] = timeFunction(&Benchmarker::naturalSplineDouble3DQuery, 10000,   100000, 10000);
-    results["Natural 2D[f][100]"] = timeFunction(&Benchmarker::naturalSpline2DQuery,   10000,  100000, 100);
-    results["Natural 2D[f][10000]"] = timeFunction(&Benchmarker::naturalSpline2DQuery, 10000,   100000, 10000);
+    results["Cubic Hermite[100]"] = timeFunction(&Benchmarker::cubicHermiteQuery,   10000,  100000, 100);
+    results["Cubic Hermite[10000]"] = timeFunction(&Benchmarker::cubicHermiteQuery, 10000,  10000, 100000);
+    results["Uniform CR[100]"] = timeFunction(&Benchmarker::uniformCRQuery,   10000,  100000, 100);
+    results["Uniform CR[100000]"] = timeFunction(&Benchmarker::uniformCRQuery,10000,  10000, 100000);
 
     return results;
 }
@@ -35,11 +34,11 @@ void Benchmarker::cancel(void)
     canceled = true;
 }
 
-void Benchmarker::naturalSpline3DQuery(int repeat, int queries,  size_t size)
+void Benchmarker::cubicHermiteQuery(int repeat, int queries,  size_t size)
 {
     gen.seed(10);
 
-    emit setProgressText(QString("Running 3D natural spline, size ") + QString::number(size));
+    emit setProgressText(QString("Running cubic hermite queries, size ") + QString::number(size));
     emit setProgressRange(0, repeat);
 
     for(int i = 0; i < repeat; i++)
@@ -48,23 +47,23 @@ void Benchmarker::naturalSpline3DQuery(int repeat, int queries,  size_t size)
         if(canceled)
             return;
 
-        auto s = std::make_shared<NaturalSpline<QVector3D>>(randomPoints3D_Uniform(size), 0);
+        auto s = std::make_shared<CubicHermiteSpline<QVector2D>>(randomPoints2D_Uniform(size));
 
         float max = s->getMaxT();
         for(int q = 0; q < queries; q++)
         {
             float t = randomFloat(max);
-            s->getWiggle(t);
+            s->getPosition(t);
         }
     }
     emit setProgressValue(repeat);
 }
 
-void Benchmarker::naturalSplineDouble3DQuery(int repeat, int queries,  size_t size)
+void Benchmarker::uniformCRQuery(int repeat, int queries,  size_t size)
 {
     gen.seed(10);
 
-    emit setProgressText(QString("Running 3D double natural spline, size ") + QString::number(size));
+    emit setProgressText(QString("Running uniform CR queries, size ") + QString::number(size));
     emit setProgressRange(0, repeat);
 
     for(int i = 0; i < repeat; i++)
@@ -73,38 +72,13 @@ void Benchmarker::naturalSplineDouble3DQuery(int repeat, int queries,  size_t si
         if(canceled)
             return;
 
-        auto s = std::make_shared<NaturalSpline<Vector3D, double>>(randomPoints3DDouble_Uniform(size), 0);
+        auto s = std::make_shared<UniformCRSpline<QVector2D, double>>(randomPoints2D_Uniform(size));
 
         float max = s->getMaxT();
         for(int q = 0; q < queries; q++)
         {
             float t = randomFloat(max);
-            s->getWiggle(t);
-        }
-    }
-    emit setProgressValue(repeat);
-}
-
-void Benchmarker::naturalSpline2DQuery(int repeat, int queries, size_t size)
-{
-    gen.seed(10);
-
-    emit setProgressText(QString("Running 2D natural spline, size ") + QString::number(size));
-    emit setProgressRange(0, repeat);
-
-    for(int i = 0; i < repeat; i++)
-    {
-        emit setProgressValue(i);
-        if(canceled)
-            return;
-
-        auto s = std::make_shared<NaturalSpline<QVector2D>>(randomPoints2D_Uniform(size), 0);
-
-        float max = s->getMaxT();
-        for(int q = 0; q < queries; q++)
-        {
-            float t = randomFloat(max);
-            s->getWiggle(t);
+            s->getPosition(t);
         }
     }
     emit setProgressValue(repeat);
