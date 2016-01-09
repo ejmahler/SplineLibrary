@@ -22,7 +22,7 @@ public:
     floating_t findClosestT(const InterpolationType &queryPoint) const;
 
 private: //methods
-    SplineSamples<sampleDimension, floating_t> makeSplineSamples(void) const;
+    SplineSamples<sampleDimension, floating_t> makeSplineSamples(int samplesPerT) const;
 
 private: //data
     const Spline<InterpolationType, floating_t> &spline;
@@ -37,38 +37,32 @@ template<class InterpolationType, typename floating_t, int sampleDimension>
 SplineInverter<InterpolationType, floating_t, sampleDimension>::SplineInverter(
         const Spline<InterpolationType, floating_t> &spline,
         int samplesPerT)
-    :spline(spline),
-      sampleStep(1.0 / floating_t(samplesPerT)),
-      sampleTree(makeSplineSamples())
+    :spline(spline), sampleStep(1.0 / samplesPerT), sampleTree(makeSplineSamples(samplesPerT))
 {
 
 }
 
 template<class InterpolationType, typename floating_t, int sampleDimension>
-SplineSamples<sampleDimension, floating_t> SplineInverter<InterpolationType, floating_t, sampleDimension>::makeSplineSamples(void) const
+SplineSamples<sampleDimension, floating_t> SplineInverter<InterpolationType, floating_t, sampleDimension>::makeSplineSamples(int samplesPerT) const
 {
     SplineSamples<sampleDimension, floating_t> samples;
-
-    //first step is to populate the splineSamples map
-    //we're going to have sampled T values sorted by x coordinate
-    floating_t currentT = 0;
     floating_t maxT = spline.getMaxT();
-    while(currentT < maxT)
+
+    //find the number of segments we're going to use
+    int numSegments = std::round(maxT * samplesPerT);
+
+    for(int i = 0; i < numSegments; i++)
     {
+        floating_t currentT = i * sampleStep;
         auto sampledPoint = convertPoint<InterpolationType, floating_t, sampleDimension>(spline.getPosition(currentT));
-
         samples.pts.emplace_back(sampledPoint, currentT);
-
-        currentT += sampleStep;
     }
 
-    //if the spline isn't a loop and the final t value isn't very very close to maxT, we have to add a sample for maxT
-    floating_t lastT = samples.pts.at(samples.pts.size() - 1).t;
-    if(!spline.isLooping() && std::abs(lastT / maxT - 1) > .0001)
+    //if the spline isn't a loop, add a sample for maxT
+    if(!spline.isLooping())
     {
-        auto sampledPoint = convertPoint<InterpolationType, floating_t, sampleDimension>(spline.getPosition(currentT));
-
-        samples.pts.emplace_back(sampledPoint, currentT);
+        auto sampledPoint = convertPoint<InterpolationType, floating_t, sampleDimension>(spline.getPosition(maxT));
+        samples.pts.emplace_back(sampledPoint, maxT);
     }
 
     return samples;
