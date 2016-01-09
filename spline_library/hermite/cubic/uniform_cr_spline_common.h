@@ -19,11 +19,12 @@ public:
     inline InterpolationType getPosition(floating_t globalT) const
     {
         size_t knotIndex = size_t(globalT);
-        floating_t localT = globalT - knotIndex;
 
         //make sure the knot index stays in-bounds
         if(knotIndex > points.size() - 4)
             knotIndex = points.size() - 4;
+
+        floating_t localT = globalT - knotIndex;
 
         return computePosition(knotIndex + 1, localT);
     }
@@ -31,11 +32,12 @@ public:
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPT getTangent(floating_t globalT) const
     {
         size_t knotIndex = size_t(globalT);
-        floating_t localT = globalT - knotIndex;
 
         //make sure the knot index stays in-bounds
         if(knotIndex > points.size() - 4)
             knotIndex = points.size() - 4;
+
+        floating_t localT = globalT - knotIndex;
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPT(
                     computePosition(knotIndex + 1, localT),
@@ -46,11 +48,12 @@ public:
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t globalT) const
     {
         size_t knotIndex = size_t(globalT);
-        floating_t localT = globalT - knotIndex;
 
         //make sure the knot index stays in-bounds
         if(knotIndex > points.size() - 4)
             knotIndex = points.size() - 4;
+
+        floating_t localT = globalT - knotIndex;
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPTC(
                     computePosition(knotIndex + 1, localT),
@@ -62,11 +65,12 @@ public:
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t globalT) const
     {
         size_t knotIndex = size_t(globalT);
-        floating_t localT = globalT - knotIndex;
 
         //make sure the knot index stays in-bounds
         if(knotIndex > points.size() - 4)
             knotIndex = points.size() - 4;
+
+        floating_t localT = globalT - knotIndex;
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPTCW(
                     computePosition(knotIndex + 1, localT),
