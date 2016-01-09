@@ -8,6 +8,8 @@
 #include <vector>
 #include <random>
 
+#include "spline_library/vector3d.h"
+
 class Benchmarker : public QObject
 {
     Q_OBJECT
@@ -28,13 +30,14 @@ private:
     //**********
     //all of these functions can change based on whatever you want - i just needed a common place to put performance comparisons
 
-    void cubicBSplineQuery(int repeat, int queries,  size_t size);
-    void genericBSplineQuery(int repeat, int queries, size_t size);
-    void cubicHermiteSplineQueryBalanced(int repeat, int queries, size_t size, float alpha);
-    void cubicHermiteSplineQueryUnbalanced(int repeat, int queries, size_t size, float alpha);
+    void naturalSpline3DQuery(int repeat, int queries,  size_t size);
+    void naturalSplineDouble3DQuery(int repeat, int queries,  size_t size);
+    void naturalSpline2DQuery(int repeat, int queries,  size_t size);
 
 private://support stuff
 
+    std::vector<QVector3D> randomPoints3D_Uniform(size_t size);
+    std::vector<Vector3D> randomPoints3DDouble_Uniform(size_t size);
     std::vector<QVector2D> randomPoints2D_Uniform(size_t size);
     std::vector<QVector2D> randomPoints2D_Unbalanced(size_t size);
     float randomFloat(float max);

@@ -24,8 +24,6 @@ HEADERS  += \
     spline_library/vector3d.h \
     spline_library/splineinverter.h \
     spline_library/spline.h \
-    spline_library/basis/cubic_b_spline.h \
-    spline_library/basis/looping_cubic_b_spline.h \
     spline_library/natural/looping_natural_spline.h \
     spline_library/natural/natural_spline.h \
     spline_library/hermite/cubic/cubic_hermite_spline.h \
@@ -37,14 +35,16 @@ HEADERS  += \
     spline_library/utils/nanoflann.hpp \
     spline_library/utils/splinesample_adaptor.h \
     spline_library/utils/spline_setup.h \
-    spline_library/basis/cubic_b_spline_kernel.h \
     spline_library/basis/generic_b_spline.h \
     spline_library/basis/looping_generic_b_spline.h \
     spline_library/basis/generic_b_spline_common.h \
     demo/benchmarker.h \
     spline_library/natural/natural_spline_common.h \
     spline_library/hermite/cubic/cubic_hermite_spline_common.h \
-    spline_library/hermite/quintic/quintic_hermite_spline_common.h
+    spline_library/hermite/quintic/quintic_hermite_spline_common.h \
+    spline_library/basis/uniform_cubic_bspline_common.h \
+    spline_library/basis/uniform_cubic_bspline.h \
+    spline_library/basis/looping_uniform_cubic_bspline.h
 
 FORMS    += \
     demo/settingswidget.ui \

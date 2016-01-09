@@ -27,16 +27,16 @@ Create a catmull-rom spline by passing a std::vector<Vector3D> to the constructo
 * There must be a nonzero distance between each adjacent pair of points
 * Non-looping version requires an "extra" point on either end of the data set which will not be interpolated
 
-### Cubic B-Spline
-The B-Spline (Basis Spline) is very similar in concept to the Bezier Curve, and the cubic B-Spline is a specific type of B-Spline.
+### Uniform Cubic B-Spline
+The B-Spline (Basis Spline) is very similar in concept to the Bezier Curve, and the Uniform Cubic B-Spline is a specific type of B-Spline.
 
 It is possible to create B-Splines with arbitrary powers (as opposed to only cubic) but enforcing cubic allows for much simpler formulas and better performance.
 
 To use, import the appropriate header:
-`#include "spline_library/basis/cubic_b_spline.h"`
+`#include "spline_library/basis/uniform_cubic_bspline.h"`
 
-Create a Cubic B-Spline by passing a std::vector<Vector3D> to the constructor, containing a list of control points:
-`std::shared_ptr<Spline> mySpline = std::make_shared<CubicBSpline<QVector2D>>(myPointList);`
+Create a Uniform Cubic B-Spline by passing a std::vector<Vector3D> to the constructor, containing a list of control points:
+`std::shared_ptr<Spline> mySpline = std::make_shared<UniformCubicBSpline<QVector2D>>(myPointList);`
 
 ##### Advantages
 * Local control [(?)](Glossary.md#local-control)

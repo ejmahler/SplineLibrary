@@ -87,22 +87,13 @@ NaturalSpline<InterpolationType,floating_t>::NaturalSpline(const std::vector<Int
 
     //we now have 0 curvature for index 0 and n - 1, and the final (usually nonzero) curvature for every other point
     //use this curvature to determine a,b,c,and d to build each segment
-    std::vector<floating_t> knots(numSegments);
-    std::vector<typename NaturalSplineCommon<InterpolationType, floating_t>::NaturalSplineSegment> segments(numSegments);
-    for(int i = firstPoint; i < numSegments + firstPoint; i++) {
+    std::vector<floating_t> knots(numSegments + 1);
+    std::vector<typename NaturalSplineCommon<InterpolationType, floating_t>::NaturalSplineSegment> segments(numSegments + 1);
+    for(int i = firstPoint; i < numSegments + firstPoint + 1; i++) {
 
         knots[i - firstPoint] = indexToT.at(i);
-
-        floating_t currentDeltaT = indexToT.at(i + 1) - indexToT.at(i);
-        InterpolationType currentPoint = points.at(i);
-        InterpolationType nextPoint = points.at(i + 1);
-        InterpolationType currentCurvature = curvatures.at(i);
-        InterpolationType nextCurvature = curvatures.at(i + 1);
-
-        segments[i - firstPoint].a = currentPoint;
-        segments[i - firstPoint].b = (nextPoint - currentPoint) / currentDeltaT - (currentDeltaT / 3) * (nextCurvature + 2*currentCurvature);
-        segments[i - firstPoint].c = currentCurvature;
-        segments[i - firstPoint].d = (nextCurvature - currentCurvature) / (3 * currentDeltaT);
+        segments[i - firstPoint].a = points.at(i);
+        segments[i - firstPoint].c = curvatures.at(i);
     }
 
     common = NaturalSplineCommon<InterpolationType, floating_t>(std::move(segments), std::move(knots));

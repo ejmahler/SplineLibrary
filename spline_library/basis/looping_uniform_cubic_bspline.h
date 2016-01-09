@@ -1,19 +1,18 @@
-#ifndef LOOPING_GENERIC_B_SPLINE
-#define LOOPING_GENERIC_B_SPLINE
-
-
-#include "spline_library/spline.h"
-#include "spline_library/utils/spline_setup.h"
-#include "generic_b_spline_common.h"
+#ifndef LOOPING_B_SPLINE_H
+#define LOOPING_B_SPLINE_H
 
 #include <unordered_map>
 
+#include "spline_library/spline.h"
+#include "spline_library/basis/uniform_cubic_bspline_common.h"
+
+#include "spline_library/utils/spline_setup.h"
+
 template<class InterpolationType, typename floating_t=float>
-class LoopingGenericBSpline final : public Spline<InterpolationType, floating_t>
+class LoopingUniformCubicBSpline final : public Spline<InterpolationType, floating_t>
 {
-//constructors
 public:
-    LoopingGenericBSpline(const std::vector<InterpolationType> &points, int degree);
+    LoopingUniformCubicBSpline(const std::vector<InterpolationType> &points);
 
 //methods
 public:
@@ -28,27 +27,29 @@ public:
     bool isLooping(void) const override { return true; }
 
 //data
-private:
-    GenericBSplineCommon<InterpolationType, floating_t> common;
+protected:
+    UniformCubicBSplineCommon<InterpolationType, floating_t> common;
 
     floating_t maxT;
 
     //map from index to t value. it's a map and not an array so we can store negative indexes
-    std::unordered_map<int,floating_t> indexToT;
+    std::unordered_map<int, floating_t> indexToT;
 };
 
 template<class InterpolationType, typename floating_t>
-LoopingGenericBSpline<InterpolationType,floating_t>::LoopingGenericBSpline(const std::vector<InterpolationType> &points, int degree)
+LoopingUniformCubicBSpline<InterpolationType,floating_t>::LoopingUniformCubicBSpline(const std::vector<InterpolationType> &points)
     :Spline<InterpolationType,floating_t>(points)
 {
-    assert(points.size() > size_t(degree));
+    assert(points.size() >= 3);
+    floating_t alpha = 0.0;
 
     int size = points.size();
-    int padding = degree - 1;
+    int degree = 3;
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeLoopingTValues(points, 0.0f, padding);
-    maxT = indexToT[size];
+    int padding = 1;
+    indexToT = SplineSetup::computeLoopingTValues(points, alpha, padding);
+    maxT = indexToT.at(size);
 
     //we need enough space to repeat the last 'degree' elements
     std::vector<InterpolationType> positions(points.size() + degree);
@@ -59,25 +60,13 @@ LoopingGenericBSpline<InterpolationType,floating_t>::LoopingGenericBSpline(const
     //then copying the points vector in after, then copying degree-1 elements from the beginning
     positions[0] = points[size - 1];
     std::copy(points.begin(), points.end(), positions.begin() + 1);
-    std::copy_n(points.begin(), padding, positions.end() - padding);
+    std::copy_n(points.begin(), degree - 1, positions.end() - (degree - 1));
 
-    //the index to t calculation computes an extra T value that we don't need, we just discard it here when creating the knot vector
-    std::vector<floating_t> knots(indexToT.size() - 1);
-
-    //for purposes of actual interpolation, we don't need the negative indexes found in indexToT
-    //so we're going to add the minimum possible value to every entry and stick them in a vector
-    for(int i = -padding; i < size + padding + 1; i++)
-    {
-        knots[i + padding] = indexToT[i];
-    }
-
-    common = GenericBSplineCommon<InterpolationType, floating_t>(std::move(positions), std::move(knots), degree);
+    common = UniformCubicBSplineCommon<InterpolationType, floating_t>(positions);
 }
 
-
-
 template<class InterpolationType, typename floating_t>
-InterpolationType LoopingGenericBSpline<InterpolationType,floating_t>::getPosition(floating_t globalT) const
+InterpolationType LoopingUniformCubicBSpline<InterpolationType,floating_t>::getPosition(floating_t globalT) const
 {
     floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
     return common.getPosition(wrappedT);
@@ -85,7 +74,7 @@ InterpolationType LoopingGenericBSpline<InterpolationType,floating_t>::getPositi
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPT
-    LoopingGenericBSpline<InterpolationType,floating_t>::getTangent(floating_t globalT) const
+    LoopingUniformCubicBSpline<InterpolationType,floating_t>::getTangent(floating_t globalT) const
 {
     floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
     return common.getTangent(wrappedT);
@@ -93,7 +82,7 @@ typename Spline<InterpolationType,floating_t>::InterpolatedPT
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTC
-    LoopingGenericBSpline<InterpolationType,floating_t>::getCurvature(floating_t globalT) const
+    LoopingUniformCubicBSpline<InterpolationType,floating_t>::getCurvature(floating_t globalT) const
 {
     floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
     return common.getCurvature(wrappedT);
@@ -101,12 +90,10 @@ typename Spline<InterpolationType,floating_t>::InterpolatedPTC
 
 template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTCW
-    LoopingGenericBSpline<InterpolationType,floating_t>::getWiggle(floating_t globalT) const
+    LoopingUniformCubicBSpline<InterpolationType,floating_t>::getWiggle(floating_t globalT) const
 {
     floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
     return common.getWiggle(wrappedT);
 }
 
-
-#endif // LOOPING_GENERIC_B_SPLINE
-
+#endif // LOOPING_B_SPLINE_H

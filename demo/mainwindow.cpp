@@ -29,8 +29,8 @@
 #include "spline_library/hermite/quintic/looping_quintic_hermite_spline.h"
 #include "spline_library/hermite/cubic/cubic_hermite_spline.h"
 #include "spline_library/hermite/cubic/looping_cubic_hermite_spline.h"
-#include "spline_library/basis/cubic_b_spline.h"
-#include "spline_library/basis/looping_cubic_b_spline.h"
+#include "spline_library/basis/uniform_cubic_bspline.h"
+#include "spline_library/basis/looping_uniform_cubic_bspline.h"
 #include "spline_library/basis/generic_b_spline.h"
 #include "spline_library/basis/looping_generic_b_spline.h"
 #include "spline_library/natural/natural_spline.h"
@@ -269,11 +269,11 @@ std::shared_ptr<Spline<QVector2D>> MainWindow::createSpline(
     {
         if(isLooping)
         {
-            return std::make_shared<LoopingCubicBSpline<QVector2D>>(pointList);
+            return std::make_shared<LoopingUniformCubicBSpline<QVector2D>>(pointList);
         }
         else
         {
-            return std::make_shared<CubicBSpline<QVector2D>>(pointList);
+            return std::make_shared<UniformCubicBSpline<QVector2D>>(pointList);
         }
     }
     else if(splineType == "Generic B-Spline")
