@@ -1,8 +1,6 @@
 #ifndef LOOPING_B_SPLINE_H
 #define LOOPING_B_SPLINE_H
 
-#include <unordered_map>
-
 #include "spline_library/spline.h"
 #include "spline_library/basis/uniform_cubic_bspline_common.h"
 
@@ -21,7 +19,7 @@ public:
     typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t x) const override;
     typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t x) const override;
 
-    floating_t getT(int index) const override { return indexToT.at(index); }
+    floating_t getT(int index) const override { return index; }
     floating_t getMaxT(void) const override { return maxT; }
 
     bool isLooping(void) const override { return true; }
@@ -31,25 +29,16 @@ protected:
     UniformCubicBSplineCommon<InterpolationType, floating_t> common;
 
     floating_t maxT;
-
-    //map from index to t value. it's a map and not an array so we can store negative indexes
-    std::unordered_map<int, floating_t> indexToT;
 };
 
 template<class InterpolationType, typename floating_t>
 LoopingUniformCubicBSpline<InterpolationType,floating_t>::LoopingUniformCubicBSpline(const std::vector<InterpolationType> &points)
-    :Spline<InterpolationType,floating_t>(points)
+    :Spline<InterpolationType,floating_t>(points), maxT(points.size())
 {
     assert(points.size() >= 3);
-    floating_t alpha = 0.0;
 
     int size = points.size();
     int degree = 3;
-
-    //compute the T values for each point
-    int padding = 1;
-    indexToT = SplineSetup::computeLoopingTValues(points, alpha, padding);
-    maxT = indexToT.at(size);
 
     //we need enough space to repeat the last 'degree' elements
     std::vector<InterpolationType> positions(points.size() + degree);

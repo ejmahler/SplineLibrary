@@ -22,7 +22,7 @@ QMap<QString, float> Benchmarker::runBenchmark(void)
 
     QMap<QString, float> results;
     results["Cubic Hermite[100]"] = timeFunction(&Benchmarker::cubicHermiteQuery,   10000,  100000, 100);
-    results["Cubic Hermite[10000]"] = timeFunction(&Benchmarker::cubicHermiteQuery, 10000,  10000, 100000);
+    results["Cubic Hermite[100000]"] = timeFunction(&Benchmarker::cubicHermiteQuery, 10000,  10000, 100000);
     results["Uniform CR[100]"] = timeFunction(&Benchmarker::uniformCRQuery,   10000,  100000, 100);
     results["Uniform CR[100000]"] = timeFunction(&Benchmarker::uniformCRQuery,10000,  10000, 100000);
 

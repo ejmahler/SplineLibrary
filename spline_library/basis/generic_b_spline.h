@@ -18,10 +18,10 @@ public:
 
 //methods
 public:
-    InterpolationType getPosition(floating_t x) const override;
-    typename Spline<InterpolationType,floating_t>::InterpolatedPT getTangent(floating_t x) const override;
-    typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t x) const override;
-    typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t x) const override;
+    InterpolationType getPosition(floating_t t) const override { return common.getPosition(t); }
+    typename Spline<InterpolationType,floating_t>::InterpolatedPT getTangent(floating_t t) const override { return common.getTangent(t); }
+    typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t t) const override { return common.getCurvature(t); }
+    typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t t) const override { return common.getWiggle(t); }
 
     floating_t getT(int index) const override { return indexToT.at(index); }
     floating_t getMaxT(void) const override { return maxT; }
@@ -65,33 +65,6 @@ GenericBSpline<InterpolationType,floating_t>::GenericBSpline(const std::vector<I
     }
 
     common = GenericBSplineCommon<InterpolationType, floating_t>(points, std::move(knots), degree);
-}
-
-template<class InterpolationType, typename floating_t>
-InterpolationType GenericBSpline<InterpolationType,floating_t>::getPosition(floating_t globalT) const
-{
-    return common.getPosition(globalT);
-}
-
-template<class InterpolationType, typename floating_t>
-typename Spline<InterpolationType,floating_t>::InterpolatedPT
-    GenericBSpline<InterpolationType,floating_t>::getTangent(floating_t globalT) const
-{
-    return common.getTangent(globalT);
-}
-
-template<class InterpolationType, typename floating_t>
-typename Spline<InterpolationType,floating_t>::InterpolatedPTC
-    GenericBSpline<InterpolationType,floating_t>::getCurvature(floating_t globalT) const
-{
-    return common.getCurvature(globalT);
-}
-
-template<class InterpolationType, typename floating_t>
-typename Spline<InterpolationType,floating_t>::InterpolatedPTCW
-    GenericBSpline<InterpolationType,floating_t>::getWiggle(floating_t globalT) const
-{
-    return common.getWiggle(globalT);
 }
 
 #endif // GENERIC_B_SPLINE
