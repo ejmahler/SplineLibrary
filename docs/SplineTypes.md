@@ -14,10 +14,10 @@ If you're not sure which one to use, start with these three.
 A Catmull-Rom Spline computes the tangent for each point from the positions of the two closest points, then interpolates based on both the position and the tangent.
 
 To use, import the appropriate header:
-`#include "spline_library/hermite/cubic/cubic_hermite_spline.h"`
+`#include "spline_library/hermite/cubic/uniform_cr_spline.h"`
 
 Create a catmull-rom spline by passing a std::vector<Vector3D> to the constructor, containing a list of points to interpolate through:
-`std::shared_ptr<Spline> mySpline = std::make_shared<CubicHermiteSpline<QVector2D>>(myPointList);`
+`std::shared_ptr<Spline> mySpline = std::make_shared<UniformCRSpline<QVector2D>>(myPointList);`
 
 ##### Advantages
 * Local control [(?)](Glossary.md#local-control)
@@ -68,15 +68,18 @@ If one of the simple types above doesn't meet your needs, the following types ar
 ### Centripetal Catmull-Rom Spline
 The Centripetal CR Spline is a variation of the Catmull-Rom Spline formula. Instead of spacing each point exactly one T apart, the distance in T between any two points will be proportional to the square root of distance between the two points. Thus, points that are very far apart will be further apart in T than points that are close together.
 
-To use it, provide a value for the optional `alpha` parameter in the `CubicHermiteSpline` constructor (Side note: 'alpha' is a parameter on nearly every spline type. It has the same effect on other spline types as it does on CubicHermiteSpline). A value of 0.5 will produce a centripetal Catmull-Rom Spline, while a value of 0.0 (default) will revert to the standard formula. Other values are allowed too - a value of 1.0 will result in a "chordal" variation, and the formula will work with any number, negative or positive. Values other than 0.0 or 0.5 should be very rare, however.
+To use it, provide a value for the optional `alpha` parameter in the `CubicHermiteSpline` constructor (Side note: 'alpha' is a parameter on nearly every spline type. It has the same effect on other spline types as it does on CubicHermiteSpline). A value of 0.5 will produce a centripetal Catmull-Rom Spline. Other values are allowed too - a value of 1.0 will result in a "chordal" variation, and the formula will work with any number, negative or positive. Values other than 0.0 or 0.5 should be very rare, however.
+
+Providing a value of 0.0 will create a standard Catmull-Rom spline, identical to that created by `UniformCRSpline` -- but it'll be slower and use twice as much memory.
 
 It has been proven mathematically that on Catmull-Rom Splines, the centripetal variation avoids certain types of self-intersections, cusps, and overshoots, producing a more aesthetically pleasing spline.
 
-##### Advantages (compared to CRSpline)
+##### Advantages (compared to UniformCRSpline)
 * Proven to avoid self-intersections and overshoots when there are large variations in distance between adjacent points.
 
-##### Disadvantages (compared to CRSpline)
+##### Disadvantages (compared to UniformCRSpline)
 * Modifies T values of points - points that are close together will have a smaller T distance and vice versa. This may be a problem if the points are keyframes for an animation, for example, or any other data series where the T values have some external meaning
+* Slower than UniformCRSpline, due to more to calculate and more data competing for cache space.
 
 ### Generic B-Spline
 The B-Spline (Basis Spline) is very similar in concept to the Bezier Curve, but you can control the spline degree easily rather than it being determined by the number of input points.
@@ -99,7 +102,7 @@ The degree must be less than the number of input points, and must be at least 1.
 ##### Disadvantages
 * The interpolated line does not necessarily pass through the specified points
 * Non-looping variation requires an "extra" point on either end of the data set which will not be interpolated
-* Much slower than CubicBspline 
+* Much slower than CubicBSpline 
 
 ### Cubic Hermite Spline
 The Cubic Hermite Spline takes a list of points, and a corresponding list of tangents for each point. The Catmull-Rom Spline is a special type of the Cubic Hermite Spline which automatically computes the tangents, rather than expecting the user to supply them.
