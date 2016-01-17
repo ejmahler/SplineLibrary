@@ -7,10 +7,10 @@ A spline is a formula for smoothly transitioning from one data point to the next
 Features
 -------------
 * Interpolation of catmull-rom splines
-    * Include `spline_library/hermite/cubic/cubic_hermite_spline.h`, create a `CubicHermiteSpline` object, and call its `getPosition` method.
+    * Include `spline_library/hermite/cubic/uniform_cr_spline.h`, create a `UniformCRSpline` object, and call its `getPosition` method.
     * Several more spline types. See [Spline Types](docs/SplineTypes.md) for the full list
 * Looping Splines
-    * To make a looping catmull-rom spline, include `spline_library/hermite/cubic/looping_cubic_hermite_spline.h` and create a `LoopingCubicHermiteSpline` object instead.
+    * To make a looping catmull-rom spline, include `spline_library/hermite/cubic/looping_uniform_cr_spline.h` and create a `LoopingUniformCRSpline` object instead.
     * Every spline type has both looping and non-looping variants
 * Compute the inverse of a spline
     * Given a data point (not necessarily on the spline, or even close to it), what T value brings the spline closest to that data point?
