@@ -10,8 +10,13 @@ Features
     * Include `spline_library/hermite/cubic/uniform_cr_spline.h`, create a `UniformCRSpline` object, and call its `getPosition` method.
     * Several more spline types. See [Spline Types](docs/SplineTypes.md) for the full list
 * Looping Splines
+	* Also called "Periodic" or "Cyclic": These splines form a loop, in that the ending connects with the beginning
+	* Calling getPosition(t) with an out-of-range T value will _wrap around" to the other end of the spline
     * To make a looping catmull-rom spline, include `spline_library/hermite/cubic/looping_uniform_cr_spline.h` and create a `LoopingUniformCRSpline` object instead.
     * Every spline type has both looping and non-looping variants
+* Compute the arc length of a spline
+	* Call a spline's totalLength() method to find the arc length of the entire spline
+    * Call a spline's arcLength(a,b) method to find the arc length between two arbitrary T values
 * Compute the inverse of a spline
     * Given a data point (not necessarily on the spline, or even close to it), what T value brings the spline closest to that data point?
     * Create a SplineInverter object and call its findClosestT method
@@ -29,7 +34,7 @@ Documentation
 
 [Spline Types](docs/SplineTypes.md) - Complete list of all supported spline formulas
 
-[Spline Utilities](docs/SplineUtilities.md) - Documentation of some utility classes for splines, including `SplineInverter` and `SplineLengthCalculator`.
+[Spline Utilities](docs/SplineUtilities.md) - Documentation of some utility classes for splines.
 
 Project Layout
 -------------

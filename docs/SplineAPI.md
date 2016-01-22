@@ -34,7 +34,7 @@ The derivatives are determined analytically at compile-time, as opposed to numer
 
 The behavior when the T value is out of range is the same as for the getPosition method.
 
-#### Vector3D getWiggle(t) const
+#### getWiggle(t) const
 This method interpolates the position, the first derivative of position (AKA the tangent), the second derivative of position (AKA the curvature), the third derivative of position (AKA the wiggle), and returns a struct containing all four. While it's possible to compute only the wiggle, the API doesn't support it, in the interest of simplifying the API.
 
 For all current spline types, the wiggle is never continuous from segment to segment. For cubic splines, it is always a constant within each segment, although it may change from segment to segment.
@@ -43,12 +43,26 @@ The derivatives are determined analytically at compile-time, as opposed to numer
 
 The behavior when the T value is out of range is the same as for the getPosition method.
 
-#### double getT(int index) const
+#### arcLength(a, b) const
+This method computes the arc length between a and b. IE, if you traceda path with your finger along the spline from a to b, how much distance would it cover?
+
+This is found by numerically computing the integral of the magnitude of the tangent. In real world terms, it computes the tangent at several points between a and b and then combines the results.
+
+For looping splines, it will use modular arithmetic to ensure that a and b are less than one "circuit" away from each other. Notably, this means that `arcLength(0, maxT)` will return 0 for looping splines, because it detects that 0 to maxT is a complete circuit and removes it. If you want to compute the length of the whole spline, use `totalLength()` instead.
+
+#### totalLength() const
+This method computes the arc length of the entire spline, from beginning to end. IE, if you traceda path with your finger along the spline from start to end, how much distance would it cover?
+
+This is found by numerically computing the integral of the magnitude of the tangent. In real world terms, it computes the tangent at several points between the start and end and then combines the results.
+
+For computing the total length of non-looping splines, calling `totalLength()` is preferred over calling `arcLength(0, maxT)` because it's slightly faster.
+
+#### getT(int index) const
 The provided index should be an index into the original vector of control points provided to the constructor. The return value is the T value that the spline has assigned to that control point. This is very useful when using the [Centripetal Catmull-Rom Spline](SplineTypes.md#centripetal-catmull-rom-spline) or any other spline type where T values for points aren't necessarily evenly spaced.
 
 The behavior when the index is out of range is undefined.
 
-#### double getMaxT() const
+#### getMaxT() const
 This method returns the largest in-range T value.
 
 All spline types normalize T values so that the maximum T value is equal to the index of the corresponding point.
@@ -57,5 +71,5 @@ All spline types normalize T values so that the maximum T value is equal to the 
 
 The minimum T value is always 0.
 
-#### bool isLooping() const
+#### isLooping() const
 Returns true if this spline is a looping spline, and false if this is a non-looping spline.
