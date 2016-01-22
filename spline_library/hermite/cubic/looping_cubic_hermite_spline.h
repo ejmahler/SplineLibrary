@@ -1,10 +1,9 @@
-#ifndef LOOPING_CUBIC_HERMITE_SPLINE_H
-#define LOOPING_CUBIC_HERMITE_SPLINE_H
+#pragma once
 
-#include "spline_library/spline.h"
-#include "spline_library/hermite/cubic/cubic_hermite_spline_common.h"
+#include "../../spline.h"
+#include "cubic_hermite_spline_common.h"
 
-#include "spline_library/utils/spline_setup.h"
+#include "../../utils/spline_setup.h"
 
 #include <unordered_map>
 
@@ -163,5 +162,3 @@ floating_t LoopingCubicHermiteSpline<InterpolationType,floating_t>::arcLength(fl
 
     return common.getLength(wrappedA, wrappedB);
 }
-
-#endif // LOOPING_CUBIC_HERMITE_SPLINE_H

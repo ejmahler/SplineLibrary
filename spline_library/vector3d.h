@@ -1,5 +1,4 @@
-#ifndef VECTOR3D_H
-#define VECTOR3D_H
+#pragma once
 
 #include <cmath>
 
@@ -158,6 +157,3 @@ inline double Vector3D::lengthSquared() const
 {
     return xp * xp + yp * yp + zp * zp;
 }
-
-
-#endif // VECTOR3D_H

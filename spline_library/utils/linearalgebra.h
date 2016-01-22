@@ -1,9 +1,6 @@
-#ifndef LINEARSOLVER_H
-#define LINEARSOLVER_H
+#pragma once
 
 #include <vector>
-
-class Vector3D;
 
 class LinearAlgebra
 {
@@ -164,5 +161,3 @@ std::vector<OutputType> LinearAlgebra::solveCyclicSymmetricTridiagonal(
 
     return initialOutput;
 }
-
-#endif // LINEARSOLVER_H

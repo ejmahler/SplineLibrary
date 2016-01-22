@@ -1,5 +1,4 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -83,5 +82,3 @@ private: //data
 
 template<>
 std::array<float, 2> convertPoint<QVector2D, float, 2>(const QVector2D& point);
-
-#endif // MAINWINDOW_H

@@ -1,9 +1,7 @@
-#ifndef LOOPING_GENERIC_B_SPLINE
-#define LOOPING_GENERIC_B_SPLINE
+#pragma once
 
-
-#include "spline_library/spline.h"
-#include "spline_library/utils/spline_setup.h"
+#include "../spline.h"
+#include "../utils/spline_setup.h"
 #include "generic_b_spline_common.h"
 
 #include <unordered_map>
@@ -118,7 +116,3 @@ floating_t LoopingGenericBSpline<InterpolationType,floating_t>::arcLength(floati
 
     return common.getLength(wrappedA, wrappedB);
 }
-
-
-#endif // LOOPING_GENERIC_B_SPLINE
-

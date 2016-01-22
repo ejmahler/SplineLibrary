@@ -1,6 +1,4 @@
-#ifndef UNIFORM_CRSPLINE_COMMON_H
-#define UNIFORM_CRSPLINE_COMMON_H
-
+#pragma once
 
 #include <vector>
 
@@ -232,6 +230,3 @@ private: //methods
 private: //data
     std::vector<InterpolationType> points;
 };
-
-#endif // UNIFORM_CRSPLINE_COMMON_H
-

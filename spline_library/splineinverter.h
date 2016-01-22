@@ -1,14 +1,12 @@
-#ifndef SplineInverter_H
-#define SplineInverter_H
+#pragma once
 
 #include <vector>
 #include <array>
-#include <memory>
 
 #include <boost/math/tools/minima.hpp>
 
-#include "spline_library/spline.h"
-#include "spline_library/utils/splinesample_adaptor.h"
+#include "spline.h"
+#include "utils/splinesample_adaptor.h"
 
 template<class InterpolationType, typename floating_t, int sampleDimension>
 std::array<floating_t, sampleDimension> convertPoint(const InterpolationType& point);
@@ -118,5 +116,3 @@ floating_t SplineInverter<InterpolationType, floating_t, sampleDimension>::findC
     auto result = boost::math::tools::brent_find_minima(distanceFunction, a, b, 16);
     return result.first;
 }
-
-#endif // SplineInverter_H

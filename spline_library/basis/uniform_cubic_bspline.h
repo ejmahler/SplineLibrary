@@ -1,9 +1,9 @@
-#ifndef UNIFORM_CUBIC_BSPLINE_H
-#define UNIFORM_CUBIC_BSPLINE_H
+#pragma once
 
-#include "spline_library/spline.h"
-#include "spline_library/basis/uniform_cubic_bspline_common.h"
-#include "spline_library/utils/spline_setup.h"
+#include "../spline.h"
+#include "uniform_cubic_bspline_common.h"
+
+#include "../utils/spline_setup.h"
 
 #include <cassert>
 
@@ -42,5 +42,3 @@ UniformCubicBSpline<InterpolationType,floating_t>::UniformCubicBSpline(const std
 {
     assert(points.size() >= 4);
 }
-
-#endif // UNIFORM_CUBIC_BSPLINE_H

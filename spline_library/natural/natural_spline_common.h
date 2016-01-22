@@ -1,5 +1,4 @@
-#ifndef NATURAL_SPLINE_COMMON_H
-#define NATURAL_SPLINE_COMMON_H
+#pragma once
 
 #include <vector>
 
@@ -195,9 +194,3 @@ private: //data
     std::vector<NaturalSplineSegment> segments;
     std::vector<floating_t> knots;
 };
-
-
-
-
-#endif // NATURAL_SPLINE_COMMON_H
-

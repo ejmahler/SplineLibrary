@@ -1,5 +1,4 @@
-#ifndef QUINTIC_HERMITE_SPLINE_COMMON
-#define QUINTIC_HERMITE_SPLINE_COMMON
+#pragma once
 
 #include <vector>
 
@@ -259,6 +258,3 @@ private: //data
     std::vector<QuinticHermiteSplinePoint> points;
     std::vector<floating_t> knots;
 };
-
-#endif // QUINTIC_HERMITE_SPLINE_COMMON
-

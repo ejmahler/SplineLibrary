@@ -1,5 +1,4 @@
-#ifndef T_CALCULATOR_H
-#define T_CALCULATOR_H
+#pragma once
 
 #include <unordered_map>
 #include <vector>
@@ -319,5 +318,3 @@ size_t SplineSetup::getIndexForT(const std::vector<floating_t> &knotData, floati
     }
     return currentIndex;
 }
-
-#endif // T_CALCULATOR_H

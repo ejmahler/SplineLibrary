@@ -1,10 +1,9 @@
-#ifndef UNIFORM_CR_SPLINE_H
-#define UNIFORM_CR_SPLINE_H
+#pragma once
 
 #include <cassert>
 
-#include "spline_library/spline.h"
-#include "spline_library/hermite/cubic/uniform_cr_spline_common.h"
+#include "../../spline.h"
+#include "uniform_cr_spline_common.h"
 
 template<class InterpolationType, typename floating_t=float>
 class UniformCRSpline final : public Spline<InterpolationType, floating_t>
@@ -41,5 +40,3 @@ UniformCRSpline<InterpolationType,floating_t>::UniformCRSpline(const std::vector
 {
     assert(points.size() >= 4);
 }
-
-#endif // UNIFORM_CR_SPLINE_H

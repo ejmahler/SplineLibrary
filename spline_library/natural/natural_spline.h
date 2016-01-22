@@ -1,11 +1,10 @@
-#ifndef NATURALSPLINE_H
-#define NATURALSPLINE_H
+#pragma once
 
-#include "spline_library/spline.h"
-#include "spline_library/natural/natural_spline_common.h"
+#include "../spline.h"
+#include "natural_spline_common.h"
 
-#include "spline_library/utils/linearalgebra.h"
-#include "spline_library/utils/spline_setup.h"
+#include "../utils/linearalgebra.h"
+#include "../utils/spline_setup.h"
 
 #include <unordered_map>
 #include <cassert>
@@ -244,5 +243,3 @@ std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::comp
 
     return curvatures;
 }
-
-#endif // NATURALSPLINE_H

@@ -1,5 +1,4 @@
-#ifndef SETTINGSWIDGET_H
-#define SETTINGSWIDGET_H
+#pragma once
 
 #include <QDialog>
 #include <QMap>
@@ -40,5 +39,3 @@ private:
 
 	QMap<QString,QVariant> options;
 };
-
-#endif // SETTINGSWIDGET_H

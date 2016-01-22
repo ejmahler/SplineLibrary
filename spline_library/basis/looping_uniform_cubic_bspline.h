@@ -1,10 +1,9 @@
-#ifndef LOOPING_B_SPLINE_H
-#define LOOPING_B_SPLINE_H
+#pragma once
 
-#include "spline_library/spline.h"
-#include "spline_library/basis/uniform_cubic_bspline_common.h"
+#include "../spline.h"
+#include "uniform_cubic_bspline_common.h"
 
-#include "spline_library/utils/spline_setup.h"
+#include "../utils/spline_setup.h"
 
 template<class InterpolationType, typename floating_t=float>
 class LoopingUniformCubicBSpline final : public Spline<InterpolationType, floating_t>
@@ -96,5 +95,3 @@ floating_t LoopingUniformCubicBSpline<InterpolationType,floating_t>::arcLength(f
 
     return common.getLength(wrappedA, wrappedB);
 }
-
-#endif // LOOPING_B_SPLINE_H

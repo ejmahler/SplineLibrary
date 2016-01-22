@@ -1,5 +1,4 @@
-#ifndef GRAPHICSCONTROLLER_H
-#define GRAPHICSCONTROLLER_H
+#pragma once
 
 #include <memory>
 
@@ -97,5 +96,3 @@ private:
 
     std::shared_ptr<Spline<QVector3D>> colorSpline;
 };
-
-#endif // GRAPHICSCONTROLLER_H

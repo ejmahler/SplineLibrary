@@ -1,9 +1,7 @@
-#ifndef GENERIC_B_SPLINE
-#define GENERIC_B_SPLINE
+#pragma once
 
-
-#include "spline_library/spline.h"
-#include "spline_library/utils/spline_setup.h"
+#include "../spline.h"
+#include "../utils/spline_setup.h"
 
 #include "generic_b_spline_common.h"
 
@@ -69,6 +67,3 @@ GenericBSpline<InterpolationType,floating_t>::GenericBSpline(const std::vector<I
 
     common = GenericBSplineCommon<InterpolationType, floating_t>(points, std::move(knots), degree);
 }
-
-#endif // GENERIC_B_SPLINE
-

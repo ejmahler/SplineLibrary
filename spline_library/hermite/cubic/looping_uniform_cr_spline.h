@@ -1,10 +1,9 @@
-#ifndef LOOPING_UNIFORM_CR_SPLINE_H
-#define LOOPING_UNIFORM_CR_SPLINE_H
+#pragma once
 
-#include "spline_library/spline.h"
-#include "spline_library/hermite/cubic/uniform_cr_spline_common.h"
+#include "../../spline.h"
+#include "uniform_cr_spline_common.h"
 
-#include "spline_library/utils/spline_setup.h"
+#include "../../utils/spline_setup.h"
 
 template<class InterpolationType, typename floating_t=float>
 class LoopingUniformCRSpline final : public Spline<InterpolationType, floating_t>
@@ -96,5 +95,3 @@ floating_t LoopingUniformCRSpline<InterpolationType,floating_t>::arcLength(float
 
     return common.getLength(wrappedA, wrappedB);
 }
-
-#endif // LOOPING_UNIFORM_CR_SPLINE_H

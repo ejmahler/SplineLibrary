@@ -1,12 +1,11 @@
-#ifndef LOOPING_QUINTIC_HERMITE_SPLINE_H
-#define LOOPING_QUINTIC_HERMITE_SPLINE_H
+#pragma once
 
 #include <unordered_map>
 
-#include "spline_library/spline.h"
-#include "spline_library/hermite/quintic/quintic_hermite_spline_common.h"
+#include "../../spline.h"
+#include "quintic_hermite_spline_common.h"
 
-#include "spline_library/utils/spline_setup.h"
+#include "../../utils/spline_setup.h"
 
 template<class InterpolationType, typename floating_t=float>
 class LoopingQuinticHermiteSpline final : public Spline<InterpolationType, floating_t>
@@ -197,4 +196,3 @@ floating_t LoopingQuinticHermiteSpline<InterpolationType,floating_t>::arcLength(
 
     return common.getLength(wrappedA, wrappedB);
 }
-#endif // LOOPING_QUINTIC_HERMITE_SPLINE_H

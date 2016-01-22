@@ -1,5 +1,4 @@
-#ifndef SPLINESAMPLE_ADAPTOR_H
-#define SPLINESAMPLE_ADAPTOR_H
+#pragma once
 
 /***********************************************************************
  * Software License Agreement (BSD License)
@@ -34,7 +33,6 @@
 #include "nanoflann.hpp"
 #include <vector>
 #include <array>
-#include "spline_library/vector3d.h"
 
 template<int dimension, typename floating_t>
 struct SplineSamples
@@ -131,5 +129,3 @@ private:
     AdaptorType adaptor;
     TreeType tree;
 };
-
-#endif // SPLINESAMPLE_ADAPTOR_H

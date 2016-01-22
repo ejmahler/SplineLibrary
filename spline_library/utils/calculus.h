@@ -1,5 +1,4 @@
-#ifndef CALCULUS_H
-#define CALCULUS_H
+#pragma once
 
 #include <cmath>
 
@@ -60,6 +59,3 @@ floating_t SplineLibraryCalculus::adaptiveSimpsonsHelper(Function f,
                adaptiveSimpsonsHelper(f, mid, midValue, b, bValue, rightMid, rightMidValue);
     }
 }
-
-#endif // CALCULUS_H
-

@@ -1,5 +1,4 @@
-#ifndef TESTCALCULUS_H
-#define TESTCALCULUS_H
+#pragma once
 
 #include <QObject>
 
@@ -15,5 +14,3 @@ private slots:
     void testAdaptiveSimpsons_data(void);
     void testAdaptiveSimpsons(void);
 };
-
-#endif // TESTCALCULUS_H

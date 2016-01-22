@@ -1,5 +1,4 @@
-#ifndef BENCHMARKER_H
-#define BENCHMARKER_H
+#pragma once
 
 #include <QObject>
 #include <QMap>
@@ -7,8 +6,6 @@
 
 #include <vector>
 #include <random>
-
-#include "spline_library/vector3d.h"
 
 class Benchmarker : public QObject
 {
@@ -55,5 +52,3 @@ private: //data
     std::uniform_real_distribution<float> smallVarianceDistribution;
     bool canceled;
 };
-
-#endif // BENCHMARKER_H

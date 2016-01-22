@@ -1,5 +1,4 @@
-#ifndef SPLINE_H
-#define SPLINE_H
+#pragma once
 
 #include <vector>
 
@@ -73,5 +72,3 @@ struct Spline<InterpolationType,floating_t>::InterpolatedPTCW
         :position(p),tangent(t),curvature(c), wiggle(w)
     {}
 };
-
-#endif // SPLINE_H

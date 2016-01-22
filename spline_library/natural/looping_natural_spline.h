@@ -1,13 +1,12 @@
-#ifndef LOOPINGNATURALSPLINE_H
-#define LOOPINGNATURALSPLINE_H
+#pragma once
 
 #include <unordered_map>
 
-#include "spline_library/spline.h"
-#include "spline_library/natural/natural_spline_common.h"
+#include "../spline.h"
+#include "natural_spline_common.h"
 
-#include "spline_library/utils/linearalgebra.h"
-#include "spline_library/utils/spline_setup.h"
+#include "../utils/linearalgebra.h"
+#include "../utils/spline_setup.h"
 
 template<class InterpolationType, typename floating_t=float>
 class LoopingNaturalSpline final : public Spline<InterpolationType, floating_t>
@@ -159,5 +158,3 @@ floating_t LoopingNaturalSpline<InterpolationType,floating_t>::arcLength(floatin
 
     return common.getLength(wrappedA, wrappedB);
 }
-
-#endif // LOOPINGNATURALSPLINE_H

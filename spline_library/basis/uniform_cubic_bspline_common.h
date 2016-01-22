@@ -1,5 +1,4 @@
-#ifndef UNIFORM_CUBIC_BSPLINE_COMMON
-#define UNIFORM_CUBIC_BSPLINE_COMMON
+#pragma once
 
 #include <vector>
 
@@ -179,6 +178,3 @@ private: //methods
 private: //data
     std::vector<InterpolationType> points;
 };
-
-#endif // UNIFORM_CUBIC_BSPLINE_COMMON
-

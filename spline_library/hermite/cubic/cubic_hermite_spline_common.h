@@ -1,6 +1,4 @@
-#ifndef CUBIC_HERMITE_SPLINE_COMMON
-#define CUBIC_HERMITE_SPLINE_COMMON
-
+#pragma once
 
 #include <vector>
 
@@ -225,6 +223,3 @@ private: //data
     std::vector<CubicHermiteSplinePoint> points;
     std::vector<floating_t> knots;
 };
-
-#endif // CUBIC_HERMITE_SPLINE_COMMON
-

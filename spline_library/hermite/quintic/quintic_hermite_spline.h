@@ -1,13 +1,12 @@
-#ifndef QUINTICHERMITESPLINE_H
-#define QUINTICHERMITESPLINE_H
+#pragma once
 
 #include <unordered_map>
 #include <cassert>
 
-#include "spline_library/spline.h"
-#include "spline_library/hermite/quintic/quintic_hermite_spline_common.h"
+#include "../../spline.h"
+#include "quintic_hermite_spline_common.h"
 
-#include "spline_library/utils/spline_setup.h"
+#include "../../utils/spline_setup.h"
 
 template<class InterpolationType, typename floating_t=float>
 class QuinticHermiteSpline final : public Spline<InterpolationType, floating_t>
@@ -161,5 +160,3 @@ QuinticHermiteSpline<InterpolationType,floating_t>::QuinticHermiteSpline(const s
     }
     common = QuinticHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
 }
-
-#endif // QUINTICHERMITESPLINE_H

@@ -1,7 +1,8 @@
-#ifndef GENERIC_B_SPLINE_COMMON
-#define GENERIC_B_SPLINE_COMMON
+#pragma once
 
 #include <vector>
+
+#include "../utils/spline_setup.h"
 
 template<class InterpolationType, typename floating_t>
 class GenericBSplineCommon
@@ -173,6 +174,3 @@ InterpolationType GenericBSplineCommon<InterpolationType,floating_t>::computeDeb
         }
     }
 }
-
-#endif // GENERIC_B_SPLINE_COMMON
-
