@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "../utils/spline_setup.h"
+#include "../utils/calculus.h"
 
 template<class InterpolationType, typename floating_t>
 class UniformCubicBSplineCommon
@@ -79,6 +79,56 @@ public:
                     );
     }
 
+    inline floating_t getLength(floating_t a, floating_t b) const
+    {
+        //get the knot indices for the beginning and end
+        size_t aIndex = size_t(a);
+        size_t bIndex = size_t(b);
+
+        size_t numSegments = points.size() - 4;
+
+        if(aIndex > numSegments)
+            aIndex = numSegments;
+        if(bIndex > numSegments)
+            bIndex = numSegments;
+
+        //if a and b occur inside the same segment, compute the length within that segment
+        //but excude cases where a > b, because that means we need to wrap around
+        if(aIndex == bIndex && a <= b) {
+            return computeSegmentLength(aIndex, a - aIndex, b - aIndex);
+        }
+        else {
+            //a and b occur in different segments, so compute one length for every segment
+            floating_t result{0};
+
+            //first segment
+            result += computeSegmentLength(aIndex, a - aIndex, 1);
+
+            //last segment
+            result += computeSegmentLength(bIndex, 0, b - bIndex);
+
+            //if b index is less than a index, that means the user wants to wrap around the end of the spline and back to the beginning
+            //if so, add the number of points in the spline to bIndex, and we'll use mod to make sure it stays in range
+            if(bIndex <= aIndex)
+                bIndex += numSegments;
+
+            //middle segments
+            for(size_t i = aIndex + 1; i < bIndex; i++) {
+                result += computeSegmentLength(i%numSegments, 0, 1);
+            }
+
+            return result;
+        }
+    }
+
+    inline floating_t getTotalLength(void) const
+    {
+        floating_t result{0};
+        for(size_t i = 0; i <= points.size() - 4; i++) {
+            result += computeSegmentLength(i, 0, 1);
+        }
+        return result;
+    }
 
 private: //methods
     inline InterpolationType computePosition(size_t index, floating_t t) const
@@ -114,6 +164,16 @@ private: //methods
     inline InterpolationType computeWiggle(size_t index) const
     {
         return 3 * (points[index + 1] - points[index + 2]) + (points[index + 3] - points[index]);
+    }
+
+    inline floating_t computeSegmentLength(size_t index, floating_t from, floating_t to) const
+    {
+        auto segmentFunction = [this, index](floating_t t) -> floating_t {
+            auto tangent = computeTangent(index, t);
+            return tangent.length();
+        };
+
+        return SplineLibraryCalculus::adaptiveSimpsonsIntegral(segmentFunction, from, to);
     }
 
 private: //data

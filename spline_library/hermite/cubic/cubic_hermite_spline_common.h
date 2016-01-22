@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "../../utils/calculus.h"
 #include "../../utils/spline_setup.h"
 
 template<class InterpolationType, typename floating_t>
@@ -30,7 +31,7 @@ public:
         floating_t tDiff = (knots[knotIndex + 1] - knots[knotIndex]);
         floating_t localT = (globalT - knots[knotIndex]) / tDiff;
 
-        return computePosition(knotIndex, localT, tDiff);
+        return computePosition(knotIndex, tDiff, localT);
     }
 
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPT getTangent(floating_t globalT) const
@@ -44,8 +45,8 @@ public:
         floating_t localT = (globalT - knots[knotIndex]) / tDiff;
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPT(
-                    computePosition(knotIndex, localT, tDiff),
-                    computeTangent(knotIndex, localT, tDiff)
+                    computePosition(knotIndex, tDiff, localT),
+                    computeTangent(knotIndex, tDiff, localT)
                     );
     }
 
@@ -60,9 +61,9 @@ public:
         floating_t localT = (globalT - knots[knotIndex]) / tDiff;
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPTC(
-                    computePosition(knotIndex, localT, tDiff),
-                    computeTangent(knotIndex, localT, tDiff),
-                    computeCurvature(knotIndex, localT, tDiff)
+                    computePosition(knotIndex, tDiff, localT),
+                    computeTangent(knotIndex, tDiff, localT),
+                    computeCurvature(knotIndex, tDiff, localT)
                     );
     }
 
@@ -77,16 +78,68 @@ public:
         floating_t localT = (globalT - knots[knotIndex]) / tDiff;
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPTCW(
-                    computePosition(knotIndex, localT, tDiff),
-                    computeTangent(knotIndex, localT, tDiff),
-                    computeCurvature(knotIndex, localT, tDiff),
+                    computePosition(knotIndex, tDiff, localT),
+                    computeTangent(knotIndex, tDiff, localT),
+                    computeCurvature(knotIndex, tDiff, localT),
                     computeWiggle(knotIndex, tDiff)
                     );
     }
 
 
+    inline floating_t getLength(floating_t a, floating_t b) const
+    {
+        //get the knot indices for the beginning and end
+        size_t aIndex = size_t(a);
+        size_t bIndex = size_t(b);
+
+        size_t numSegments = knots.size() - 1;
+
+        if(aIndex > numSegments)
+            aIndex = numSegments;
+        if(bIndex > numSegments)
+            bIndex = numSegments;
+
+        //if a and b occur inside the same segment, compute the length within that segment
+        //but excude cases where a > b, because that means we need to wrap around
+        if(aIndex == bIndex && a <= b) {
+            return computeSegmentLength(aIndex, a - aIndex, b - aIndex);
+        }
+        else {
+            //a and b occur in different segments, so compute one length for every segment
+            floating_t result{0};
+
+            //first segment
+            result += computeSegmentLength(aIndex, a - aIndex, 1);
+
+            //last segment
+            result += computeSegmentLength(bIndex, 0, b - bIndex);
+
+            //if b index is less than a index, that means the user wants to wrap around the end of the spline and back to the beginning
+            //if so, add the number of points in the spline to bIndex, and we'll use mod to make sure it stays in range
+            if(bIndex <= aIndex)
+                bIndex += numSegments;
+
+            //middle segments
+            for(size_t i = aIndex + 1; i < bIndex; i++) {
+                result += computeSegmentLength(i%numSegments, 0, 1);
+            }
+
+            return result;
+        }
+    }
+
+    inline floating_t getTotalLength(void) const
+    {
+        floating_t result{0};
+        for(size_t i = 0; i < knots.size() - 1; i++) {
+            result += computeSegmentLength(i, 0, 1);
+        }
+        return result;
+    }
+
+
 private: //methods
-    inline InterpolationType computePosition(size_t index, floating_t t, floating_t tDiff) const
+    inline InterpolationType computePosition(size_t index, floating_t tDiff, floating_t t) const
     {
         auto oneMinusT = 1 - t;
 
@@ -104,7 +157,7 @@ private: //methods
                 basis01 * points[index + 1].position;
     }
 
-    inline InterpolationType computeTangent(size_t index, floating_t t, floating_t tDiff) const
+    inline InterpolationType computeTangent(size_t index, floating_t tDiff, floating_t t) const
     {
         auto oneMinusT = 1 - t;
 
@@ -126,7 +179,7 @@ private: //methods
                 ) / tDiff;
     }
 
-    inline InterpolationType computeCurvature(size_t index, floating_t t, floating_t tDiff) const
+    inline InterpolationType computeCurvature(size_t index, floating_t tDiff, floating_t t) const
     {
         auto d2_basis00 = 6 * (2 * t - 1);
         auto d2_basis10 = 2 * (3 * t - 2);
@@ -154,6 +207,18 @@ private: //methods
         return (
                     12 * (points[index].position - points[index + 1].position) + 6 * tDiff * (points[index].tangent + points[index + 1].tangent)
                 ) / (tDiff * tDiff * tDiff);
+    }
+
+
+    inline floating_t computeSegmentLength(size_t index, floating_t from, floating_t to) const
+    {
+        floating_t tDiff = knots[index + 1] - knots[index];
+        auto segmentFunction = [this, index, tDiff](floating_t t) -> floating_t {
+            auto tangent = computeTangent(index, tDiff, t);
+            return tangent.length();
+        };
+
+        return tDiff * SplineLibraryCalculus::adaptiveSimpsonsIntegral(segmentFunction, from, to);
     }
 
 private: //data

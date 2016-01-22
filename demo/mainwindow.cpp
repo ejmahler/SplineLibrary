@@ -67,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent)
     points.push_back(QVector2D(500,400));
     points.push_back(QVector2D(300,600));
     points.push_back(QVector2D(300,300));
-    points.push_back(QVector2D(100,200));
+    points.push_back(QVector2D(150,200));
     points.push_back(QVector2D(100,400));
 
 	rebuildSpline(points);

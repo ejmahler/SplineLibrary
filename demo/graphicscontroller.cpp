@@ -12,7 +12,6 @@
 #include <algorithm>
 
 #include "spline_library/splineinverter.h"
-#include "spline_library/splinelengthcalculator.h"
 #include "spline_library/natural/natural_spline.h"
 #include "spline_library/hermite/cubic/looping_cubic_hermite_spline.h"
 
@@ -121,9 +120,7 @@ void GraphicsController::paintEvent(QPaintEvent *event)
         drawSpline(painter, *secondarySpline.get(), Qt::blue);
     }
 	
-	painter.restore();
-
-    SplineLengthCalculator<QVector2D> lengthCalc(*mainSpline.get());
+    painter.restore();
 
 	//draw container for diagnostic data
 	painter.setOpacity(0.75);
@@ -139,7 +136,7 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 	painter.setOpacity(1);
     painter.setPen(Qt::white);
 
-    drawDiagnosticText(painter, 5, "Spline Length", QString::number(lengthCalc.findLength(0, mainSpline->getMaxT())));
+    drawDiagnosticText(painter, 5, "Spline Length", QString::number(mainSpline->totalLength()));
     if(displayData.highlightT)
         drawDiagnosticText(painter, 25, "Closest T", QString::number(displayData.highlightedT));
 

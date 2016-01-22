@@ -19,6 +19,9 @@ public:
     typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t x) const override;
     typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t x) const override;
 
+    floating_t arcLength(floating_t a, floating_t b) const override;
+    floating_t totalLength(void) const override { return common.getTotalLength(); }
+
     floating_t getT(int index) const override { return index; }
     floating_t getMaxT(void) const override { return maxT; }
 
@@ -83,6 +86,15 @@ typename Spline<InterpolationType,floating_t>::InterpolatedPTCW
 {
     floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
     return common.getWiggle(wrappedT);
+}
+
+template<class InterpolationType, typename floating_t>
+floating_t LoopingUniformCubicBSpline<InterpolationType,floating_t>::arcLength(floating_t a, floating_t b) const
+{
+    floating_t wrappedA =  SplineSetup::wrapGlobalT(a, maxT);
+    floating_t wrappedB =  SplineSetup::wrapGlobalT(b, maxT);
+
+    return common.getLength(wrappedA, wrappedB);
 }
 
 #endif // LOOPING_B_SPLINE_H

@@ -12,7 +12,6 @@ SOURCES += \
     demo/settingswidget.cpp \
     demo/settings.cpp \
     demo/mainwindow.cpp \
-    demo/main.cpp \
     demo/graphicscontroller.cpp \
     demo/benchmarker.cpp
 
@@ -30,7 +29,6 @@ HEADERS  += \
     spline_library/hermite/cubic/looping_cubic_hermite_spline.h \
     spline_library/hermite/quintic/looping_quintic_hermite_spline.h \
     spline_library/hermite/quintic/quintic_hermite_spline.h \
-    spline_library/splinelengthcalculator.h \
     spline_library/utils/linearalgebra.h \
     spline_library/utils/nanoflann.hpp \
     spline_library/utils/splinesample_adaptor.h \
@@ -47,11 +45,25 @@ HEADERS  += \
     spline_library/basis/looping_uniform_cubic_bspline.h \
     spline_library/hermite/cubic/uniform_cr_spline.h \
     spline_library/hermite/cubic/uniform_cr_spline_common.h \
-    spline_library/hermite/cubic/looping_uniform_cr_spline.h
+    spline_library/hermite/cubic/looping_uniform_cr_spline.h \
+    spline_library/utils/calculus.h \
 
 FORMS    += \
     demo/settingswidget.ui \
     demo/mainwindow.ui
+
+test {
+    message(Test build)
+    QT += testlib
+    TARGET = UnitTests
+
+    HEADERS += test/testcalculus.h
+
+    SOURCES += test/test_main.cpp \
+        test/testcalculus.cpp
+} else {
+    SOURCES += demo/main.cpp
+}
 
 
 #uncomment these to enable debug info in release mode
