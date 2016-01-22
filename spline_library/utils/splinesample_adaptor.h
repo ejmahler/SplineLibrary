@@ -93,8 +93,9 @@ struct SplineSampleAdaptor
     // Optional bounding-box computation: return false to default to a standard bbox computation loop.
     //   Return true if the BBOX was already computed by the class and returned in "bb" so it can be avoided to redo it again.
     //   Look at bb.size() to find out the expected dimensionality (e.g. 2 or 3 for point clouds)
+    // bb parameter is commented out because it's unused! we get obnoxious compiler warnings if we leave it uncommented
     template <class BBOX>
-    bool kdtree_get_bbox(BBOX &bb) const { return false; }
+    bool kdtree_get_bbox(BBOX &/*bb*/) const { return false; }
 };
 
 template<int dimension, typename floating_t>
