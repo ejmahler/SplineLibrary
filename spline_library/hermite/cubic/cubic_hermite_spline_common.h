@@ -203,7 +203,7 @@ private: //methods
         //intuitively it would just be the 2nd derivative of the position function and nothing else
         //if you know why please let me know
         return (
-                    12 * (points[index].position - points[index + 1].position) + 6 * tDiff * (points[index].tangent + points[index + 1].tangent)
+                    floating_t(12) * (points[index].position - points[index + 1].position) + floating_t(6) * tDiff * (points[index].tangent + points[index + 1].tangent)
                 ) / (tDiff * tDiff * tDiff);
     }
 

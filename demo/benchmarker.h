@@ -27,8 +27,8 @@ private:
     //**********
     //all of these functions can change based on whatever you want - i just needed a common place to put performance comparisons
 
-    void recursiveLength(int repeat, int queries,  size_t size);
-    void builtinLength(int repeat, int queries,  size_t size);
+    void uniformCR(int repeat, int queries,  size_t size);
+    void bspline(int repeat, int queries,  size_t size);
 
 private://support stuff
 

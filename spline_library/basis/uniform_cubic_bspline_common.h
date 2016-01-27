@@ -137,7 +137,7 @@ private: //methods
                     points[index + 1] * (t * t * 3 * (t - 2) + 4) +
                     points[index + 2] * (t * (t * (-3 * t + 3) + 3) + 1) +
                     points[index + 3] * (t * t * t)
-                ) / 6;
+                ) / floating_t(6);
     }
 
     inline InterpolationType computeTangent(size_t index, floating_t t) const
@@ -147,7 +147,7 @@ private: //methods
                     points[index + 1] * (t * (3 * t - 4)) +
                     points[index + 2] * ((3 * t + 1) * (1 - t)) +
                     points[index + 3] * (t * t)
-                ) / 2;
+                ) / floating_t(2);
     }
 
     inline InterpolationType computeCurvature(size_t index, floating_t t) const
@@ -162,7 +162,7 @@ private: //methods
 
     inline InterpolationType computeWiggle(size_t index) const
     {
-        return 3 * (points[index + 1] - points[index + 2]) + (points[index + 3] - points[index]);
+        return floating_t(3) * (points[index + 1] - points[index + 2]) + (points[index + 3] - points[index]);
     }
 
     inline floating_t computeSegmentLength(size_t index, floating_t from, floating_t to) const

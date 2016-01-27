@@ -145,7 +145,7 @@ private: //methods
         auto d = computeD(index, tDiff);
 
         //compute the derivative of the position function
-        return b + t * (2 * segments[index].c + (3 * t) * d);
+        return b + t * (floating_t(2) * segments[index].c + (3 * t) * d);
     }
 
     inline InterpolationType computeCurvature(size_t index, floating_t tDiff, floating_t t) const
@@ -153,7 +153,7 @@ private: //methods
         auto d = computeD(index, tDiff);
 
         //compute the 2nd derivative of the position function
-        return 2 * segments[index].c + (6 * t) * d;
+        return floating_t(2) * segments[index].c + (6 * t) * d;
     }
 
     inline InterpolationType computeWiggle(size_t index, floating_t tDiff) const
@@ -161,7 +161,7 @@ private: //methods
         auto d = computeD(index, tDiff);
 
         //compute the 3rd derivative of the position function
-        return 6 * d;
+        return floating_t(6) * d;
     }
 
 
@@ -170,7 +170,7 @@ private: //methods
     //testing shows that it's faster (because of cache, and pipelining, etc) to just recompute them every time
     inline InterpolationType computeB(size_t index, floating_t tDiff) const
     {
-        return (segments[index+1].a - segments[index].a) / tDiff - (tDiff / 3) * (segments[index+1].c + 2*segments[index].c);
+        return (segments[index+1].a - segments[index].a) / tDiff - (tDiff / 3) * (segments[index+1].c + floating_t(2)*segments[index].c);
     }
     inline InterpolationType computeD(size_t index, floating_t tDiff) const
     {

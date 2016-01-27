@@ -126,7 +126,7 @@ std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::comp
     std::vector<floating_t> diagonal(loop_limit - 1);
     for(size_t i = 1; i < loop_limit; i++)
     {
-        floating_t neighborDelta = 2 * (upperDiagonal.at(i - 1) + upperDiagonal.at(i));
+        floating_t neighborDelta = floating_t(2) * (upperDiagonal.at(i - 1) + upperDiagonal.at(i));
         diagonal[i - 1] = neighborDelta;
     }
 
@@ -142,7 +142,7 @@ std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::comp
     std::vector<InterpolationType> inputVector(loop_limit - 1);
     for(size_t i = 1; i < loop_limit; i++)
     {
-        InterpolationType neighborDelta = 3 * (deltaPoint.at(i) - deltaPoint.at(i - 1));
+        InterpolationType neighborDelta = floating_t(3) * (deltaPoint.at(i) - deltaPoint.at(i - 1));
         inputVector[i - 1] = neighborDelta;
     }
 
@@ -215,7 +215,7 @@ std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::comp
     std::vector<InterpolationType> inputVector(mainDiagonalSize);
     for(size_t i = 0; i < mainDiagonalSize; i++)
     {
-        inputVector[i] = 3 * (deltaPoint.at(i + 1) - deltaPoint.at(i));
+        inputVector[i] = floating_t(3) * (deltaPoint.at(i + 1) - deltaPoint.at(i));
     }
 
     //the first and last of the values in maindiagonalare different than normal

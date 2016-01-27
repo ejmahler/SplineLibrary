@@ -445,9 +445,3 @@ void MainWindow::runBenchmark(void)
     delete benchmarker;
     benchmarker = nullptr;
 }
-
-template<>
-std::array<float, 2> convertPoint<QVector2D, float, 2>(const QVector2D& point)
-{
-    return {point.x(), point.y()};
-}

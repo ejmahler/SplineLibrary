@@ -208,12 +208,12 @@ private: //methods
         //tests and such have shown that we have to scale this by the inverse of the t distance, and i'm not sure why
         //intuitively it would just be the 2nd derivative of the position function and nothing else
         //if you know why please let me know
-        return 12 * (points[index] - points[index + 1]) + 6 * (beforeTangent + afterTangent);
+        return floating_t(12) * (points[index] - points[index + 1]) + floating_t(6) * (beforeTangent + afterTangent);
     }
 
     inline InterpolationType computeTangentAtIndex(size_t i) const
     {
-        return (points[i + 1] - points[i - 1]) / 2;
+        return (points[i + 1] - points[i - 1]) / floating_t(2);
     }
 
 

@@ -80,5 +80,4 @@ private: //data
     QPoint originalMousePos;
 };
 
-template<>
-std::array<float, 2> convertPoint<QVector2D, float, 2>(const QVector2D& point);
+

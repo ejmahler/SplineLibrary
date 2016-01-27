@@ -13,14 +13,14 @@ SOURCES += \
     demo/settings.cpp \
     demo/mainwindow.cpp \
     demo/graphicscontroller.cpp \
-    demo/benchmarker.cpp
+    demo/benchmarker.cpp \
+    test/testvector.cpp
 
 HEADERS  += \
     demo/settingswidget.h \
     demo/settings.h \
     demo/mainwindow.h \
     demo/graphicscontroller.h \
-    spline_library/vector3d.h \
     spline_library/splineinverter.h \
     spline_library/spline.h \
     spline_library/natural/looping_natural_spline.h \
@@ -47,6 +47,8 @@ HEADERS  += \
     spline_library/hermite/cubic/uniform_cr_spline_common.h \
     spline_library/hermite/cubic/looping_uniform_cr_spline.h \
     spline_library/utils/calculus.h \
+    test/testvector.h \
+    spline_library/vector.h
 
 FORMS    += \
     demo/settingswidget.ui \

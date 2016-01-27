@@ -8,10 +8,7 @@
 #include "spline.h"
 #include "utils/splinesample_adaptor.h"
 
-template<class InterpolationType, typename floating_t, int sampleDimension>
-std::array<floating_t, sampleDimension> convertPoint(const InterpolationType& point);
-
-template<class InterpolationType, typename floating_t=float, int sampleDimension=2>
+template<class InterpolationType, typename floating_t=float, size_t sampleDimension=2>
 class SplineInverter
 {
 public:
@@ -22,6 +19,8 @@ public:
 private: //methods
     SplineSamples<sampleDimension, floating_t> makeSplineSamples(int samplesPerT) const;
 
+    static std::array<floating_t, sampleDimension> convertPoint(const InterpolationType &p);
+
 private: //data
     const Spline<InterpolationType, floating_t> &spline;
 
@@ -31,7 +30,7 @@ private: //data
     SplineSampleTree<sampleDimension, floating_t> sampleTree;
 };
 
-template<class InterpolationType, typename floating_t, int sampleDimension>
+template<class InterpolationType, typename floating_t, size_t sampleDimension>
 SplineInverter<InterpolationType, floating_t, sampleDimension>::SplineInverter(
         const Spline<InterpolationType, floating_t> &spline,
         int samplesPerT)
@@ -40,7 +39,7 @@ SplineInverter<InterpolationType, floating_t, sampleDimension>::SplineInverter(
 
 }
 
-template<class InterpolationType, typename floating_t, int sampleDimension>
+template<class InterpolationType, typename floating_t, size_t sampleDimension>
 SplineSamples<sampleDimension, floating_t> SplineInverter<InterpolationType, floating_t, sampleDimension>::makeSplineSamples(int samplesPerT) const
 {
     SplineSamples<sampleDimension, floating_t> samples;
@@ -52,24 +51,24 @@ SplineSamples<sampleDimension, floating_t> SplineInverter<InterpolationType, flo
     for(int i = 0; i < numSegments; i++)
     {
         floating_t currentT = i * sampleStep;
-        auto sampledPoint = convertPoint<InterpolationType, floating_t, sampleDimension>(spline.getPosition(currentT));
+        auto sampledPoint = convertPoint(spline.getPosition(currentT));
         samples.pts.emplace_back(sampledPoint, currentT);
     }
 
     //if the spline isn't a loop, add a sample for maxT
     if(!spline.isLooping())
     {
-        auto sampledPoint = convertPoint<InterpolationType, floating_t, sampleDimension>(spline.getPosition(maxT));
+        auto sampledPoint = convertPoint(spline.getPosition(maxT));
         samples.pts.emplace_back(sampledPoint, maxT);
     }
 
     return samples;
 }
 
-template<class InterpolationType, typename floating_t, int sampleDimension>
+template<class InterpolationType, typename floating_t, size_t sampleDimension>
 floating_t SplineInverter<InterpolationType, floating_t, sampleDimension>::findClosestT(const InterpolationType &queryPoint) const
 {
-    auto convertedQueryPoint = convertPoint<InterpolationType, floating_t, sampleDimension>(queryPoint);
+    auto convertedQueryPoint = convertPoint(queryPoint);
     floating_t closestSampleT = sampleTree.findClosestSample(convertedQueryPoint);
 
     //compute the first derivative of distance to spline at the sample point
@@ -115,4 +114,14 @@ floating_t SplineInverter<InterpolationType, floating_t, sampleDimension>::findC
     //use brent's method to find the actual closest point, using a and b as bounds
     auto result = boost::math::tools::brent_find_minima(distanceFunction, a, b, 16);
     return result.first;
+}
+
+template<class InterpolationType, typename floating_t, size_t sampleDimension>
+std::array<floating_t, sampleDimension> SplineInverter<InterpolationType, floating_t, sampleDimension>::convertPoint(const InterpolationType &p)
+{
+    std::array<floating_t, sampleDimension> result;
+    for(size_t i = 0; i < sampleDimension; i++) {
+        result[i] = p[i];
+    }
+    return result;
 }
