@@ -139,18 +139,16 @@ public:
 private: //methods
     inline InterpolationType computePosition(size_t index, floating_t tDiff, floating_t t) const
     {
-        auto oneMinusT = 1 - t;
-
         //this is a logical extension of the cubic hermite spline's basis functions
         //that has one basis function for t0 position, one for t1 position
         //one for t0 tangent (1st derivative of position), and one for t1 tangent
         //this adds 2 more basis functions, one for t0 curvature (2nd derivative) and t1 curvature
         //see this paper for details http://www.rose-hulman.edu/~finn/CCLI/Notes/day09.pdf
-        auto basis00 = (oneMinusT * oneMinusT * oneMinusT * (t * (6 * t + 3) + 1));
-        auto basis10 = (t * oneMinusT * oneMinusT * oneMinusT * (3 * t + 1));
-        auto basis20 = floating_t(0.5) * oneMinusT * oneMinusT * oneMinusT * t * t;
-        auto basis21 = floating_t(0.5) * oneMinusT * oneMinusT * t * t * t;
-        auto basis11 = t * t * t * oneMinusT * (t * 3 - 4);
+        auto basis00 = (1 - t) * (1 - t) * (1 - t) * (t * (6 * t + 3) + 1);
+        auto basis10 = t * (1 - t) * (1 - t) * (1 - t) * (3 * t + 1);
+        auto basis20 = floating_t(0.5) * (1 - t) * (1 - t) * (1 - t) * t * t;
+        auto basis21 = floating_t(0.5) * (1 - t) * (1 - t) * t * t * t;
+        auto basis11 = t * t * t * (1 - t) * (t * 3 - 4);
         auto basis01 = t * t * t * (t * (6 * t - 15) + 10);
 
         return
@@ -165,17 +163,15 @@ private: //methods
 
     inline InterpolationType computeTangent(size_t index, floating_t tDiff, floating_t t) const
     {
-        auto oneMinusT = 1 - t;
-
         //we're computing the derivative of the computePosition function with respect to t
         //we can do this by computing the derivatives of each of its basis functions.
         //thankfully this can easily be done analytically since they're polynomials!
-        auto d_basis00 = floating_t(30) * oneMinusT * (t - 1) * t * t;
-        auto d_basis10 = oneMinusT * oneMinusT * (1 - 3 * t) * (5 * t + 1);
-        auto d_basis20 = floating_t(0.5) * oneMinusT * oneMinusT * t * (2 - 5 * t);
-        auto d_basis21 = floating_t(0.5) * oneMinusT * t * t * (3 - 5 * t);
-        auto d_basis11 = -t * t * (2 - 3 * t) * (5 * t - 6);
-        auto d_basis01 = floating_t(30) * oneMinusT * oneMinusT * t * t;
+        auto d_basis00 =  (-30) * (1 - t) * (1 - t) * t * t;
+        auto d_basis10 = (1 - t) * (1 - t) * (1 - 3 * t) * (5 * t + 1);
+        auto d_basis20 = floating_t(-0.5) * (1 - t) * (1 - t) * t * (5 * t - 2);
+        auto d_basis21 = floating_t(0.5) * (1 - t) * t * t * (3 - 5 * t);
+        auto d_basis11 = t * t * (2 - 3 * t) * (5 * t - 6);
+        auto d_basis01 = 30 * (t - 1) * (t - 1) * t * t;
 
         //tests and such have shown that we have to scale this by the inverse of the t distance, and i'm not sure why
         //intuitively it would just be the derivative of the position function and nothing else
@@ -193,17 +189,15 @@ private: //methods
 
     inline InterpolationType computeCurvature(size_t index, floating_t tDiff, floating_t t) const
     {
-        auto oneMinusT = 1 - t;
-
         //we're computing the second derivative of the computePosition function with respect to t
         //we can do this by computing the second derivatives of each of its basis functions.
         //thankfully this can easily be done analytically since they're polynomials!
-        auto d2_basis00 = floating_t(60) * oneMinusT * t * (2 * t - 1);
-        auto d2_basis10 = floating_t(12) * oneMinusT * t * (5 * t - 3);
-        auto d2_basis20 = t * (t * (-10 * t + 18) - 9) + 1;
+        auto d2_basis00 = t * ((180 - 120 * t) * t - 60);
+        auto d2_basis10 = t * ((96 - 60 * t) * t - 36);
+        auto d2_basis20 = t * ((18  -10 * t) * t - 9) + 1;
         auto d2_basis21 = t * (t * (10 * t - 12) + 3);
-        auto d2_basis11 = floating_t(12) * oneMinusT * t * (5 * t - 2);
-        auto d2_basis01 = floating_t(60) * oneMinusT * t * (1 - 2 * t);
+        auto d2_basis11 = t * ((84 - 60 * t) * t - 24);
+        auto d2_basis01 = -d2_basis00;
 
         //tests and such have shown that we have to scale this by the inverse of the t distance, and i'm not sure why
         //intuitively it would just be the 2nd derivative of the position function and nothing else
@@ -222,11 +216,11 @@ private: //methods
     inline InterpolationType computeWiggle(size_t index, floating_t tDiff, floating_t t) const
     {
         //we're computing the third derivative of the computePosition function with respect to t
-        auto d3_basis00 = floating_t(60) * (6 * t * (1 - t) + 1);
-        auto d3_basis10 = floating_t(12) * (t * (16 - 15 * t) + 3);
-        auto d3_basis20 = t * (36 - 30 * t) - 9;
-        auto d3_basis21 = t * (30 * t - 24) + 3;
-        auto d3_basis11 = floating_t(12) * (t * (14 - 15 * t) + 2);
+        auto d3_basis00 = (360 - 360*t) * t - 60;
+        auto d3_basis10 = (192 - 180*t) * t - 36;
+        auto d3_basis20 = (36 - 30 * t) * t - 9;
+        auto d3_basis21 = (30 * t - 24) * t + 3;
+        auto d3_basis11 = (168 - 180*t) * t - 24;
         auto d3_basis01 = -d3_basis00;
 
         //tests and such have shown that we have to scale this by the inverse of the t distance, and i'm not sure why

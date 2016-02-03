@@ -13,8 +13,8 @@ SOURCES += \
     demo/settings.cpp \
     demo/mainwindow.cpp \
     demo/graphicscontroller.cpp \
-    demo/benchmarker.cpp \
-    test/testvector.cpp
+    demo/benchmarker.cpp
+
 
 HEADERS  += \
     demo/settingswidget.h \
@@ -47,7 +47,6 @@ HEADERS  += \
     spline_library/hermite/cubic/uniform_cr_spline_common.h \
     spline_library/hermite/cubic/looping_uniform_cr_spline.h \
     spline_library/utils/calculus.h \
-    test/testvector.h \
     spline_library/vector.h
 
 FORMS    += \
@@ -59,10 +58,16 @@ test {
     QT += testlib
     TARGET = UnitTests
 
-    HEADERS += test/testcalculus.h
+    HEADERS += \
+        test/testcalculus.h \
+        test/testvector.h \
+        test/testspline.h
 
-    SOURCES += test/test_main.cpp \
-        test/testcalculus.cpp
+    SOURCES += \
+        test/test_main.cpp \
+        test/testcalculus.cpp \
+        test/testvector.cpp \
+        test/testspline.cpp
 } else {
     SOURCES += demo/main.cpp
 }
