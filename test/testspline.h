@@ -27,15 +27,10 @@ private:
     //use the gauss-legendre quadrature algorithm to numerically integrate f from a to b
     //this one uses 7 points atm just because 7 is accurate enough for these unit tests
     //if it turns out to not be accurate enough, the point count can be upped
+    //this is different from the one in calculus.h because we need this to return a vector2 for unit test purposes
     template<class Function>
     Vector2 gaussLegendreQuadratureIntegral(Function f, float a, float b) const;
 };
-
-
-
-
-
-
 
 template<class Function>
 Vector2 TestSpline::gaussLegendreQuadratureIntegral(Function f, float a, float b) const
@@ -70,3 +65,11 @@ Vector2 TestSpline::gaussLegendreQuadratureIntegral(Function f, float a, float b
     }
     return halfDiff  * sum;
 }
+
+
+
+
+
+
+
+

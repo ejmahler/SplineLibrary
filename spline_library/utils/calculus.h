@@ -7,55 +7,60 @@ private:
     SplineLibraryCalculus() = default;
 
 public:
-    //numerically compute the integral of f from a to b, using the adaptive simpsons method
+    //use the gauss-legendre quadrature algorithm to numerically integrate f from a to b
+    //as of this writing, hardcoded to use 13 points
     template<class Function, typename floating_t>
-    inline static floating_t adaptiveSimpsonsIntegral(Function f, floating_t a, floating_t b) {
-        floating_t mid = (a+b)/2;
-        return adaptiveSimpsonsHelper(f, a, f(a), b, f(b), mid, f(mid));
-    }
+    inline static floating_t gaussLegendreQuadratureIntegral(Function f, floating_t a, floating_t b);
 
-private:
-    //recursive helper method for adaptive simpsons method
-    template<class Function, typename floating_t>
-    static floating_t adaptiveSimpsonsHelper(Function f, floating_t a, floating_t aValue, floating_t b, floating_t bValue, floating_t mid, floating_t midValue);
-
-
-    template<typename floating_t>
-    inline static floating_t simpsons(floating_t a, floating_t aValue, floating_t b, floating_t bValue, floating_t midValue) {
-        return ((b - a) / 6) * (aValue + 4 * midValue + bValue);
-    }
 };
 
-
-
 template<class Function, typename floating_t>
-floating_t SplineLibraryCalculus::adaptiveSimpsonsHelper(Function f,
-                                                                floating_t a, floating_t aValue,
-                                                                floating_t b, floating_t bValue,
-                                                                floating_t mid, floating_t midValue)
+floating_t SplineLibraryCalculus::gaussLegendreQuadratureIntegral(Function f, floating_t a, floating_t b)
 {
-    //compute integral for whole stretch
-    floating_t mainIntegral = simpsons(a, aValue, b, bValue, midValue);
+    const size_t NUM_POINTS = 13;
 
-    //compute integral for left half
-    floating_t leftMid = (a + mid)/2;
-    floating_t leftMidValue = f(leftMid);
-    floating_t leftIntegral = simpsons(a, aValue, mid, midValue, leftMidValue);
+    //these are precomputed :( It would be cool to compute these at compile time, but apparently
+    //it's not easy to compute the points/weights just given the number of points.
+    //it involves computing every root of a polynomial. which can obviously be done, but not in a reasonable amount of code
+    std::array<floating_t, NUM_POINTS> quadraturePoints = {
+         0.0000000000000000,
+        -0.2304583159551348,
+         0.2304583159551348,
+        -0.4484927510364469,
+         0.4484927510364469,
+        -0.6423493394403402,
+         0.6423493394403402,
+        -0.8015780907333099,
+         0.8015780907333099,
+        -0.9175983992229779,
+         0.9175983992229779,
+        -0.9841830547185881,
+         0.9841830547185881
+    };
 
-    //compute integral for right half
-    floating_t rightMid = (b + mid)/2;
-    floating_t rightMidValue = f(rightMid);
-    floating_t rightIntegral = simpsons(mid, midValue, b, bValue, rightMidValue);
+    std::array<floating_t, NUM_POINTS> quadratureWeights = {
+        0.2325515532308739,
+        0.2262831802628972,
+        0.2262831802628972,
+        0.2078160475368885,
+        0.2078160475368885,
+        0.1781459807619457,
+        0.1781459807619457,
+        0.1388735102197872,
+        0.1388735102197872,
+        0.0921214998377285,
+        0.0921214998377285,
+        0.0404840047653159,
+        0.0404840047653159
+    };
 
-    //if mainIntegral is roughly equal to leftIntegral + rightIntegral, return
-    floating_t sideIntegrals = leftIntegral + rightIntegral;
-    if(std::abs((sideIntegrals - mainIntegral) / mainIntegral) < .001 || (b - a) < .001)
+    floating_t halfDiff = (b - a) / 2;
+    floating_t halfSum = (a + b) / 2;
+
+    floating_t sum(0);
+    for(size_t i = 0; i < NUM_POINTS; i++)
     {
-        return sideIntegrals;
+        sum += quadratureWeights[i] * f(halfDiff * quadraturePoints[i] + halfSum);
     }
-    else
-    {
-        return adaptiveSimpsonsHelper(f, a, aValue, mid, midValue, leftMid, leftMidValue) +
-               adaptiveSimpsonsHelper(f, mid, midValue, b, bValue, rightMid, rightMidValue);
-    }
+    return halfDiff * sum;
 }

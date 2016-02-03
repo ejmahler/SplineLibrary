@@ -245,7 +245,7 @@ private: //methods
             return tangent.length();
         };
 
-        return tDiff * SplineLibraryCalculus::adaptiveSimpsonsIntegral(segmentFunction, from, to);
+        return tDiff * SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, from, to);
     }
 
 private: //data

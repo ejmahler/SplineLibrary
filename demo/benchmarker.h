@@ -6,6 +6,11 @@
 
 #include <vector>
 #include <random>
+#include <functional>
+
+#include "spline_library/vector.h"
+
+typedef Vector<2, double> VectorT;
 
 class Benchmarker : public QObject
 {
@@ -27,14 +32,13 @@ private:
     //**********
     //all of these functions can change based on whatever you want - i just needed a common place to put performance comparisons
 
-    void uniformCR(int repeat, int queries,  size_t size);
-    void bspline(int repeat, int queries,  size_t size);
+    void testPrecision(QString message, int repeat, int queries, size_t size, std::function<std::vector<VectorT> (size_t)> pointGenerator);
 
 private://support stuff
 
-    std::vector<QVector2D> randomPoints2D_Uniform(size_t size);
-    std::vector<QVector2D> randomPoints2D_SmallVariance(size_t size);
-    float randomFloat(float max);
+    std::vector<VectorT> randomPoints2D_Uniform(size_t size);
+    std::vector<VectorT> randomPoints2D_SmallVariance(size_t size);
+    double randomFloat(double max);
 
     template <class Function, typename... Args>
     float timeFunction(Function f, Args&&... a) {
@@ -47,8 +51,8 @@ private://support stuff
 
 private: //data
     std::minstd_rand gen;
-    std::uniform_real_distribution<float> bigDistribution;
-    std::uniform_real_distribution<float> smallDistribution;
-    std::uniform_real_distribution<float> smallVarianceDistribution;
+    std::uniform_real_distribution<double> bigDistribution;
+    std::uniform_real_distribution<double> smallDistribution;
+    std::uniform_real_distribution<double> smallVarianceDistribution;
     bool canceled;
 };

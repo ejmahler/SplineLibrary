@@ -11,6 +11,6 @@ public:
 signals:
 
 private slots:
-    void testAdaptiveSimpsons_data(void);
-    void testAdaptiveSimpsons(void);
+    void testGaussLegendre_data(void);
+    void testGaussLegendre(void);
 };

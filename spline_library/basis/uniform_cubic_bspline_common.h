@@ -172,7 +172,7 @@ private: //methods
             return tangent.length();
         };
 
-        return SplineLibraryCalculus::adaptiveSimpsonsIntegral(segmentFunction, from, to);
+        return SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, from, to);
     }
 
 private: //data
