@@ -8,6 +8,9 @@ CONFIG += c++14
 #on mac we want to look for boost in homebrew folder
 macx:INCLUDEPATH += /usr/local/Cellar/boost/1.59.0/include
 
+#on windows we need to manually add opengl because ???
+windows: LIBS += -lopengl32
+
 SOURCES += \
     demo/settingswidget.cpp \
     demo/settings.cpp \
@@ -61,13 +64,15 @@ test {
     HEADERS += \
         test/testcalculus.h \
         test/testvector.h \
-        test/testspline.h
+        test/testspline.h \
+        test/testlinalg.h
 
     SOURCES += \
         test/test_main.cpp \
         test/testcalculus.cpp \
         test/testvector.cpp \
-        test/testspline.cpp
+        test/testspline.cpp \
+        test/testlinalg.cpp
 } else {
     SOURCES += demo/main.cpp
 }
