@@ -16,12 +16,21 @@ public:
     inline InterpolationType getPosition(floating_t globalT) const
     {
         size_t startIndex = SplineSetup::getIndexForT(knots, globalT);
+        if(startIndex >= positions.size() - 2)
+        {
+            startIndex = positions.size() - 2;
+        }
+
         return computeDeboor(startIndex + 1, splineDegree, globalT);
     }
 
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPT getTangent(floating_t globalT) const
     {
         size_t startIndex = SplineSetup::getIndexForT(knots, globalT);
+        if(startIndex >= positions.size() - 2)
+        {
+            startIndex = positions.size() - 2;
+        }
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPT(
                     computeDeboor(startIndex + 1, splineDegree, globalT),
@@ -32,6 +41,10 @@ public:
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t globalT) const
     {
         size_t startIndex = SplineSetup::getIndexForT(knots, globalT);
+        if(startIndex >= positions.size() - 2)
+        {
+            startIndex = positions.size() - 2;
+        }
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPTC(
                     computeDeboor(startIndex + 1, splineDegree, globalT),
@@ -43,6 +56,10 @@ public:
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t globalT) const
     {
         size_t startIndex = SplineSetup::getIndexForT(knots, globalT);
+        if(startIndex >= positions.size() - 2)
+        {
+            startIndex = positions.size() - 2;
+        }
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPTCW(
                     computeDeboor(startIndex + 1, splineDegree, globalT),
