@@ -15,7 +15,7 @@ public:
     static std::vector<OutputType> solveSymmetricTridiagonal(
 
             std::vector<floating_t> mainDiagonal,
-            std::vector<floating_t> secondaryDiagonal,
+            const std::vector<floating_t> secondaryDiagonal,
             std::vector<OutputType> inputVector);
 
     //solve the given tridiagonal matrix system
@@ -23,8 +23,8 @@ public:
     static std::vector<OutputType> solveTridiagonal(
 
             std::vector<floating_t> mainDiagonal,
-            std::vector<floating_t> upperDiagonal,
-            std::vector<floating_t> lowerDiagonal,
+            const std::vector<floating_t> upperDiagonal,
+            const std::vector<floating_t> lowerDiagonal,
             std::vector<OutputType> inputVector);
 
     //solve the given cyclic tridiagonal matrix system, with the assumption that the lower diagonal and upper diagonal (ie secondaryDiagonal) are identical
@@ -41,28 +41,28 @@ template<class OutputType, typename floating_t>
 std::vector<OutputType> LinearAlgebra::solveTridiagonal(
 
         std::vector<floating_t> mainDiagonal,
-        std::vector<floating_t> upperDiagonal,
-        std::vector<floating_t> lowerDiagonal,
+        const std::vector<floating_t> upperDiagonal,
+        const std::vector<floating_t> lowerDiagonal,
         std::vector<OutputType> inputVector)
 {
     //use the thomas algorithm to solve the tridiagonal matrix
     // http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
 
     //forward sweep
-    upperDiagonal[0] /= mainDiagonal[0];
-    inputVector[0] /= mainDiagonal[0];
     for(size_t i = 1; i < inputVector.size(); i++)
     {
-        upperDiagonal[i] /= (mainDiagonal[i] - lowerDiagonal[i - 1] * upperDiagonal[i - 1]);
-        inputVector[i] = (inputVector[i] - lowerDiagonal[i - 1] * inputVector[i - 1]) /
-                (mainDiagonal[i] - lowerDiagonal[i - 1] * upperDiagonal[i - 1]);
+        floating_t m = lowerDiagonal[i - 1] / mainDiagonal[i - 1];
+        mainDiagonal[i] -= m * upperDiagonal[i - 1];
+        inputVector[i] -= m * inputVector[i - 1];
     }
 
     //back substitution
-    int finalIndex = inputVector.size() - 1;
-    for(int i = finalIndex - 1; i >= 0; i--)
+    size_t finalIndex = inputVector.size();
+    inputVector[finalIndex - 1] /= mainDiagonal[finalIndex - 1];
+
+    for(size_t i = finalIndex - 1; i > 0; i--)
     {
-        inputVector[i] -= upperDiagonal[i] * inputVector[i + 1];
+        inputVector[i - 1] = (inputVector[i - 1] - upperDiagonal[i - 1] * inputVector[i]) / mainDiagonal[i - 1];
     }
 
     return inputVector;
@@ -72,30 +72,30 @@ template<class OutputType, typename floating_t>
 std::vector<OutputType> LinearAlgebra::solveSymmetricTridiagonal(
 
         std::vector<floating_t> mainDiagonal,
-        std::vector<floating_t> secondaryDiagonal,
+        const std::vector<floating_t> secondaryDiagonal,
         std::vector<OutputType> inputVector)
 {
     //use the thomas algorithm to solve the tridiagonal matrix
     // http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
-    std::vector<OutputType> outputVector(inputVector.size());
 
     //forward sweep
     for(size_t i = 1; i < inputVector.size(); i++)
     {
-        floating_t m = secondaryDiagonal.at(i - 1) / mainDiagonal.at(i - 1);
-        mainDiagonal[i] -= m * secondaryDiagonal.at(i - 1);
-        inputVector[i] -= m * inputVector.at(i - 1);
+        floating_t m = secondaryDiagonal[i - 1] / mainDiagonal[i - 1];
+        mainDiagonal[i] -= m * secondaryDiagonal[i - 1];
+        inputVector[i] -= m * inputVector[i - 1];
     }
 
     //back substitution
-    int finalIndex = inputVector.size() - 1;
-    outputVector[finalIndex] = inputVector.at(finalIndex) / mainDiagonal.at(finalIndex);
-    for(int i = finalIndex - 1; i >= 0; i--)
+    size_t finalIndex = inputVector.size();
+    inputVector[finalIndex - 1] /= mainDiagonal[finalIndex - 1];
+
+    for(size_t i = finalIndex - 1; i > 0; i--)
     {
-        outputVector[i] = (inputVector.at(i) - secondaryDiagonal.at(i) * outputVector.at(i + 1)) / mainDiagonal.at(i);
+        inputVector[i - 1] = (inputVector[i - 1] - secondaryDiagonal[i - 1] * inputVector[i]) / mainDiagonal[i - 1];
     }
 
-    return outputVector;
+    return inputVector;
 }
 
 template<class OutputType, typename floating_t>
