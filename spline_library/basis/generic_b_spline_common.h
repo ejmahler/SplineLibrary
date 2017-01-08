@@ -75,12 +75,15 @@ public:
         size_t aIndex = SplineSetup::getIndexForT(knots, a);
         size_t bIndex = SplineSetup::getIndexForT(knots, b);
 
-        size_t numSegments = positions.size() - (splineDegree - 1);
+        if(aIndex > positions.size() - 2)
+            aIndex = positions.size() - 2;
+        if(bIndex > positions.size() - 2)
+            bIndex = positions.size() - 2;
 
         //if a and b occur inside the same segment, compute the length within that segment
         //but excude cases where a > b, because that means we need to wrap around
         if(aIndex == bIndex && a <= b) {
-            return computeSegmentLength(aIndex, a - aIndex, b - aIndex);
+            return computeSegmentLength(aIndex, a, b);
         }
         else {
             //a and b occur in different segments, so compute one length for every segment
@@ -94,6 +97,7 @@ public:
 
             //if b index is less than a index, that means the user wants to wrap around the end of the spline and back to the beginning
             //if so, add the number of points in the spline to bIndex, and we'll use mod to make sure it stays in range
+            size_t numSegments = positions.size() - splineDegree;
             if(bIndex <= aIndex)
                 bIndex += numSegments;
 
@@ -170,7 +174,7 @@ InterpolationType GenericBSplineCommon<InterpolationType,floating_t>::computeDeb
     }
     else
     {
-        float multiplier = degree / (knots[knotIndex + splineDegree - degree] - knots[knotIndex - 1]);
+        floating_t multiplier = degree / (knots[knotIndex + splineDegree - degree] - knots[knotIndex - 1]);
 
         if(derivativeLevel <= 1)
         {

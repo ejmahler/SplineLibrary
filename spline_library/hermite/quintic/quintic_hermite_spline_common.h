@@ -86,33 +86,35 @@ public:
     inline floating_t getLength(floating_t a, floating_t b) const
     {
         //get the knot indices for the beginning and end
-        size_t aIndex = size_t(a);
-        size_t bIndex = size_t(b);
+        size_t aIndex = SplineSetup::getIndexForT(knots, a);
+        size_t bIndex = SplineSetup::getIndexForT(knots, b);
 
-        size_t numSegments = knots.size() - 1;
+        if(aIndex > knots.size() - 2)
+            aIndex = knots.size() - 2;
+        if(bIndex > knots.size() - 2)
+            bIndex = knots.size() - 2;
 
-        if(aIndex > numSegments)
-            aIndex = numSegments;
-        if(bIndex > numSegments)
-            bIndex = numSegments;
+        floating_t aPercent = (a - knots[aIndex]) / (knots[aIndex + 1] - knots[aIndex]);
+        floating_t bPercent = (b - knots[bIndex]) / (knots[bIndex + 1] - knots[bIndex]);
 
         //if a and b occur inside the same segment, compute the length within that segment
         //but excude cases where a > b, because that means we need to wrap around
         if(aIndex == bIndex && a <= b) {
-            return computeSegmentLength(aIndex, a - aIndex, b - aIndex);
+            return computeSegmentLength(aIndex, aPercent, bPercent);
         }
         else {
             //a and b occur in different segments, so compute one length for every segment
             floating_t result{0};
 
             //first segment
-            result += computeSegmentLength(aIndex, a - aIndex, 1);
+            result += computeSegmentLength(aIndex, aPercent, 1);;
 
             //last segment
-            result += computeSegmentLength(bIndex, 0, b - bIndex);
+            result += computeSegmentLength(bIndex, 0, bPercent);
 
             //if b index is less than a index, that means the user wants to wrap around the end of the spline and back to the beginning
             //if so, add the number of points in the spline to bIndex, and we'll use mod to make sure it stays in range
+            size_t numSegments = knots.size() - 1;
             if(bIndex <= aIndex)
                 bIndex += numSegments;
 

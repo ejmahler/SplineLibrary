@@ -100,10 +100,10 @@ public:
             floating_t result{0};
 
             //first segment
-            result += computeSegmentLength(aIndex, a - aIndex, knots[aIndex + 1] - knots[aIndex]);
+            result += computeSegmentLength(aIndex, a - knots[aIndex], knots[aIndex + 1] - knots[aIndex]);
 
             //last segment
-            result += computeSegmentLength(bIndex, 0, b - bIndex);
+            result += computeSegmentLength(bIndex, 0, b - knots[bIndex]);
 
             //if b index is less than a index, that means the user wants to wrap around the end of the spline and back to the beginning
             //if so, add the number of points in the spline to bIndex, and we'll use mod to make sure it stays in range

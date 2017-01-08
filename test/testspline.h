@@ -23,6 +23,14 @@ private slots:
     void testDerivativesNonC2_data(void);
     void testDerivativesNonC2(void);
 
+    //Verify arcLength(0,maxT) equals totalLength() for all non-looping splines
+    void testArcLengthTotalLength_data(void);
+    void testArcLengthTotalLength(void);
+
+    //For some known arc length values, verify that each spline gives the correct result
+    void testKnownArcLength_data(void);
+    void testKnownArcLength(void);
+
 private:
     //use the gauss-legendre quadrature algorithm to numerically integrate f from a to b
     //this one uses 7 points atm just because 7 is accurate enough for these unit tests
