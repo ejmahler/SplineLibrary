@@ -93,7 +93,7 @@ public:
         //if a and b occur inside the same segment, compute the length within that segment
         //but excude cases where a > b, because that means we need to wrap around
         if(aIndex == bIndex && a <= b) {
-            return computeSegmentLength(aIndex, a - aIndex, b - aIndex);
+            return computeSegmentLength(aIndex, a - knots[aIndex], b - knots[aIndex]);
         }
         else {
             //a and b occur in different segments, so compute one length for every segment

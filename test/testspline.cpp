@@ -20,6 +20,37 @@
 Q_DECLARE_METATYPE(Vector2)
 Q_DECLARE_METATYPE(Vector3)
 Q_DECLARE_METATYPE(std::shared_ptr<Spline<Vector2>>)
+typedef Vector<1> Vector1;
+Q_DECLARE_METATYPE(std::shared_ptr<Spline<Vector1>>)
+
+
+//given a spline, return the index of the point with a T value of 0
+template<class Spline>
+size_t findFirstT(const Spline& spline) {
+    for(size_t i = 0; i < spline.getOriginalPoints().size(); i++) {
+        if(!spline.getT(i) == 0) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+//given a spline, return the index of the point with a T value of maxT
+template<class Spline>
+size_t findLastT(const Spline& spline) {
+    for(size_t i = 0; i < spline.getOriginalPoints().size(); i++) {
+        if(!spline.getT(i) == spline.getMaxT()) {
+            return i;
+        }
+    }
+    return spline.getOriginalPoints().size() - 1;
+}
+
+//perform a linear interpolation between a and b
+template<class InterpolationType, typename floating_t>
+InterpolationType lerp(InterpolationType a, InterpolationType b, floating_t t) {
+    return a * (floating_t(1) - t) + b * t;
+}
 
 TestSpline::TestSpline(QObject *parent) : QObject(parent)
 {
@@ -221,13 +252,13 @@ void TestSpline::testArcLengthTotalLength_data(void)
 
     rowFunction("uniformCR", std::make_shared<UniformCRSpline<Vector2>>(data));
     rowFunction("cubicHermite", std::make_shared<CubicHermiteSpline<Vector2>>(data));
-    rowFunction("cubicHermiteAlpha1", std::make_shared<CubicHermiteSpline<Vector2>>(data, 1.0f));
+    rowFunction("cubicHermiteAlpha", std::make_shared<CubicHermiteSpline<Vector2>>(data, 0.5f));
 
     rowFunction("quinticHermite", std::make_shared<QuinticHermiteSpline<Vector2>>(data));
-    rowFunction("quinticHermiteAlpha1", std::make_shared<QuinticHermiteSpline<Vector2>>(data, 1.0f));
+    rowFunction("quinticHermiteAlpha", std::make_shared<QuinticHermiteSpline<Vector2>>(data, 0.5f));
 
     rowFunction("natural", std::make_shared<NaturalSpline<Vector2>>(data, true));
-    rowFunction("naturalAlpha1", std::make_shared<NaturalSpline<Vector2>>(data, true, 1.0f));
+    rowFunction("naturalAlph1", std::make_shared<NaturalSpline<Vector2>>(data, true, 0.5f));
 
     rowFunction("uniformB", std::make_shared<UniformCubicBSpline<Vector2>>(data));
     rowFunction("genericBCubic", std::make_shared<GenericBSpline<Vector2>>(data, 3));
@@ -251,16 +282,16 @@ void TestSpline::testKnownArcLength_data(void)
     //this makes the total length of this line 100 * sqrt(2) so it'll be easy to verify
     std::vector<Vector2> data {
         Vector2({0,0}),
+        Vector2({1,0}),
+        Vector2({3,3}),
+        Vector2({6,6}),
         Vector2({10,10}),
-        Vector2({20,20}),
-        Vector2({26,26}),
-        Vector2({32,32}),
-        Vector2({38,38}),
-        Vector2({50,50}),
-        Vector2({65,65}),
-        Vector2({80,80}),
-        Vector2({90,90}),
-        Vector2({100,100})
+        Vector2({15,15}),
+        Vector2({21,21}),
+        Vector2({28,28}),
+        Vector2({36,36}),
+        Vector2({45,45}),
+        Vector2({55,55})
     };
 
     //we need to pad out the ends of the data differently depending on spline type
@@ -282,37 +313,36 @@ void TestSpline::testKnownArcLength_data(void)
     QTest::addColumn<float>("expectedLength");
 
     auto rowFunction = [=](const char* name, std::shared_ptr<Spline<Vector2>> spline) {
+        size_t zeroIndex = findFirstT(*spline.get());
+        size_t maxIndex = findLastT(*spline.get());
+
         //add a test row for the whole spline
         std::string allName = QString("%1 (All)").arg(name).toStdString();
-        QTest::newRow(allName.data()) << spline << 0.0f << spline->getMaxT() << 100.0f * std::sqrt(2.0f);
+        QTest::newRow(allName.data()) << spline << 0.0f << spline->getMaxT() << (data[data.size() - 1] - data[0]).length();
 
-        //add a row for just part of the spline. this will make sure it can correctly handle a and b being in the middle of a segment
-        SplineInverter<Vector2> inverter(*spline.get());
-        Vector2 aLocation = Vector2({34, 34});
-        Vector2 bLocation = Vector2({55, 55});
-        float a = inverter.findClosestT(aLocation);
-        float b = inverter.findClosestT(bLocation);
-        std::string someName = QString("%1 (Part)").arg(name).toStdString();
-        QTest::newRow(someName.data()) << spline << a << b << (aLocation - bLocation).length();
+        //add a row for just part of the spline. we want to make sure a and b fall partway through a segment
+        //so we'll explicitly get segment boundaries via spline->getT and lerp between them
+        float partialA = lerp(spline->getT(zeroIndex + 2), spline->getT(zeroIndex + 3), 0.75f);
+        float partialB = lerp(spline->getT(maxIndex - 3), spline->getT(maxIndex - 2), 0.25f);
+        std::string partialName = QString("%1 (Partial)").arg(name).toStdString();
+        QTest::newRow(partialName.data()) << spline << partialA << partialB << (spline->getPosition(partialA) - spline->getPosition(partialB)).length();
 
-        //add a row where a and b are in the same segment, since this is a special case
-        Vector2 aSameLocation = Vector2({34, 34});
-        Vector2 bSameLocation = Vector2({37, 37});
-        float aSame = inverter.findClosestT(aSameLocation);
-        float bSame = inverter.findClosestT(bSameLocation);
-        std::string sameName = QString("%1 (Same)").arg(name).toStdString();
-        QTest::newRow(sameName.data()) << spline << aSame << bSame << (aSameLocation - bSameLocation).length();
+        //add a row where a and b are in the same segment, since most splines treat this as a special case
+        float sameSegmentA = lerp(spline->getT(zeroIndex + 1), spline->getT(zeroIndex + 2), 0.2f);
+        float sameSegmentB = lerp(spline->getT(zeroIndex + 1), spline->getT(zeroIndex + 2), 0.6f);
+        std::string sameSegmentName = QString("%1 (Same)").arg(name).toStdString();
+        QTest::newRow(sameSegmentName.data()) << spline << sameSegmentA << sameSegmentB << (spline->getPosition(sameSegmentA) - spline->getPosition(sameSegmentB)).length();
     };
 
     rowFunction("uniformCR", std::make_shared<UniformCRSpline<Vector2>>(addPadding(data,1)));
     rowFunction("cubicHermite", std::make_shared<CubicHermiteSpline<Vector2>>(addPadding(data,1)));
-    rowFunction("cubicHermiteAlpha1", std::make_shared<CubicHermiteSpline<Vector2>>(addPadding(data,1), 1.0f));
+    rowFunction("cubicHermiteAlpha", std::make_shared<CubicHermiteSpline<Vector2>>(addPadding(data,1), 0.5f));
 
     rowFunction("quinticHermite", std::make_shared<QuinticHermiteSpline<Vector2>>(addPadding(data,2)));
-    rowFunction("quinticHermiteAlpha1", std::make_shared<QuinticHermiteSpline<Vector2>>(addPadding(data,2), 1.0f));
+    rowFunction("quinticHermiteAlpha", std::make_shared<QuinticHermiteSpline<Vector2>>(addPadding(data,2), 0.5f));
 
     rowFunction("natural", std::make_shared<NaturalSpline<Vector2>>(data, true));
-    rowFunction("naturalAlpha1", std::make_shared<NaturalSpline<Vector2>>(data, true, 1.0f));
+    rowFunction("naturalAlpha", std::make_shared<NaturalSpline<Vector2>>(data, true, 0.5f));
 
     rowFunction("uniformB", std::make_shared<UniformCubicBSpline<Vector2>>(addPadding(data,1)));
     rowFunction("genericBCubic", std::make_shared<GenericBSpline<Vector2>>(addPadding(data,1), 3));
@@ -340,4 +370,3 @@ void TestSpline::testKnownArcLength(void)
     //so we need to allow for small deviations
     compareFloatsLenient(arc, expectedLength);
 }
-
