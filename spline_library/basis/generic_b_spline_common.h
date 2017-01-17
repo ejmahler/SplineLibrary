@@ -13,6 +13,15 @@ public:
         :positions(std::move(positions)), knots(std::move(knots)), splineDegree(splineDegree)
     {}
 
+    inline size_t segmentCount(void) const
+    {
+        return positions.size() - splineDegree;
+    }
+    inline floating_t segmentT(size_t segmentIndex) const
+    {
+        return knots[segmentIndex + splineDegree - 1];
+    }
+
     inline InterpolationType getPosition(floating_t globalT) const
     {
         size_t startIndex = SplineSetup::getIndexForT(knots, globalT);
@@ -115,12 +124,20 @@ public:
     inline floating_t getTotalLength(void) const
     {
         floating_t result{0};
-        size_t numSegments = positions.size() - splineDegree;
-        for(size_t segment = 0; segment < numSegments; segment++) {
-            auto index = segment + splineDegree - 1;
+
+        for(size_t segmentIndex = 0; segmentIndex < segmentCount(); segmentIndex++) {
+            auto index = segmentIndex + splineDegree - 1;
             result += computeSegmentLength(index, knots[index], knots[index + 1]);
         }
         return result;
+    }
+
+    inline floating_t segmentLength(size_t segmentIndex, floating_t a, floating_t b) const {
+
+        auto innerIndex = segmentIndex + splineDegree - 1;
+        auto tDistance = knots[innerIndex + 1] - knots[innerIndex];
+
+        return computeSegmentLength(innerIndex, knots[innerIndex] + a * tDistance, knots[innerIndex] + b * tDistance);
     }
 
 private: //methods

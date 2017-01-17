@@ -19,6 +19,15 @@ public:
         :points(std::move(points)), knots(std::move(knots))
     {}
 
+    inline size_t segmentCount(void) const
+    {
+        return points.size();
+    }
+    inline floating_t segmentT(size_t segmentIndex) const
+    {
+        return knots[segmentIndex];
+    }
+
     inline InterpolationType getPosition(floating_t globalT) const
     {
         //get the knot index. if it's the final knot, back it up by one
@@ -101,17 +110,17 @@ public:
         //if a and b occur inside the same segment, compute the length within that segment
         //but excude cases where a > b, because that means we need to wrap around
         if(aIndex == bIndex && a <= b) {
-            return computeSegmentLength(aIndex, aPercent, bPercent);
+            return segmentLength(aIndex, aPercent, bPercent);
         }
         else {
             //a and b occur in different segments, so compute one length for every segment
             floating_t result{0};
 
             //first segment
-            result += computeSegmentLength(aIndex, aPercent, 1);;
+            result += segmentLength(aIndex, aPercent, 1);
 
             //last segment
-            result += computeSegmentLength(bIndex, 0, bPercent);
+            result += segmentLength(bIndex, 0, bPercent);
 
             //if b index is less than a index, that means the user wants to wrap around the end of the spline and back to the beginning
             //if so, add the number of points in the spline to bIndex, and we'll use mod to make sure it stays in range
@@ -121,7 +130,7 @@ public:
 
             //middle segments
             for(size_t i = aIndex + 1; i < bIndex; i++) {
-                result += computeSegmentLength(i%numSegments, 0, 1);
+                result += segmentLength(i%numSegments, 0, 1);
             }
 
             return result;
@@ -132,9 +141,20 @@ public:
     {
         floating_t result{0};
         for(size_t i = 0; i < knots.size() - 1; i++) {
-            result += computeSegmentLength(i, 0, 1);
+            result += segmentLength(i, 0, 1);
         }
         return result;
+    }
+
+    inline floating_t segmentLength(size_t index, floating_t from, floating_t to) const
+    {
+        floating_t tDiff = knots[index + 1] - knots[index];
+        auto segmentFunction = [this, index, tDiff](floating_t t) -> floating_t {
+            auto tangent = computeTangent(index, tDiff, t);
+            return tangent.length();
+        };
+
+        return tDiff * SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, from, to);
     }
 
 
@@ -207,18 +227,6 @@ private: //methods
         return (
                     floating_t(12) * (points[index].position - points[index + 1].position) + floating_t(6) * tDiff * (points[index].tangent + points[index + 1].tangent)
                 ) / (tDiff * tDiff * tDiff);
-    }
-
-
-    inline floating_t computeSegmentLength(size_t index, floating_t from, floating_t to) const
-    {
-        floating_t tDiff = knots[index + 1] - knots[index];
-        auto segmentFunction = [this, index, tDiff](floating_t t) -> floating_t {
-            auto tangent = computeTangent(index, tDiff, t);
-            return tangent.length();
-        };
-
-        return tDiff * SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, from, to);
     }
 
 private: //data

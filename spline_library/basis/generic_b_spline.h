@@ -29,6 +29,10 @@ public:
 
     bool isLooping(void) const override { return false; }
 
+    size_t segmentCount(void) const override { return common.segmentCount(); }
+    floating_t segmentT(size_t segmentIndex) const override { return common.segmentT(segmentIndex); }
+    floating_t segmentArcLength(size_t segmentIndex, floating_t a, floating_t b) const override { return common.segmentLength(segmentIndex, a, b); }
+
 //methods
 private:
     InterpolationType computeDeboor(size_t knotIndex, int degree, float globalT) const;

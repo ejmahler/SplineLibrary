@@ -20,31 +20,7 @@
 Q_DECLARE_METATYPE(Vector2)
 Q_DECLARE_METATYPE(Vector3)
 Q_DECLARE_METATYPE(std::shared_ptr<Spline<Vector2>>)
-typedef Vector<1> Vector1;
-Q_DECLARE_METATYPE(std::shared_ptr<Spline<Vector1>>)
 
-
-//given a spline, return the index of the point with a T value of 0
-template<class Spline>
-size_t findFirstT(const Spline& spline) {
-    for(size_t i = 0; i < spline.getOriginalPoints().size(); i++) {
-        if(!spline.getT(i) == 0) {
-            return i;
-        }
-    }
-    return 0;
-}
-
-//given a spline, return the index of the point with a T value of maxT
-template<class Spline>
-size_t findLastT(const Spline& spline) {
-    for(size_t i = 0; i < spline.getOriginalPoints().size(); i++) {
-        if(!spline.getT(i) == spline.getMaxT()) {
-            return i;
-        }
-    }
-    return spline.getOriginalPoints().size() - 1;
-}
 
 //perform a linear interpolation between a and b
 template<class InterpolationType, typename floating_t>
@@ -311,27 +287,28 @@ void TestSpline::testKnownArcLength_data(void)
     QTest::addColumn<float>("a");
     QTest::addColumn<float>("b");
     QTest::addColumn<float>("expectedLength");
+    QTest::addColumn<bool>("sameSegment");
+    QTest::addColumn<size_t>("segmentIndex");
 
     auto rowFunction = [=](const char* name, std::shared_ptr<Spline<Vector2>> spline) {
-        size_t zeroIndex = findFirstT(*spline.get());
-        size_t maxIndex = findLastT(*spline.get());
 
         //add a test row for the whole spline
         std::string allName = QString("%1 (All)").arg(name).toStdString();
-        QTest::newRow(allName.data()) << spline << 0.0f << spline->getMaxT() << (data[data.size() - 1] - data[0]).length();
+        QTest::newRow(allName.data()) << spline << 0.0f << spline->getMaxT() << (data[data.size() - 1] - data[0]).length() << false << size_t(0);
 
         //add a row for just part of the spline. we want to make sure a and b fall partway through a segment
         //so we'll explicitly get segment boundaries via spline->getT and lerp between them
-        float partialA = lerp(spline->getT(zeroIndex + 2), spline->getT(zeroIndex + 3), 0.75f);
-        float partialB = lerp(spline->getT(maxIndex - 3), spline->getT(maxIndex - 2), 0.25f);
+        float partialA = lerp(spline->segmentT(2), spline->segmentT(3), 0.75f);
+        float partialB = lerp(spline->segmentT(spline->segmentCount() - 3), spline->segmentT(spline->segmentCount() - 2), 0.25f);
         std::string partialName = QString("%1 (Partial)").arg(name).toStdString();
-        QTest::newRow(partialName.data()) << spline << partialA << partialB << (spline->getPosition(partialA) - spline->getPosition(partialB)).length();
+        QTest::newRow(partialName.data()) << spline << partialA << partialB << (spline->getPosition(partialA) - spline->getPosition(partialB)).length() << false << size_t(0);
 
         //add a row where a and b are in the same segment, since most splines treat this as a special case
-        float sameSegmentA = lerp(spline->getT(zeroIndex + 1), spline->getT(zeroIndex + 2), 0.2f);
-        float sameSegmentB = lerp(spline->getT(zeroIndex + 1), spline->getT(zeroIndex + 2), 0.6f);
+        size_t testIndex = 3;
+        float sameSegmentA = lerp(spline->segmentT(testIndex), spline->segmentT(testIndex + 1), 0.2f);
+        float sameSegmentB = lerp(spline->segmentT(testIndex), spline->segmentT(testIndex + 1), 0.6f);
         std::string sameSegmentName = QString("%1 (Same)").arg(name).toStdString();
-        QTest::newRow(sameSegmentName.data()) << spline << sameSegmentA << sameSegmentB << (spline->getPosition(sameSegmentA) - spline->getPosition(sameSegmentB)).length();
+        QTest::newRow(sameSegmentName.data()) << spline << sameSegmentA << sameSegmentB << (spline->getPosition(sameSegmentA) - spline->getPosition(sameSegmentB)).length() << true << testIndex;
     };
 
     rowFunction("uniformCR", std::make_shared<UniformCRSpline<Vector2>>(addPadding(data,1)));
@@ -355,8 +332,9 @@ void TestSpline::testKnownArcLength(void)
     QFETCH(float, a);
     QFETCH(float, b);
     QFETCH(float, expectedLength);
+    QFETCH(bool, sameSegment);
 
-    float arc = spline->arcLength(a, b);
+    float arcResult = spline->arcLength(a, b);
 
     auto compareFloatsLenient = [] (auto actual, auto expected) {
         auto error = std::abs(actual - expected) / expected;
@@ -368,5 +346,21 @@ void TestSpline::testKnownArcLength(void)
 
     //qt's fuzzy compare is a little too strict here. this is an inherently imprecise operation (especially given the use of the spline inverter)
     //so we need to allow for small deviations
-    compareFloatsLenient(arc, expectedLength);
+    compareFloatsLenient(arcResult, expectedLength);
+
+    //if a and b are in the same segment, we also need to test the "segmentArcLength" method for the tested segment
+    if(sameSegment) {
+        QFETCH(size_t, segmentIndex);
+
+        float segmentBeginT = spline->segmentT(segmentIndex);
+        float segmentEndT = spline->segmentT(segmentIndex + 1);
+
+        float aPercent = (a - segmentBeginT) / (segmentEndT - segmentBeginT);
+        float bPercent = (b - segmentBeginT) / (segmentEndT - segmentBeginT);
+
+        float segmentArc = spline->segmentArcLength(segmentIndex, aPercent, bPercent);
+
+        //no need for a lenient comparison here, because the results should be much closer to identical to the "arcLength" result
+        QCOMPARE(arcResult, segmentArc);
+    }
 }
