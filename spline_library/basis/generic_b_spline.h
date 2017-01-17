@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../spline.h"
-#include "../utils/spline_setup.h"
+#include "../utils/spline_common.h"
 
 #include "generic_b_spline_common.h"
 
@@ -21,8 +21,8 @@ public:
     typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t t) const override { return common.getCurvature(t); }
     typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t t) const override { return common.getWiggle(t); }
 
-    floating_t arcLength(floating_t a, floating_t b) const override { if(a > b) std::swap(a,b); return common.getLength(a,b); }
-    floating_t totalLength(void) const override { return common.getTotalLength(); }
+    floating_t arcLength(floating_t a, floating_t b) const override { if(a > b) std::swap(a,b); return SplineCommon::arcLength(*this,a,b); }
+    floating_t totalLength(void) const override { return SplineCommon::totalLength(*this); }
 
     floating_t getT(int index) const override { return indexToT.at(index); }
     floating_t getMaxT(void) const override { return maxT; }
@@ -30,6 +30,7 @@ public:
     bool isLooping(void) const override { return false; }
 
     size_t segmentCount(void) const override { return common.segmentCount(); }
+    size_t segmentForT(floating_t t) const override { return common.segmentForT(t); }
     floating_t segmentT(size_t segmentIndex) const override { return common.segmentT(segmentIndex); }
     floating_t segmentArcLength(size_t segmentIndex, floating_t a, floating_t b) const override { return common.segmentLength(segmentIndex, a, b); }
 
@@ -58,7 +59,7 @@ GenericBSpline<InterpolationType,floating_t>::GenericBSpline(const std::vector<I
     int padding = degree - 1;
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeTValuesWithOuterPadding(points, 0.0f, padding);
+    indexToT = SplineCommon::computeTValuesWithOuterPadding(points, 0.0f, padding);
     maxT = indexToT[size - degree];
 
     //for purposes of actual interpolation, we don't need the negative indexes found in indexToT

@@ -35,7 +35,6 @@ HEADERS  += \
     spline_library/utils/linearalgebra.h \
     spline_library/utils/nanoflann.hpp \
     spline_library/utils/splinesample_adaptor.h \
-    spline_library/utils/spline_setup.h \
     spline_library/basis/generic_b_spline.h \
     spline_library/basis/looping_generic_b_spline.h \
     spline_library/basis/generic_b_spline_common.h \
@@ -51,6 +50,7 @@ HEADERS  += \
     spline_library/hermite/cubic/looping_uniform_cr_spline.h \
     spline_library/utils/calculus.h \
     spline_library/vector.h
+    spline_library/utils/spline_common.h
 
 FORMS    += \
     demo/settingswidget.ui \

@@ -6,7 +6,7 @@
 #include "../../spline.h"
 #include "cubic_hermite_spline_common.h"
 
-#include "../../utils/spline_setup.h"
+#include "../../utils/spline_common.h"
 
 template<class InterpolationType, typename floating_t=float>
 class CubicHermiteSpline final : public Spline<InterpolationType, floating_t>
@@ -23,8 +23,8 @@ public:
     typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t t) const override { return common.getCurvature(t); }
     typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t t) const override { return common.getWiggle(t); }
 
-    floating_t arcLength(floating_t a, floating_t b) const override { if(a > b) std::swap(a,b); return common.getLength(a,b); }
-    floating_t totalLength(void) const override { return common.getTotalLength(); }
+    floating_t arcLength(floating_t a, floating_t b) const override { if(a > b) std::swap(a,b); return SplineCommon::arcLength(*this,a,b); }
+    floating_t totalLength(void) const override { return SplineCommon::totalLength(*this); }
 
     floating_t getT(int index) const override { return indexToT.at(index); }
     floating_t getMaxT(void) const override { return maxT; }
@@ -32,6 +32,7 @@ public:
     bool isLooping(void) const override { return false; }
 
     size_t segmentCount(void) const override { return common.segmentCount(); }
+    size_t segmentForT(floating_t t) const override { return common.segmentForT(t); }
     floating_t segmentT(size_t segmentIndex) const override { return common.segmentT(segmentIndex); }
     floating_t segmentArcLength(size_t segmentIndex, floating_t a, floating_t b) const override { return common.segmentLength(segmentIndex, a, b); }
 //data
@@ -60,7 +61,7 @@ CubicHermiteSpline<InterpolationType,floating_t>::CubicHermiteSpline(
     int numSegments = size - 1;
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeTValuesWithInnerPadding(points, alpha, firstTangent);
+    indexToT = SplineCommon::computeTValuesWithInnerPadding(points, alpha, firstTangent);
     maxT = indexToT.at(firstTangent + numSegments);
 
     //pre-arrange the data needed for interpolation
@@ -87,7 +88,7 @@ CubicHermiteSpline<InterpolationType,floating_t>::CubicHermiteSpline(const std::
     int numSegments = size - 3;
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeTValuesWithInnerPadding(points, alpha, firstTangent);
+    indexToT = SplineCommon::computeTValuesWithInnerPadding(points, alpha, firstTangent);
     maxT = indexToT.at(firstTangent + numSegments);
 
     //compute the tangents

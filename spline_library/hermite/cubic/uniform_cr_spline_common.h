@@ -19,6 +19,16 @@ public:
         return points.size() - 3;
     }
 
+    inline size_t segmentForT(floating_t t) const
+    {
+        size_t segmentIndex = size_t(t);
+        if(segmentIndex > segmentCount() - 1)
+            return segmentCount() - 1;
+        else
+            return segmentIndex;
+    }
+
+
     inline InterpolationType getPosition(floating_t globalT) const
     {
         size_t knotIndex = size_t(globalT);
@@ -81,59 +91,6 @@ public:
                     computeCurvature(knotIndex + 1, localT),
                     computeWiggle(knotIndex + 1)
                     );
-    }
-
-
-
-    inline floating_t getLength(floating_t a, floating_t b) const
-    {
-        //get the knot indices for the beginning and end
-        size_t aIndex = size_t(a);
-        size_t bIndex = size_t(b);
-
-        size_t numSegments = points.size() - 4;
-
-        if(aIndex > numSegments)
-            aIndex = numSegments;
-        if(bIndex > numSegments)
-            bIndex = numSegments;
-
-        //if a and b occur inside the same segment, compute the length within that segment
-        //but excude cases where a > b, because that means we need to wrap around
-        if(aIndex == bIndex && a <= b) {
-            return segmentLength(aIndex, a - aIndex, b - aIndex);
-        }
-        else {
-            //a and b occur in different segments, so compute one length for every segment
-            floating_t result{0};
-
-            //first segment
-            result += segmentLength(aIndex, a - aIndex, 1);
-
-            //last segment
-            result += segmentLength(bIndex, 0, b - bIndex);
-
-            //if b index is less than a index, that means the user wants to wrap around the end of the spline and back to the beginning
-            //if so, add the number of points in the spline to bIndex, and we'll use mod to make sure it stays in range
-            if(bIndex <= aIndex)
-                bIndex += numSegments;
-
-            //middle segments
-            for(size_t i = aIndex + 1; i < bIndex; i++) {
-                result += segmentLength(i%numSegments, 0, 1);
-            }
-
-            return result;
-        }
-    }
-
-    inline floating_t getTotalLength(void) const
-    {
-        floating_t result{0};
-        for(size_t i = 0; i <= points.size() - 4; i++) {
-            result += segmentLength(i, 0, 1);
-        }
-        return result;
     }
 
     inline floating_t segmentLength(size_t index, floating_t from, floating_t to) const

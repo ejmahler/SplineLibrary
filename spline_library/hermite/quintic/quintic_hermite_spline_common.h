@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "../../utils/spline_setup.h"
+#include "../../utils/spline_common.h"
 #include "../../utils/calculus.h"
 
 template<class InterpolationType, typename floating_t>
@@ -21,8 +21,18 @@ public:
 
     inline size_t segmentCount(void) const
     {
-        return points.size();
+        return points.size() - 1;
     }
+
+    inline size_t segmentForT(floating_t t) const
+    {
+        size_t segmentIndex = SplineCommon::getIndexForT(knots, t);
+        if(segmentIndex >= segmentCount())
+            return segmentCount() - 1;
+        else
+            return segmentIndex;
+    }
+
     inline floating_t segmentT(size_t segmentIndex) const
     {
         return knots[segmentIndex];
@@ -31,7 +41,7 @@ public:
     inline InterpolationType getPosition(floating_t globalT) const
     {
         //get the knot index. if it's the final knot, back it up by one
-        size_t knotIndex = SplineSetup::getIndexForT(knots, globalT);
+        size_t knotIndex = SplineCommon::getIndexForT(knots, globalT);
         if(knotIndex >= knots.size() - 1)
             knotIndex--;
 
@@ -44,7 +54,7 @@ public:
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPT getTangent(floating_t globalT) const
     {
         //get the knot index. if it's the final knot, back it up by one
-        size_t knotIndex = SplineSetup::getIndexForT(knots, globalT);
+        size_t knotIndex = SplineCommon::getIndexForT(knots, globalT);
         if(knotIndex >= knots.size() - 1)
             knotIndex--;
 
@@ -60,7 +70,7 @@ public:
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t globalT) const
     {
         //get the knot index. if it's the final knot, back it up by one
-        size_t knotIndex = SplineSetup::getIndexForT(knots, globalT);
+        size_t knotIndex = SplineCommon::getIndexForT(knots, globalT);
         if(knotIndex >= knots.size() - 1)
             knotIndex--;
 
@@ -77,7 +87,7 @@ public:
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t globalT) const
     {
         //get the knot index. if it's the final knot, back it up by one
-        size_t knotIndex = SplineSetup::getIndexForT(knots, globalT);
+        size_t knotIndex = SplineCommon::getIndexForT(knots, globalT);
         if(knotIndex >= knots.size() - 1)
             knotIndex--;
 
@@ -90,59 +100,6 @@ public:
                     computeCurvature(knotIndex, tDiff, localT),
                     computeWiggle(knotIndex, tDiff, localT)
                     );
-    }
-
-    inline floating_t getLength(floating_t a, floating_t b) const
-    {
-        //get the knot indices for the beginning and end
-        size_t aIndex = SplineSetup::getIndexForT(knots, a);
-        size_t bIndex = SplineSetup::getIndexForT(knots, b);
-
-        if(aIndex > knots.size() - 2)
-            aIndex = knots.size() - 2;
-        if(bIndex > knots.size() - 2)
-            bIndex = knots.size() - 2;
-
-        floating_t aPercent = (a - knots[aIndex]) / (knots[aIndex + 1] - knots[aIndex]);
-        floating_t bPercent = (b - knots[bIndex]) / (knots[bIndex + 1] - knots[bIndex]);
-
-        //if a and b occur inside the same segment, compute the length within that segment
-        //but excude cases where a > b, because that means we need to wrap around
-        if(aIndex == bIndex && a <= b) {
-            return segmentLength(aIndex, aPercent, bPercent);
-        }
-        else {
-            //a and b occur in different segments, so compute one length for every segment
-            floating_t result{0};
-
-            //first segment
-            result += segmentLength(aIndex, aPercent, 1);;
-
-            //last segment
-            result += segmentLength(bIndex, 0, bPercent);
-
-            //if b index is less than a index, that means the user wants to wrap around the end of the spline and back to the beginning
-            //if so, add the number of points in the spline to bIndex, and we'll use mod to make sure it stays in range
-            size_t numSegments = knots.size() - 1;
-            if(bIndex <= aIndex)
-                bIndex += numSegments;
-
-            //middle segments
-            for(size_t i = aIndex + 1; i < bIndex; i++) {
-                result += segmentLength(i%numSegments, 0, 1);
-            }
-
-            return result;
-        }
-    }
-
-    inline floating_t getTotalLength(void) const
-    {
-        floating_t result{0};
-        for(size_t i = 0; i < knots.size() - 1; i++) {
-            result += segmentLength(i, 0, 1);
-        }
-        return result;
     }
 
     inline floating_t segmentLength(size_t index, floating_t from, floating_t to) const

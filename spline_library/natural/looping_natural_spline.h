@@ -6,7 +6,7 @@
 #include "natural_spline_common.h"
 
 #include "../utils/linearalgebra.h"
-#include "../utils/spline_setup.h"
+#include "../utils/spline_common.h"
 
 template<class InterpolationType, typename floating_t=float>
 class LoopingNaturalSpline final : public Spline<InterpolationType, floating_t>
@@ -23,7 +23,7 @@ public:
     typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t x) const override;
 
     floating_t arcLength(floating_t a, floating_t b) const override;
-    floating_t totalLength(void) const override { return common.getTotalLength(); }
+    floating_t totalLength(void) const override { return SplineCommon::totalLength(*this); }
 
     floating_t getT(int index) const override { return indexToT.at(index); }
     floating_t getMaxT(void) const override { return maxT; }
@@ -31,6 +31,7 @@ public:
     bool isLooping(void) const override { return true; }
 
     size_t segmentCount(void) const override { return common.segmentCount(); }
+    size_t segmentForT(floating_t t) const override { return common.segmentForT(t); }
     floating_t segmentT(size_t segmentIndex) const override { return common.segmentT(segmentIndex); }
     floating_t segmentArcLength(size_t segmentIndex, floating_t a, floating_t b) const override { return common.segmentLength(segmentIndex, a, b); }
 
@@ -56,7 +57,7 @@ LoopingNaturalSpline<InterpolationType,floating_t>::LoopingNaturalSpline(const s
     int numSegments = size;
 
     //compute the T values for each point
-    indexToT = SplineSetup::computeLoopingTValues(points, alpha, 1);
+    indexToT = SplineCommon::computeLoopingTValues(points, alpha, 1);
     maxT = indexToT.at(size);
 
     //now that we know the t values, we need to prepare the tridiagonal matrix calculation
@@ -126,7 +127,7 @@ LoopingNaturalSpline<InterpolationType,floating_t>::LoopingNaturalSpline(const s
 template<class InterpolationType, typename floating_t>
 InterpolationType LoopingNaturalSpline<InterpolationType,floating_t>::getPosition(floating_t globalT) const
 {
-    floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
+    floating_t wrappedT = SplineCommon::wrapGlobalT(globalT, maxT);
     return common.getPosition(wrappedT);
 }
 
@@ -134,7 +135,7 @@ template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPT
     LoopingNaturalSpline<InterpolationType,floating_t>::getTangent(floating_t globalT) const
 {
-    floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
+    floating_t wrappedT = SplineCommon::wrapGlobalT(globalT, maxT);
     return common.getTangent(wrappedT);
 }
 
@@ -142,7 +143,7 @@ template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTC
     LoopingNaturalSpline<InterpolationType,floating_t>::getCurvature(floating_t globalT) const
 {
-    floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
+    floating_t wrappedT = SplineCommon::wrapGlobalT(globalT, maxT);
     return common.getCurvature(wrappedT);
 }
 
@@ -150,15 +151,15 @@ template<class InterpolationType, typename floating_t>
 typename Spline<InterpolationType,floating_t>::InterpolatedPTCW
     LoopingNaturalSpline<InterpolationType,floating_t>::getWiggle(floating_t globalT) const
 {
-    floating_t wrappedT = SplineSetup::wrapGlobalT(globalT, maxT);
+    floating_t wrappedT = SplineCommon::wrapGlobalT(globalT, maxT);
     return common.getWiggle(wrappedT);
 }
 
 template<class InterpolationType, typename floating_t>
 floating_t LoopingNaturalSpline<InterpolationType,floating_t>::arcLength(floating_t a, floating_t b) const
 {
-    floating_t wrappedA =  SplineSetup::wrapGlobalT(a, maxT);
-    floating_t wrappedB =  SplineSetup::wrapGlobalT(b, maxT);
+    floating_t wrappedA =  SplineCommon::wrapGlobalT(a, maxT);
+    floating_t wrappedB =  SplineCommon::wrapGlobalT(b, maxT);
 
-    return common.getLength(wrappedA, wrappedB);
+    return SplineCommon::arcLength(*this, wrappedA, wrappedB);
 }

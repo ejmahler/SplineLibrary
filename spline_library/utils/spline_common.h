@@ -4,7 +4,7 @@
 #include <vector>
 #include <cmath>
 
-namespace SplineSetup
+namespace SplineCommon
 {
     //compute the T values for the given points, with the given alpha.
     //the distance in T between adjacent points is the magitude of the distance, raised to the power alpha
@@ -45,15 +45,10 @@ namespace SplineSetup
 
 
 
-    //given a list of spline segments and a t value, return the index of the segment the t value falls within
-    //the segment type only needs a 't0' variable denoting the start of the segment
-    //and a 't1' variable denoting the end of the segment
-    template<class SegmentType, typename floating_t>
-    const SegmentType& getSegmentForT(const std::vector<SegmentType> &segmentData, floating_t t);
-
     //given a list of knots and a t value, return the index of the knot the t value falls within
     template<typename floating_t>
     size_t getIndexForT(const std::vector<floating_t> &knotData, floating_t t);
+
 
     template<typename floating_t>
     inline floating_t wrapGlobalT(floating_t globalT, floating_t maxT)
@@ -64,11 +59,19 @@ namespace SplineSetup
         else
             return globalT;
     }
+
+    //compute the arc length from a to b on the given spline
+    template<template <class, typename> class Spline, class InterpolationType, typename floating_t>
+    floating_t arcLength(const Spline<InterpolationType, floating_t>& spline, floating_t a, floating_t b);
+
+    //compute the arc length from the beginning to the end on the given spline
+    template<template <class, typename> class Spline, class InterpolationType, typename floating_t>
+    floating_t totalLength(const Spline<InterpolationType, floating_t>& spline);
 }
 
 
 template<class InterpolationType, typename floating_t>
-floating_t SplineSetup::computeTDiff(InterpolationType p1, InterpolationType p2, floating_t alpha)
+floating_t SplineCommon::computeTDiff(InterpolationType p1, InterpolationType p2, floating_t alpha)
 {
     if(alpha == 0)
     {
@@ -95,7 +98,7 @@ floating_t SplineSetup::computeTDiff(InterpolationType p1, InterpolationType p2,
 }
 
 template<class InterpolationType, typename floating_t>
-std::unordered_map<int, floating_t> SplineSetup::computeTValuesWithInnerPadding(
+std::unordered_map<int, floating_t> SplineCommon::computeTValuesWithInnerPadding(
         const std::vector<InterpolationType> &points,
         floating_t alpha,
         int innerPadding
@@ -139,7 +142,7 @@ std::unordered_map<int, floating_t> SplineSetup::computeTValuesWithInnerPadding(
 }
 
 template<class InterpolationType, typename floating_t>
-std::unordered_map<int, floating_t> SplineSetup::computeTValuesWithOuterPadding(
+std::unordered_map<int, floating_t> SplineCommon::computeTValuesWithOuterPadding(
         const std::vector<InterpolationType> &points,
         floating_t alpha,
         int outerPadding
@@ -185,7 +188,7 @@ std::unordered_map<int, floating_t> SplineSetup::computeTValuesWithOuterPadding(
 }
 
 template<class InterpolationType, typename floating_t>
-std::unordered_map<int, floating_t> SplineSetup::computeLoopingTValues(
+std::unordered_map<int, floating_t> SplineCommon::computeLoopingTValues(
         const std::vector<InterpolationType> &points,
         floating_t alpha,
         int padding)
@@ -229,58 +232,9 @@ std::unordered_map<int, floating_t> SplineSetup::computeLoopingTValues(
     return indexToT;
 }
 
-template<class SegmentType, typename floating_t>
-const SegmentType& SplineSetup::getSegmentForT(const std::vector<SegmentType> &segmentData, floating_t t)
-{
-    //we want to find the segment whos t0 and t1 values bound t
-
-    //if no segments bound t, return the first or last
-    if(t < segmentData.front().t1)
-        return segmentData.front();
-    if(t >= segmentData.back().t0)
-        return segmentData.back();
-
-    //our initial guess will be to subtract the minimum t value, then take the floor
-    int currentIndex = std::floor(t - segmentData.front().t0);
-    int size = segmentData.size();
-
-    //move left or right in the array until we've found the correct index
-
-    //rather than just incrementing the index by 1, increment it by a number that increases each iteration
-    //so the longer we search, the more numbers we're trying
-    int searchSize = 1;
-    while(t < segmentData[currentIndex].t0)
-    {
-        while(currentIndex >= 0 && t < segmentData[currentIndex].t0)
-        {
-            searchSize++;
-            currentIndex -= searchSize;
-        }
-        if(currentIndex < 0 || t >= segmentData[currentIndex].t1)
-        {
-            currentIndex += searchSize;
-            searchSize /= 4;
-        }
-
-    }
-    while(t >= segmentData[currentIndex].t1)
-    {
-        while(currentIndex < size && t >= segmentData[currentIndex].t1)
-        {
-            searchSize++;
-            currentIndex += searchSize;
-        }
-        if(currentIndex >= size || t < segmentData[currentIndex].t0)
-        {
-            currentIndex -= searchSize;
-            searchSize /= 4;
-        }
-    }
-    return segmentData[currentIndex];
-}
 
 template<typename floating_t>
-size_t SplineSetup::getIndexForT(const std::vector<floating_t> &knotData, floating_t t)
+size_t SplineCommon::getIndexForT(const std::vector<floating_t> &knotData, floating_t t)
 {
     //we want to find the segment whos t0 and t1 values bound x
 
@@ -324,4 +278,60 @@ size_t SplineSetup::getIndexForT(const std::vector<floating_t> &knotData, floati
         }
     }
     return currentIndex;
+}
+
+//compute the arc length from a to b on the given spline
+template<template <class, typename> class Spline, class InterpolationType, typename floating_t>
+floating_t SplineCommon::arcLength(const Spline<InterpolationType, floating_t>& spline, floating_t a, floating_t b)
+{
+    //get the knot indices for the beginning and end
+    size_t aIndex = spline.segmentForT(a);
+    size_t bIndex = spline.segmentForT(b);
+
+    //if a and b occur inside the same segment, compute the length within that segment
+    //but excude cases where a > b, because that means we need to wrap around
+    if(aIndex == bIndex) {
+        floating_t segmentBegin = spline.segmentT(aIndex);
+        floating_t segmentEnd = spline.segmentT(aIndex + 1);
+
+        floating_t aPercent = (a - segmentBegin) / (segmentEnd - segmentBegin);
+        floating_t bPercent = (b - segmentBegin) / (segmentEnd - segmentBegin);
+
+        return spline.segmentArcLength(aIndex, aPercent, bPercent);
+    }
+    else {
+        //a and b occur in different segments, so compute one length for every segment
+        floating_t result{0};
+
+        floating_t aBegin = spline.segmentT(aIndex);
+        floating_t aEnd = spline.segmentT(aIndex + 1);
+        floating_t bBegin = spline.segmentT(bIndex);
+        floating_t bEnd = spline.segmentT(bIndex + 1);
+
+        //first segment
+        floating_t aPercent = (a - aBegin) / (aEnd - aBegin);
+        result += spline.segmentArcLength(aIndex, aPercent, 1);
+
+        //middle segments
+        for(size_t i = aIndex + 1; i < bIndex; i++) {
+            result += spline.segmentArcLength(i, 0, 1);
+        }
+
+        //last segment
+        floating_t bPercent = (b - bBegin) / (bEnd - bBegin);
+        result += spline.segmentArcLength(bIndex, 0, bPercent);
+
+        return result;
+    }
+}
+
+//compute the arc length from the beginning to the end on the given spline
+template<template <class, typename> class Spline, class InterpolationType, typename floating_t>
+floating_t SplineCommon::totalLength(const Spline<InterpolationType, floating_t>& spline)
+{
+    floating_t result{0};
+    for(size_t i = 0; i < spline.segmentCount(); i++) {
+        result += spline.segmentArcLength(i, 0, 1);
+    }
+    return result;
 }

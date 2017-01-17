@@ -26,7 +26,6 @@ public:
 
     virtual floating_t arcLength(floating_t a, floating_t b) const = 0;
     virtual floating_t totalLength(void) const = 0;
-
     virtual floating_t getT(int index) const = 0;
     virtual floating_t getMaxT(void) const = 0;
 
@@ -35,6 +34,7 @@ public:
 
     //lower level functions
     virtual size_t segmentCount(void) const = 0;
+    virtual size_t segmentForT(floating_t t) const = 0;
     virtual floating_t segmentT(size_t segmentIndex) const = 0;
     virtual floating_t segmentArcLength(size_t segmentIndex, floating_t a, floating_t b) const = 0;
 
