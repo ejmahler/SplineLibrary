@@ -16,4 +16,8 @@ private slots:
     //For some known arc length values, verify that each spline gives the correct result
     void testKnownArcLength_data(void);
     void testKnownArcLength(void);
+
+    //verify that the "solve arc length" method works as expected
+    void testSolve_data(void);
+    void testSolve(void);
 };
