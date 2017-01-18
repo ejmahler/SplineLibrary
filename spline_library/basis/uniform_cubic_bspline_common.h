@@ -21,11 +21,20 @@ public:
 
     inline size_t segmentForT(floating_t t) const
     {
+        if(t < 0)
+        {
+            return 0;
+        }
+
         size_t segmentIndex = size_t(t);
         if(segmentIndex > segmentCount() - 1)
+        {
             return segmentCount() - 1;
+        }
         else
+        {
             return segmentIndex;
+        }
     }
 
     inline InterpolationType getPosition(floating_t globalT) const

@@ -1,6 +1,7 @@
 #include "testspline.h"
 
 #include "spline_library/vector.h"
+#include "spline_library/utils/spline_common.h"
 
 #include "spline_library/basis/uniform_cubic_bspline.h"
 #include "spline_library/basis/generic_b_spline.h"
@@ -28,9 +29,100 @@ InterpolationType lerp(InterpolationType a, InterpolationType b, floating_t t) {
     return a * (floating_t(1) - t) + b * t;
 }
 
+//we need to pad out the ends of the data differently depending on spline type
+//this way all of the splines will have the same arc length, so it'll be easier to test
+template<class T>
+std::vector<T> addPadding(std::vector<T> list, size_t paddingSize) {
+    list.reserve(list.size() + paddingSize * 2);
+    for(size_t i = 0; i < paddingSize; i++) {
+        list.insert(list.begin(), list[0] - (list[1] - list[0]));
+    }
+    for(size_t i = 0; i < paddingSize; i++) {
+        list.push_back(list[list.size() - 1] + (list[list.size() - 1] - list[list.size() - 2]));
+    }
+    return list;
+};
+
 TestSpline::TestSpline(QObject *parent) : QObject(parent)
 {
 
+}
+
+void TestSpline::testMethods_data(void)
+{
+    //our data will just be points on a straight line between 0 and 100
+    //this makes the total length of this line 100 * sqrt(2) so it'll be easy to verify
+    std::vector<Vector2> data {
+        Vector2({0,0}),
+        Vector2({1,0}),
+        Vector2({3,3}),
+        Vector2({6,6}),
+        Vector2({10,10}),
+        Vector2({15,15}),
+        Vector2({21,21}),
+        Vector2({28,28}),
+        Vector2({36,36}),
+        Vector2({45,45}),
+        Vector2({55,55})
+    };
+
+    QTest::addColumn<std::shared_ptr<Spline<Vector2>>>("spline");
+    QTest::addColumn<int>("padding");
+    QTest::addColumn<float>("alpha");
+    QTest::addColumn<size_t>("expectedSegments");
+
+    QTest::newRow("uniformCR") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<UniformCRSpline<Vector2>>(addPadding(data,1))) << 1 << 0.0f << data.size()-1;
+    QTest::newRow("cubicHermite") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<CubicHermiteSpline<Vector2>>(addPadding(data,1))) << 1 << 0.0f << data.size()-1;
+    QTest::newRow("cubicHermiteAlpha") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<CubicHermiteSpline<Vector2>>(addPadding(data,1), 0.5f)) << 1 << 0.5f << data.size()-1;
+
+    QTest::newRow("quinticHermite") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<QuinticHermiteSpline<Vector2>>(addPadding(data,2))) << 2 << 0.0f << data.size()-1;
+    QTest::newRow("quinticHermiteAlpha") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<QuinticHermiteSpline<Vector2>>(addPadding(data,2), 0.5f)) << 2 << 0.5f << data.size()-1;
+
+    QTest::newRow("natural") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<NaturalSpline<Vector2>>(data, true))            << 0 << 0.0f << data.size()-1;
+    QTest::newRow("naturalAlpha") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<NaturalSpline<Vector2>>(data, true, 0.5f)) << 0 << 0.5f << data.size()-1;
+
+    QTest::newRow("uniformB") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<UniformCubicBSpline<Vector2>>(addPadding(data,1)))     << 1 << 0.0f << data.size()-1;
+    QTest::newRow("genericBCubic") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<GenericBSpline<Vector2>>(addPadding(data,1), 3))  << 1 << 0.0f << data.size()-1;
+    QTest::newRow("genericBQuintic") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<GenericBSpline<Vector2>>(addPadding(data,2), 5)) << 2 << 0.0f << data.size()-1;
+}
+
+void TestSpline::testMethods(void)
+{
+    QFETCH(std::shared_ptr<Spline<Vector2>>, spline);
+    QFETCH(int, padding);
+    QFETCH(float, alpha);
+    QFETCH(size_t, expectedSegments);
+
+    //test the methods that require no input
+    float maxT = spline->getMaxT();
+    QCOMPARE(maxT, float(expectedSegments));
+
+    size_t segmentCount = spline->segmentCount();
+    QCOMPARE(segmentCount, expectedSegments);
+
+    bool looping = spline -> isLooping();
+    QCOMPARE(looping, false);
+
+    //test the "segmentT" method to make sure it returns the expected values
+    auto expectedT = SplineCommon::computeTValuesWithInnerPadding(spline->getOriginalPoints(), alpha, padding);
+
+    for(size_t i = 0; i < spline->segmentCount(); i++) {
+        QCOMPARE(spline->segmentT(i), expectedT[i + padding]);
+    }
+
+    //test the "segment for T" method to make sure it returns the segment index we expect
+    for(size_t i = 0; i < spline->segmentCount(); i++) {
+        float beginT = expectedT[i + padding];
+        QCOMPARE(spline->segmentForT(beginT), i);
+
+        float halfwayT = (expectedT[i + padding] + expectedT[i + 1 + padding]) / 2;
+        QCOMPARE(spline->segmentForT(halfwayT), i);
+    }
+
+    //make sure out-of-range T values in segmentForT return correct results
+    QCOMPARE(spline->segmentForT(-10), size_t(0));
+    QCOMPARE(spline->segmentForT(spline->getMaxT()), expectedSegments - 1);
+    QCOMPARE(spline->segmentForT(spline->getMaxT() * 2), expectedSegments - 1);
 }
 
 void TestSpline::testDerivatives_data(void)
@@ -268,19 +360,6 @@ void TestSpline::testKnownArcLength_data(void)
         Vector2({36,36}),
         Vector2({45,45}),
         Vector2({55,55})
-    };
-
-    //we need to pad out the ends of the data differently depending on spline type
-    //this way all of the splines will have the same arc length, so it'll be easier to test
-    auto addPadding = [](std::vector<Vector2> list, size_t paddingSize) {
-        list.reserve(list.size() + paddingSize * 2);
-        for(size_t i = 0; i < paddingSize; i++) {
-            list.insert(list.begin(), list[0] - (list[1] - list[0]));
-        }
-        for(size_t i = 0; i < paddingSize; i++) {
-            list.push_back(list[list.size() - 1] + (list[list.size() - 1] - list[list.size() - 2]));
-        }
-        return list;
     };
 
     QTest::addColumn<std::shared_ptr<Spline<Vector2>>>("spline");

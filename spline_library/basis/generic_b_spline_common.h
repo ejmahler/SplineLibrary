@@ -20,6 +20,10 @@ public:
 
     inline size_t segmentForT(floating_t t) const
     {
+        if(t < 0) {
+            return 0;
+        }
+
         size_t segmentIndex = SplineCommon::getIndexForT(knots, t) - (splineDegree - 1);
         if(segmentIndex > segmentCount() - 1)
         {
