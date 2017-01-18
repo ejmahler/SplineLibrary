@@ -219,3 +219,65 @@ void TestArcLength::testSolve(void)
     float calculatedOverLength = ArcLength::solveLength(*spline.get(), a, totalLength);
     QCOMPARE(calculatedOverLength, spline->getMaxT());
 }
+
+
+
+
+void TestArcLength::testPartition_data(void)
+{
+    //our data will just be points on a straight line between 0 and 100
+    //this makes the total length of this line 100 * sqrt(2) so it'll be easy to verify
+    std::vector<Vector2> data {
+        Vector2({0,0}),
+        Vector2({1,0}),
+        Vector2({3,3}),
+        Vector2({6,6}),
+        Vector2({10,10}),
+        Vector2({15,15}),
+        Vector2({21,21}),
+        Vector2({28,28}),
+        Vector2({36,36}),
+        Vector2({45,45}),
+        Vector2({55,55})
+    };
+
+    QTest::addColumn<std::shared_ptr<Spline<Vector2>>>("spline");
+    QTest::addColumn<float>("desiredLength");
+    QTest::addColumn<size_t>("expectedPieces");
+
+    auto rowFunction = [=](const char* name, std::shared_ptr<Spline<Vector2>> spline) {
+        float totalLength = spline->totalLength();
+
+        //add a row where the desired length is larger than the average segment
+        std::string largeName = QString("%1 (Large Pieces)").arg(name).toStdString();
+        float largeLength = totalLength / 2.1f;
+        QTest::newRow(largeName.data()) << spline << largeLength << size_t(2);
+
+        //add a row where the desired length is low, so there will be many results that begin and end in the same segment, since this is a special case
+        std::string smallName = QString("%1 (Small Pieces)").arg(name).toStdString();
+        float smallLength = totalLength / 20.5f;
+        QTest::newRow(smallName.data()) << spline << smallLength << size_t(20);
+    };
+
+    rowFunction("uniformCR", std::make_shared<UniformCRSpline<Vector2>>(addPadding(data,1)));
+    rowFunction("cubicHermiteAlpha", std::make_shared<CubicHermiteSpline<Vector2>>(addPadding(data,1), 0.5f));
+}
+
+void TestArcLength::testPartition(void)
+{
+    QFETCH(std::shared_ptr<Spline<Vector2>>, spline);
+    QFETCH(float, desiredLength);
+    QFETCH(size_t, expectedPieces);
+
+    std::vector<float> pieces = ArcLength::partition(*spline.get(), desiredLength);
+
+    //verify that we have the correct number of results
+    QCOMPARE(pieces.size(), expectedPieces + 1);
+
+    //verify that each piece has the correct arc length
+    for(size_t i = 0; i < expectedPieces; i++)
+    {
+        float pieceLength = ArcLength::arcLength(*spline.get(), pieces[i], pieces[i+1]);
+        QCOMPARE(pieceLength, desiredLength);
+    }
+}

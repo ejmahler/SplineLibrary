@@ -20,4 +20,8 @@ private slots:
     //verify that the "solve arc length" method works as expected
     void testSolve_data(void);
     void testSolve(void);
+
+    //verify that the "partition" method works as expected
+    void testPartition_data(void);
+    void testPartition(void);
 };

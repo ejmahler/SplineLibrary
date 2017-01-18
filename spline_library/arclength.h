@@ -65,49 +65,34 @@ namespace ArcLength
     floating_t solveLength(const Spline<InterpolationType, floating_t>& spline, floating_t a, floating_t desiredLength)
     {
         size_t aIndex = spline.segmentForT(a);
+        size_t bIndex = aIndex;
 
         floating_t aBegin = spline.segmentT(aIndex);
         floating_t aEnd = spline.segmentT(aIndex + 1);
         floating_t aPercent = (a - aBegin) / (aEnd - aBegin);
 
         floating_t aLength = spline.segmentArcLength(aIndex, aPercent, 1);
+        floating_t bLength = aLength;
 
-        //if aLength is greater than desiredLength, then this will begin and end inside the same segment
-        if(aLength > desiredLength)
+        //if aLength is less than desiredLength, B will be in a different segment than A, so search though the spline until we find B's segment
+        if(aLength < desiredLength)
         {
-            auto solveFunction = [&](floating_t bPercent) {
-                return spline.segmentArcLength(aIndex, aPercent, bPercent) - desiredLength;
-            };
+            aPercent = 0;
+            desiredLength -= aLength;
 
-            //we can use the length from a to the segment end to formulate a pretty solid guess
-            //if desired length is x% of the aLength, then our guess will be x% of the way from aPercent to 1
-            floating_t desiredPercent = desiredLength / aLength;
-            floating_t bGuess = aPercent + desiredPercent * (1 - aPercent);
-
-            boost::uintmax_t max_iter = 40;
-            auto result = boost::math::tools::bracket_and_solve_root(solveFunction, bGuess, floating_t(1.25), true, boost::math::tools::eps_tolerance<floating_t>(), max_iter);
-            floating_t bPercent = (result.first + result.second) / 2;
-
-            return aBegin + bPercent * (aEnd - aBegin);
-        }
-
-        //we know b is somewhere past A's segment
-        desiredLength -= aLength;
-
-        //scan through the middle segments, stopping when we reach the end of the spline or we reach the segment that contains b
-        size_t bIndex = aIndex;
-        floating_t bLength;
-        while(++bIndex < spline.segmentCount())
-        {
-            bLength = spline.segmentArcLength(bIndex, 0, 1);
-
-            if(bLength < desiredLength)
+            //scan through the middle segments, stopping when we reach the end of the spline or we reach the segment that contains b
+            while(++bIndex < spline.segmentCount())
             {
-                desiredLength -= bLength;
-            }
-            else
-            {
-                break;
+                bLength = spline.segmentArcLength(bIndex, 0, 1);
+
+                if(bLength < desiredLength)
+                {
+                    desiredLength -= bLength;
+                }
+                else
+                {
+                    break;
+                }
             }
         }
 
@@ -119,11 +104,12 @@ namespace ArcLength
         //we now know our answer lies somewhere in the segment bIndex
 
         //we can use the lengths we've calculated to formulate a pretty solid guess
-        //if desired length is x% of the bLength, then our guess will be x% of the way from 0 to 1
-        floating_t bGuess = desiredLength / bLength;
+        //if desired length is x% of the bLength, then our guess will be x% of the way from aPercent to 1
+        floating_t desiredPercent = desiredLength / bLength;
+        floating_t bGuess = aPercent + desiredPercent * (1 - aPercent);
 
         auto solveFunction = [&](floating_t bPercent) {
-            return spline.segmentArcLength(bIndex, 0, bPercent) - desiredLength;
+            return spline.segmentArcLength(bIndex, aPercent, bPercent) - desiredLength;
         };
 
         boost::uintmax_t max_iter = 40;
@@ -134,5 +120,82 @@ namespace ArcLength
         floating_t bEnd = spline.segmentT(bIndex + 1);
 
         return bBegin + bPercent * (bEnd - bBegin);
+    }
+
+
+    //subdivide the spline into pieces such that the arc length of each pieces is equal to desiredLength
+    //returns a list of t values marking the boundaries of each piece
+    //the first entry is always 0. the final entry is the T value that marks the end of the last cleanly-dividible piece
+    //The remainder that could not be divided is the piece between the last entry and maxT
+    template<template <class, typename> class Spline, class InterpolationType, typename floating_t>
+    std::vector<floating_t> partition(const Spline<InterpolationType, floating_t>& spline, floating_t desiredLength)
+    {
+        //first, compute total arc length and arc length for each segment
+        std::vector<floating_t> segmentLengths(spline.segmentCount());
+        floating_t totalArcLength(0);
+        for(size_t i = 0; i < spline.segmentCount(); i++)
+        {
+            floating_t segmentLength = spline.segmentArcLength(i, 0, 1);
+            totalArcLength += segmentLength;
+            segmentLengths[i] = segmentLength;
+        }
+
+        std::vector<floating_t> pieces(size_t(totalArcLength / desiredLength) + 1);
+
+        floating_t segmentRemainder = segmentLengths[0];
+        floating_t previousPercent = 0;
+        size_t aIndex = 0;
+
+        //for each piece, perform the same algorithm as the "solve" method, but we have much fewer arc lenths to compute
+        //because we can reuse work between segments
+        for(size_t i = 1; i < pieces.size(); i++)
+        {
+            size_t bIndex = aIndex;
+
+            floating_t desiredPieceLength = desiredLength;
+
+            //if aLength is less than desiredLength, B will be in a different segment than A, so search though the spline until we find B's segment
+            while(segmentRemainder < desiredPieceLength)
+            {
+                desiredPieceLength -= segmentRemainder;
+                segmentRemainder = segmentLengths[++bIndex];
+            }
+
+            floating_t aPercent;
+            if(aIndex == bIndex)
+            {
+                aPercent = previousPercent;
+            }
+            else
+            {
+                aPercent = 0;
+            }
+
+            //we now know our answer lies somewhere in the segment bIndex
+
+            //we can use the lengths we've calculated to formulate a pretty solid guess
+            //if desired length is x% of the segmentRemainder, then our guess will be x% of the way from aPercent to 1
+            floating_t desiredPercent = desiredPieceLength / segmentRemainder;
+            floating_t bGuess = aPercent + desiredPercent * (1 - aPercent);
+
+            auto solveFunction = [&](floating_t bPercent) {
+                return spline.segmentArcLength(bIndex, aPercent, bPercent) - desiredPieceLength;
+            };
+
+            boost::uintmax_t max_iter = 40;
+            auto result = boost::math::tools::bracket_and_solve_root(solveFunction, bGuess, floating_t(1.25), true, boost::math::tools::eps_tolerance<floating_t>(), max_iter);
+            floating_t bPercent = (result.first + result.second) / 2;
+
+            floating_t bBegin = spline.segmentT(bIndex);
+            floating_t bEnd = spline.segmentT(bIndex + 1);
+
+            pieces[i] = bBegin + bPercent * (bEnd - bBegin);
+
+            //set up the next iteration of the loop
+            previousPercent = bPercent;
+            segmentRemainder = segmentRemainder - desiredPieceLength;
+            aIndex = bIndex;
+        }
+        return pieces;
     }
 }
