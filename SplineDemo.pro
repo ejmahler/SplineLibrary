@@ -51,7 +51,8 @@ HEADERS  += \
     spline_library/hermite/cubic/looping_uniform_cr_spline.h \
     spline_library/utils/calculus.h \
     spline_library/vector.h \
-    spline_library/utils/spline_common.h
+    spline_library/utils/spline_common.h \
+    spline_library/arclength.h
 
 FORMS    += \
     demo/settingswidget.ui \
@@ -66,14 +67,17 @@ test {
         test/testcalculus.h \
         test/testvector.h \
         test/testspline.h \
-        test/testlinalg.h
+        test/testlinalg.h \
+        test/testarclength.h \
+        test/common.h
 
     SOURCES += \
         test/test_main.cpp \
         test/testcalculus.cpp \
         test/testvector.cpp \
         test/testspline.cpp \
-        test/testlinalg.cpp
+        test/testlinalg.cpp \
+        test/testarclength.cpp
 } else {
     SOURCES += demo/main.cpp
 }

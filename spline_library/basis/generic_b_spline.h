@@ -2,6 +2,7 @@
 
 #include "../spline.h"
 #include "../utils/spline_common.h"
+#include "../arclength.h"
 
 #include "generic_b_spline_common.h"
 
@@ -21,8 +22,8 @@ public:
     typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t t) const override { return common.getCurvature(t); }
     typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t t) const override { return common.getWiggle(t); }
 
-    floating_t arcLength(floating_t a, floating_t b) const override { if(a > b) std::swap(a,b); return SplineCommon::arcLength(*this,a,b); }
-    floating_t totalLength(void) const override { return SplineCommon::totalLength(*this); }
+    floating_t arcLength(floating_t a, floating_t b) const override { if(a > b) std::swap(a,b); return ArcLength::arcLength(*this,a,b); }
+    floating_t totalLength(void) const override { return ArcLength::totalLength(*this); }
 
     floating_t getT(int index) const override { return indexToT.at(index); }
     floating_t getMaxT(void) const override { return maxT; }

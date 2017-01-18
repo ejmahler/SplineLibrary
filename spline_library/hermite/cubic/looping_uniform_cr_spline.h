@@ -4,6 +4,7 @@
 #include "uniform_cr_spline_common.h"
 
 #include "../../utils/spline_common.h"
+#include "../../arclength.h"
 
 template<class InterpolationType, typename floating_t=float>
 class LoopingUniformCRSpline final : public Spline<InterpolationType, floating_t>
@@ -20,7 +21,7 @@ public:
     typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t x) const override;
 
     floating_t arcLength(floating_t a, floating_t b) const override;
-    floating_t totalLength(void) const override { return SplineCommon::totalLength(*this); }
+    floating_t totalLength(void) const override { return ArcLength::arcLength::totalLength(*this); }
 
     floating_t getT(int index) const override { return index; }
     floating_t getMaxT(void) const override { return maxT; }
@@ -98,5 +99,5 @@ floating_t LoopingUniformCRSpline<InterpolationType,floating_t>::arcLength(float
     floating_t wrappedA =  SplineCommon::wrapGlobalT(a, maxT);
     floating_t wrappedB =  SplineCommon::wrapGlobalT(b, maxT);
 
-    return SplineCommon::arcLength(*this, wrappedA, wrappedB);
+    return ArcLength::arcLength(*this, wrappedA, wrappedB);
 }
