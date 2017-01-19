@@ -70,20 +70,27 @@ namespace SplineSetup
 template<class InterpolationType, typename floating_t>
 floating_t SplineSetup::computeTDiff(InterpolationType p1, InterpolationType p2, floating_t alpha)
 {
-    auto distanceSq = (p1 - p2).lengthSquared();
-
-    //if these points are right on top of each other, don't bother with the power calculation
-    if(distanceSq < .0001)
+    if(alpha == 0)
     {
-        return 0;
+        return 1;
     }
     else
     {
-        //multiply alpha by 0.5 so that we tke the square root of distanceSq
-        //ie: result = distance ^ alpha, and distance = (distanceSq)^(0.5)
-        //so: result = (distanceSq^0.5)^(alpha) = (distanceSq)^(0.5*alpha)
-        //this way we don't have to do a pow AND a sqrt
-        return pow(distanceSq, alpha * 0.5);
+        auto distanceSq = (p1 - p2).lengthSquared();
+
+        //if these points are right on top of each other, don't bother with the power calculation
+        if(distanceSq < .0001)
+        {
+            return 0;
+        }
+        else
+        {
+            //multiply alpha by 0.5 so that we tke the square root of distanceSq
+            //ie: result = distance ^ alpha, and distance = (distanceSq)^(0.5)
+            //so: result = (distanceSq^0.5)^(alpha) = (distanceSq)^(0.5*alpha)
+            //this way we don't have to do a pow AND a sqrt
+            return pow(distanceSq, alpha * 0.5);
+        }
     }
 }
 

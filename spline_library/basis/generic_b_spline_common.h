@@ -137,7 +137,15 @@ public:
         auto innerIndex = segmentIndex + splineDegree - 1;
         auto tDistance = knots[innerIndex + 1] - knots[innerIndex];
 
-        return computeSegmentLength(innerIndex, knots[innerIndex] + a * tDistance, knots[innerIndex] + b * tDistance);
+        //it's perfectly legal for Bspline segments to have a T distance of 0, in which case the arc length is 0
+        if(tDistance > 0)
+        {
+            return computeSegmentLength(innerIndex, knots[innerIndex] + a * tDistance, knots[innerIndex] + b * tDistance);
+        }
+        else
+        {
+            return 0;
+        }
     }
 
 private: //methods
