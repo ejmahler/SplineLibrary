@@ -24,4 +24,8 @@ private slots:
     //verify that the "partition" method works as expected
     void testPartition_data(void);
     void testPartition(void);
+
+    //verify that the "partitionN" method works as expected
+    void testPartitionN_data(void);
+    void testPartitionN(void);
 };

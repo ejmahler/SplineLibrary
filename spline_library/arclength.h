@@ -197,7 +197,101 @@ namespace ArcLength
             floating_t bEnd = spline.segmentT(bIndex + 1);
 
             auto solveFunction = [&](floating_t bPercent) {
-                floating_t value = spline.segmentArcLength(bIndex, aPercent, bPercent) - desiredLength;
+                floating_t value = spline.segmentArcLength(bIndex, aPercent, bPercent) - desiredPieceLength;
+
+                floating_t b = bBegin + bPercent * (bEnd - bBegin);
+
+                //the derivative will be the length of the tangent
+                auto interpolationResult = spline.getCurvature(b);
+                floating_t tangentLength = interpolationResult.tangent.length();
+
+                //the second derivative will be the curvature projected onto the tangent
+                interpolationResult.tangent /= tangentLength;
+                floating_t secondDerivative = InterpolationType::dotProduct(interpolationResult.tangent, interpolationResult.curvature);
+
+                return std::make_tuple(value, tangentLength, secondDerivative);
+            };
+
+            floating_t bPercent = boost::math::tools::halley_iterate(
+                        solveFunction,
+                        bGuess,
+                        aPercent,
+                        floating_t(1),
+                        int(std::numeric_limits<floating_t>::digits * 0.5));
+
+            pieces[i] = bBegin + bPercent * (bEnd - bBegin);
+
+            //set up the next iteration of the loop
+            previousPercent = bPercent;
+            segmentRemainder = segmentRemainder - desiredPieceLength;
+            aIndex = bIndex;
+        }
+        return pieces;
+    }
+
+    //subdivide the spline into N pieces such that each piece has the same arc length
+    //returns a list of N+1 T values, where return[i] is the T value of the beginning of a piece and return[i+1] is the T value of the end of a piece
+    //the first element in the returned list is always 0, and the last element is always spline.getMaxT()
+    template<template <class, typename> class Spline, class InterpolationType, typename floating_t>
+    std::vector<floating_t> partitionN(const Spline<InterpolationType, floating_t>& spline, size_t n)
+    {
+        //first, compute total arc length and arc length for each segment
+        std::vector<floating_t> segmentLengths(spline.segmentCount());
+        floating_t totalArcLength(0);
+        for(size_t i = 0; i < spline.segmentCount(); i++)
+        {
+            floating_t segmentLength = spline.segmentArcLength(i, 0, 1);
+            totalArcLength += segmentLength;
+            segmentLengths[i] = segmentLength;
+        }
+        const floating_t desiredLength = totalArcLength / n;
+
+        //set up the result vector
+        std::vector<floating_t> pieces(n + 1);
+        pieces[0] = 0;
+        pieces[n] = spline.getMaxT();
+
+        //set up the inter-piece state
+        floating_t segmentRemainder = segmentLengths[0];
+        floating_t previousPercent = 0;
+        size_t aIndex = 0;
+
+        //for each piece, perform the same algorithm as the partition" method
+        for(size_t i = 1; i < n; i++)
+        {
+            size_t bIndex = aIndex;
+
+            floating_t desiredPieceLength = desiredLength;
+
+            //if aLength is less than desiredLength, B will be in a different segment than A, so search though the spline until we find B's segment
+            while(segmentRemainder < desiredPieceLength)
+            {
+                desiredPieceLength -= segmentRemainder;
+                segmentRemainder = segmentLengths[++bIndex];
+            }
+
+            floating_t aPercent;
+            if(aIndex == bIndex)
+            {
+                aPercent = previousPercent;
+            }
+            else
+            {
+                aPercent = 0;
+            }
+
+            //we now know our answer lies somewhere in the segment bIndex
+
+            //we can use the lengths we've calculated to formulate a pretty solid guess
+            //if desired length is x% of the segmentRemainder, then our guess will be x% of the way from aPercent to 1
+            floating_t desiredPercent = desiredPieceLength / segmentRemainder;
+            floating_t bGuess = aPercent + desiredPercent * (1 - aPercent);
+
+            floating_t bBegin = spline.segmentT(bIndex);
+            floating_t bEnd = spline.segmentT(bIndex + 1);
+
+            auto solveFunction = [&](floating_t bPercent) {
+                floating_t value = spline.segmentArcLength(bIndex, aPercent, bPercent) - desiredPieceLength;
 
                 floating_t b = bBegin + bPercent * (bEnd - bBegin);
 

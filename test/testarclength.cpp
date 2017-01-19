@@ -131,18 +131,7 @@ void TestArcLength::testKnownArcLength(void)
     QFETCH(bool, sameSegment);
 
     float arcResult = spline->arcLength(a, b);
-
-    auto compareFloatsLenient = [] (auto actual, auto expected) {
-        auto error = std::abs(actual - expected) / expected;
-        if(error > 0.01) {
-            std::string errorMessage = QString("Compared floats were different. Actual: %1, Expected: %2").arg(QString::number(actual), QString::number(expected)).toStdString();
-            QFAIL(errorMessage.data());
-        }
-    };
-
-    //qt's fuzzy compare is a little too strict here. this is an inherently imprecise operation (especially given the use of the spline inverter)
-    //so we need to allow for small deviations
-    compareFloatsLenient(arcResult, expectedLength);
+    compareFloatsLenient(arcResult, expectedLength, 0.01f);
 
     //if a and b are in the same segment, we also need to test the "segmentArcLength" method for the tested segment
     if(sameSegment) {
@@ -166,7 +155,7 @@ void TestArcLength::testKnownArcLength(void)
             return interpolationResult.tangent.length();
         };
         float integralResult = SplineLibraryCalculus::gaussLegendreQuadratureIntegral(derivativeFunction, a, b);
-        compareFloatsLenient(integralResult, expectedLength);
+        compareFloatsLenient(integralResult, expectedLength, 0.001f);
 
         //since we're testing arc length derivatives, the second derivative of the arc length is the curvature projected onto the tangent
         //this is useful to verify because using the second derivative can speed up the "solve arc length" calculation
@@ -298,6 +287,65 @@ void TestArcLength::testPartition(void)
     for(size_t i = 0; i < expectedPieces; i++)
     {
         float pieceLength = ArcLength::arcLength(*spline.get(), pieces[i], pieces[i+1]);
-        QCOMPARE(pieceLength, desiredLength);
+        compareFloatsLenient(pieceLength, desiredLength, 0.001f);
+    }
+}
+
+
+
+
+
+void TestArcLength::testPartitionN_data(void)
+{
+    //our data will just be points on a straight line between 0 and 100
+    //this makes the total length of this line 100 * sqrt(2) so it'll be easy to verify
+    std::vector<Vector2> data {
+        Vector2({0,0}),
+        Vector2({1,0}),
+        Vector2({3,3}),
+        Vector2({6,6}),
+        Vector2({10,10}),
+        Vector2({15,15}),
+        Vector2({21,21}),
+        Vector2({28,28}),
+        Vector2({36,36}),
+        Vector2({45,45}),
+        Vector2({55,55})
+    };
+
+    QTest::addColumn<std::shared_ptr<Spline<Vector2>>>("spline");
+    QTest::addColumn<size_t>("n");
+
+    auto rowFunction = [=](const char* name, std::shared_ptr<Spline<Vector2>> spline) {
+        //add a row where the desired length is larger than the average segment
+        std::string largeName = QString("%1 (Large Pieces)").arg(name).toStdString();
+        QTest::newRow(largeName.data()) << spline << size_t(3);
+
+        //add a row where the desired length is low, so there will be many results that begin and end in the same segment, since this is a special case
+        std::string smallName = QString("%1 (Small Pieces)").arg(name).toStdString();
+        QTest::newRow(smallName.data()) << spline << size_t(20);
+    };
+
+    rowFunction("uniformCR", std::make_shared<UniformCRSpline<Vector2>>(addPadding(data,1)));
+    rowFunction("cubicHermiteAlpha", std::make_shared<CubicHermiteSpline<Vector2>>(addPadding(data,1), 0.5f));
+}
+
+void TestArcLength::testPartitionN(void)
+{
+    QFETCH(std::shared_ptr<Spline<Vector2>>, spline);
+    QFETCH(size_t, n);
+
+    std::vector<float> pieces = ArcLength::partitionN(*spline.get(), n);
+
+    //verify that we have the correct number of results
+    QCOMPARE(pieces.size(), n + 1);
+
+    float totalLength = ArcLength::totalLength(*spline.get());
+
+    //verify that each piece has the correct arc length
+    for(size_t i = 0; i < n; i++)
+    {
+        float pieceLength = ArcLength::arcLength(*spline.get(), pieces[i], pieces[i+1]);
+        compareFloatsLenient(pieceLength, totalLength/n, 0.001f);
     }
 }

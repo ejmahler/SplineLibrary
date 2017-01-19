@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QtTest/QtTest>
 
 #include <memory>
 
@@ -30,4 +31,13 @@ std::vector<T> addPadding(std::vector<T> list, size_t paddingSize) {
         list.push_back(list[list.size() - 1] + (list[list.size() - 1] - list[list.size() - 2]));
     }
     return list;
+}
+
+template<class T>
+void compareFloatsLenient(T actual, T expected, T tol) {
+    auto error = std::abs(actual - expected) / expected;
+    if(error > tol) {
+        std::string errorMessage = QString("Compared floats were different. Actual: %1, Expected: %2").arg(QString::number(actual), QString::number(expected)).toStdString();
+        QFAIL(errorMessage.data());
+    }
 };
