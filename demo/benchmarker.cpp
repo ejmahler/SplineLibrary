@@ -7,12 +7,15 @@
 #include <QVector3D>
 #include <QTime>
 
-#include "spline_library/basis/uniform_cubic_bspline.h"
+#include "spline_library/arclength.h"
+#include "spline_library/basis/generic_b_spline.h"
 #include "spline_library/hermite/cubic/uniform_cr_spline.h"
-#include "spline_library/hermite/cubic/cubic_hermite_spline.h"
+#include "spline_library/natural/natural_spline.h"
+
+#include <boost/math/tools/roots.hpp>
 
 Benchmarker::Benchmarker(QObject *parent)
-    :QObject(parent), bigDistribution(0, 1000), smallDistribution(0,1), smallVarianceDistribution(4, 10)
+    :QObject(parent), repeats(100)
 {
 
 }
@@ -21,11 +24,38 @@ QMap<QString, float> Benchmarker::runBenchmark(void)
 {
     canceled = false;
 
-    auto randomGenerator = std::bind(&Benchmarker::randomPoints2D_Uniform, this, std::placeholders::_1);
+    //create a distribution of random numbers, and a parameterles function to generate them
+    std::uniform_real_distribution<FloatingT> distribution(10,15);
+    auto randomSource = [this, &distribution]() {
+        return distribution(this->gen);
+    };
+
+    //create the functions used to generate the splines
+    auto crSpline = [this, randomSource](size_t size) {
+        auto points = randomPoints_SmallVariance<VectorT, D, FloatingT>(randomSource, size);
+        SplinePtr result = std::make_unique<UniformCRSpline<VectorT,FloatingT>>(points);
+        return result;
+    };
+
+    auto genericBSpline = [this, randomSource](size_t size) {
+        auto points = randomPoints_SmallVariance<VectorT, D, FloatingT>(randomSource, size);
+        SplinePtr result = std::make_unique<GenericBSpline<VectorT,FloatingT>>(points, 7);
+        return result;
+    };
+
+    auto natural = [this, randomSource](size_t size) {
+        auto points = randomPoints_SmallVariance<VectorT, D, FloatingT>(randomSource, size);
+        SplinePtr result = std::make_unique<NaturalSpline<VectorT,FloatingT>>(points, true, 0.5f);
+        return result;
+    };
 
     QMap<QString, float> results;
-    results["uniform_cr[100]"] = timeFunction(&Benchmarker::testPrecision,  "Testing random precision",         100, 1000, 100,randomGenerator);
-    results["uniform_cr[1000]"] = timeFunction(&Benchmarker::testPrecision, "Testing random precision",         100, 1000, 1000,randomGenerator);
+    timeSplineMemberFunction(results, &Benchmarker::testSolveArcLength, crSpline, "FAST: uniform_cr[10]",    10000, 12);
+    timeSplineMemberFunction(results, &Benchmarker::testSolveArcLength, crSpline, "FAST: uniform_cr[1000]",  1000, 1002);
+    timeSplineMemberFunction(results, &Benchmarker::testSolveArcLength, genericBSpline, "FAST: bspline[10]",    1000, 16);
+    timeSplineMemberFunction(results, &Benchmarker::testSolveArcLength, genericBSpline, "FAST: bspline[1000]",  100, 1006);
+    timeSplineMemberFunction(results, &Benchmarker::testSolveArcLength, natural, "FAST: natural[10]",    10000, 10);
+    timeSplineMemberFunction(results, &Benchmarker::testSolveArcLength, natural, "FAST: natural[1000]",  1000, 1000);
 
     return results;
 }
@@ -35,59 +65,44 @@ void Benchmarker::cancel(void)
     canceled = true;
 }
 
-void Benchmarker::testPrecision(QString message, int repeat, int queries, size_t size, std::function<std::vector<VectorT> (size_t)> pointGenerator)
-{
+void Benchmarker::timeSplineMemberFunction(
+        QMap<QString, float>& results,
+        void(Benchmarker::*testFunction)(QString, int, const Spline<VectorT, FloatingT>&) ,
+        std::function<SplinePtr(size_t)> splineFunction,
+        QString message, int queries, size_t size) {
+
+    emit setProgressText(message);
+    emit setProgressRange(0, repeats);
+
+    int totalElapsed = 0;
     gen.seed(10);
+    QTime t;
 
-    emit setProgressText(message + QString(", size ") + QString::number(size));
-    emit setProgressRange(0, repeat);
+    for(int i = 0; i < repeats; i++) {
+        if(canceled) return;
 
-    for(int i = 0; i < repeat; i++)
-    {
         emit setProgressValue(i);
-        if(canceled)
-            return;
+        auto spline = splineFunction(size);
 
-        UniformCRSpline<VectorT, double> s(pointGenerator(size));
-
-        double max = s.getMaxT();
-        for(int q = 0; q < queries; q++)
-        {
-            double a = randomFloat(max);
-            double b = randomFloat(max);
-
-            s.arcLength(a, b);
-        }
+        t.start();
+        (this->*testFunction)(message, queries, *spline.get());
+        totalElapsed += t.elapsed();
     }
-    emit setProgressValue(repeat);
+    emit setProgressValue(repeats);
+
+    results[message] = 1000 * float(totalElapsed) / (repeats * queries);
 }
 
-
-
-
-std::vector<VectorT> Benchmarker::randomPoints2D_Uniform(size_t size)
+void Benchmarker::testSolveArcLength(QString message, int queries, const Spline<VectorT, FloatingT> &spline)
 {
-    std::vector<VectorT> result(size);
-    for(size_t s = 0; s < size; s++)
+    std::uniform_real_distribution<FloatingT> lengthDist(1, spline.totalLength()/2);
+
+    for(int q = 0; q < queries; q++)
     {
-        result[s] = VectorT({bigDistribution(gen), bigDistribution(gen)});
-    }
-    return result;
-}
+        //set up the test
+        FloatingT desired = lengthDist(gen);
 
-std::vector<VectorT> Benchmarker::randomPoints2D_SmallVariance(size_t size)
-{
-    std::vector<VectorT> result(size);
-    result[0] = VectorT({smallVarianceDistribution(gen), smallVarianceDistribution(gen)});
-    for(size_t s = 1; s < size; s++)
-    {
-        result[s] = result[s - 1] + VectorT({smallVarianceDistribution(gen), smallVarianceDistribution(gen)});
+        ArcLength::partition(spline, desired);
     }
-    return result;
-}
-
-double Benchmarker::randomFloat(double max)
-{
-    return smallDistribution(gen) * max;
 }
 

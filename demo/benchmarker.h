@@ -7,10 +7,15 @@
 #include <vector>
 #include <random>
 #include <functional>
+#include <memory>
 
 #include "spline_library/vector.h"
+#include "spline_library/spline.h"
 
-typedef Vector<2, double> VectorT;
+const size_t D = 2;
+typedef float FloatingT;
+typedef Vector<D, FloatingT> VectorT;
+typedef std::unique_ptr<Spline<VectorT, FloatingT>> SplinePtr;
 
 class Benchmarker : public QObject
 {
@@ -29,30 +34,57 @@ public slots:
     void cancel(void);
 
 private:
+    void timeSplineMemberFunction(
+            QMap<QString, float>& results,
+            void(Benchmarker::*testFunction)(QString, int, const Spline<VectorT, FloatingT>&),
+            std::function<SplinePtr(size_t)> splineFunction,
+            QString message, int queries, size_t size);
+
     //**********
     //all of these functions can change based on whatever you want - i just needed a common place to put performance comparisons
-
-    void testPrecision(QString message, int repeat, int queries, size_t size, std::function<std::vector<VectorT> (size_t)> pointGenerator);
+    void testSolveArcLength(QString message, int queries, const Spline<VectorT, FloatingT> &spline);
+    void testNaiveSolve(QString message, int queries, const Spline<VectorT, FloatingT> &spline);
+    void controlGroup(QString message, int queries, const Spline<VectorT, FloatingT> &spline);
 
 private://support stuff
 
-    std::vector<VectorT> randomPoints2D_Uniform(size_t size);
-    std::vector<VectorT> randomPoints2D_SmallVariance(size_t size);
-    double randomFloat(double max);
+    template<class InterpolationType, size_t dimension, typename floating_t, class RandomSource>
+    static InterpolationType makeRandomPoint(RandomSource randomSource)
+    {
+        std::array<floating_t, dimension> result{};
 
-    template <class Function, typename... Args>
-    float timeFunction(Function f, Args&&... a) {
-        QTime t;
-        t.start();
-        (this->*f)(std::forward<Args>(a)...);
-        int elapsedMilli = t.elapsed();
-        return float(elapsedMilli) / 1000.0;
+        for(size_t i = 0; i < dimension; i++) {
+            result[i] = randomSource();
+        }
+
+        return result;
+    }
+
+    template<class InterpolationType, size_t dimension, typename floating_t, class RandomSource>
+    static std::vector<InterpolationType> randomPoints_Uniform(RandomSource randomSource, size_t size)
+    {
+        std::vector<InterpolationType> result(size);
+        for(size_t i = 0; i < size; i++)
+        {
+            result[i] = makeRandomPoint<InterpolationType, dimension, floating_t>(randomSource);
+        }
+        return result;
+    }
+
+    template<class InterpolationType, size_t dimension, typename floating_t, class RandomSource>
+    static std::vector<InterpolationType> randomPoints_SmallVariance(RandomSource randomSource, size_t size)
+    {
+        std::vector<InterpolationType> result(size);
+        result[0] = makeRandomPoint<InterpolationType, dimension, floating_t>(randomSource);
+        for(size_t i = 1; i < size; i++)
+        {
+            result[i] = result[i - 1] + makeRandomPoint<InterpolationType, dimension, floating_t>(randomSource);
+        }
+        return result;
     }
 
 private: //data
     std::minstd_rand gen;
-    std::uniform_real_distribution<double> bigDistribution;
-    std::uniform_real_distribution<double> smallDistribution;
-    std::uniform_real_distribution<double> smallVarianceDistribution;
     bool canceled;
+    int repeats;
 };

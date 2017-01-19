@@ -2,6 +2,7 @@
 
 #include "common.h"
 
+#include "spline_library/utils/calculus.h"
 #include "spline_library/basis/uniform_cubic_bspline.h"
 #include "spline_library/basis/generic_b_spline.h"
 #include "spline_library/natural/natural_spline.h"
@@ -157,6 +158,25 @@ void TestArcLength::testKnownArcLength(void)
 
         //no need for a lenient comparison here, because the results should be much closer to identical to the "arcLength" result
         QCOMPARE(arcResult, segmentArc);
+
+        //we know that the arc length is equal to the integral of the magnitude of the spline tangent
+        //or to put it another way, the mangitude of the tangent is the derivative of the arc length
+        auto derivativeFunction = [spline](float t) {
+            auto interpolationResult = spline->getTangent(t);
+            return interpolationResult.tangent.length();
+        };
+        float integralResult = SplineLibraryCalculus::gaussLegendreQuadratureIntegral(derivativeFunction, a, b);
+        compareFloatsLenient(integralResult, expectedLength);
+
+        //since we're testing arc length derivatives, the second derivative of the arc length is the curvature projected onto the tangent
+        //this is useful to verify because using the second derivative can speed up the "solve arc length" calculation
+        auto secondDerivativeFunction = [spline](float t) {
+            auto interpolationResult = spline->getCurvature(t);
+            return Vector2::dotProduct(interpolationResult.tangent.normalized(), interpolationResult.curvature);
+        };
+        float secondDerivativeIntegral = SplineLibraryCalculus::gaussLegendreQuadratureIntegral(secondDerivativeFunction, a, b);
+        float expectedSecondDerivativeResult = spline->getTangent(b).tangent.length() - spline->getTangent(a).tangent.length();
+        QCOMPARE(secondDerivativeIntegral, expectedSecondDerivativeResult);
     }
 }
 

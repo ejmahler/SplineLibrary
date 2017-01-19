@@ -108,16 +108,31 @@ namespace ArcLength
         floating_t desiredPercent = desiredLength / bLength;
         floating_t bGuess = aPercent + desiredPercent * (1 - aPercent);
 
-        auto solveFunction = [&](floating_t bPercent) {
-            return spline.segmentArcLength(bIndex, aPercent, bPercent) - desiredLength;
-        };
-
-        boost::uintmax_t max_iter = 40;
-        auto result = boost::math::tools::bracket_and_solve_root(solveFunction, bGuess, floating_t(1.25), true, boost::math::tools::eps_tolerance<floating_t>(), max_iter);
-        floating_t bPercent = (result.first + result.second) / 2;
-
         floating_t bBegin = spline.segmentT(bIndex);
         floating_t bEnd = spline.segmentT(bIndex + 1);
+
+        auto solveFunction = [&](floating_t bPercent) {
+            floating_t value = spline.segmentArcLength(bIndex, aPercent, bPercent) - desiredLength;
+
+            floating_t b = bBegin + bPercent * (bEnd - bBegin);
+
+            //the derivative will be the length of the tangent
+            auto interpolationResult = spline.getCurvature(b);
+            floating_t tangentLength = interpolationResult.tangent.length();
+
+            //the second derivative will be the curvature projected onto the tangent
+            interpolationResult.tangent /= tangentLength;
+            floating_t secondDerivative = InterpolationType::dotProduct(interpolationResult.tangent, interpolationResult.curvature);
+
+            return std::make_tuple(value, tangentLength, secondDerivative);
+        };
+
+        floating_t bPercent = boost::math::tools::halley_iterate(
+                    solveFunction,
+                    bGuess,
+                    aPercent,
+                    floating_t(1),
+                    int(std::numeric_limits<floating_t>::digits * 0.5));
 
         return bBegin + bPercent * (bEnd - bBegin);
     }
@@ -178,16 +193,31 @@ namespace ArcLength
             floating_t desiredPercent = desiredPieceLength / segmentRemainder;
             floating_t bGuess = aPercent + desiredPercent * (1 - aPercent);
 
-            auto solveFunction = [&](floating_t bPercent) {
-                return spline.segmentArcLength(bIndex, aPercent, bPercent) - desiredPieceLength;
-            };
-
-            boost::uintmax_t max_iter = 40;
-            auto result = boost::math::tools::bracket_and_solve_root(solveFunction, bGuess, floating_t(1.25), true, boost::math::tools::eps_tolerance<floating_t>(), max_iter);
-            floating_t bPercent = (result.first + result.second) / 2;
-
             floating_t bBegin = spline.segmentT(bIndex);
             floating_t bEnd = spline.segmentT(bIndex + 1);
+
+            auto solveFunction = [&](floating_t bPercent) {
+                floating_t value = spline.segmentArcLength(bIndex, aPercent, bPercent) - desiredLength;
+
+                floating_t b = bBegin + bPercent * (bEnd - bBegin);
+
+                //the derivative will be the length of the tangent
+                auto interpolationResult = spline.getCurvature(b);
+                floating_t tangentLength = interpolationResult.tangent.length();
+
+                //the second derivative will be the curvature projected onto the tangent
+                interpolationResult.tangent /= tangentLength;
+                floating_t secondDerivative = InterpolationType::dotProduct(interpolationResult.tangent, interpolationResult.curvature);
+
+                return std::make_tuple(value, tangentLength, secondDerivative);
+            };
+
+            floating_t bPercent = boost::math::tools::halley_iterate(
+                        solveFunction,
+                        bGuess,
+                        aPercent,
+                        floating_t(1),
+                        int(std::numeric_limits<floating_t>::digits * 0.5));
 
             pieces[i] = bBegin + bPercent * (bEnd - bBegin);
 
