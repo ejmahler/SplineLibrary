@@ -40,18 +40,31 @@ Project Layout
 -------------
 The root of the repository is a Qt Creator project that demonstrates some uses of the library. The source for the spline code itself is in the "spline_library" directory, and the code to set up the demo is in the "demo" directory.
 
-Requirements
+Usage
 -------------
+Drop the spline_library directory in the root source folder of your project. It's header-only, so from here all you need to do is import it from your own code.
+
+`spline_library/spline_inverter.h` and `spline_library/arclength.h` depend on Boost's Math module. If you don't want to install Boost, you can safely avoid including these two files - nothing else includes it, and nothing else relies on Boost.
 
 Both the demo and the spline_library code require a fully compliant C++14 compiler.
 
-The demo project requires Qt 5.5. To build it, either run qmake with the .pro file to generate a makefile, or open the .pro file in qt Creator.
+Demo
+-------------
+Follow these steps to run the demo (Assuming you already have Qt 5.5+ installed and working):
 
-When actually using splines in your own project, drop the spline_library directory in the root source folder. It's header-only, so from here all you need to do is import it from your own code.
+1. Install Boost. On Linux, this is in most package managers. On Mac, it can be installed via homebrew. Otherwise, visit http://www.boost.org/
+2. Create a file called `SplineDemo_Include.pri` in the root of the project
+3. In this file, paste the following, where `/path/to/boost` contains Boost's include files.
 
-`spline_library/spline_inverter.h` depends on Boost's Math module. If you don't want to install Boost and you don't need the spline inverter's functionality, you can safely avoid including `spline_library/spline_inverter.h` - nothing else includes it, and nothing else relies on Boost.
-
-There are no other third-party dependencies within the spline_library directory.
+    `INCLUDEPATH += "/path/to/boost"`
+     
+    On windows, this might be:  
+    `INCLUDEPATH+= "C:\Boost\boost_1_60_0"`
+     
+    On Mac, this might be:
+    INCLUDEPATH += /usr/local/Cellar/boost/1.59.0/include
+4. Run qmake on `SplineDemo.pro` to generate a makefile, then build the makefile, and run the compiled executable
+5. OR, open `SplineDemo.pro` in Qt Creator and press play
 
 License
 -------------
