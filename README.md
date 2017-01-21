@@ -62,7 +62,7 @@ Follow these steps to run the demo (Assuming you already have Qt 5.5+ installed 
     `INCLUDEPATH+= "C:\Boost\boost_1_60_0"`
      
     On Mac, this might be:
-    INCLUDEPATH += /usr/local/Cellar/boost/1.59.0/include
+    `INCLUDEPATH += /usr/local/Cellar/boost/1.59.0/include`
 4. Run qmake on `SplineDemo.pro` to generate a makefile, then build the makefile, and run the compiled executable
 5. OR, open `SplineDemo.pro` in Qt Creator and press play
 
