@@ -6,6 +6,7 @@ TEMPLATE = app
 CONFIG += c++14
 
 #on mac we want to look for boost in homebrew folder
+windows:INCLUDEPATH+= "C:\Boost\boost_1_60_0"
 macx:INCLUDEPATH += /usr/local/Cellar/boost/1.59.0/include
 
 #on windows we need to manually add opengl because ???
@@ -35,7 +36,6 @@ HEADERS  += \
     spline_library/utils/linearalgebra.h \
     spline_library/utils/nanoflann.hpp \
     spline_library/utils/splinesample_adaptor.h \
-    spline_library/utils/spline_setup.h \
     spline_library/basis/generic_b_spline.h \
     spline_library/basis/looping_generic_b_spline.h \
     spline_library/basis/generic_b_spline_common.h \
@@ -50,7 +50,9 @@ HEADERS  += \
     spline_library/hermite/cubic/uniform_cr_spline_common.h \
     spline_library/hermite/cubic/looping_uniform_cr_spline.h \
     spline_library/utils/calculus.h \
-    spline_library/vector.h
+    spline_library/vector.h \
+    spline_library/utils/spline_common.h \
+    spline_library/arclength.h
 
 FORMS    += \
     demo/settingswidget.ui \
@@ -65,14 +67,17 @@ test {
         test/testcalculus.h \
         test/testvector.h \
         test/testspline.h \
-        test/testlinalg.h
+        test/testlinalg.h \
+        test/testarclength.h \
+        test/common.h
 
     SOURCES += \
         test/test_main.cpp \
         test/testcalculus.cpp \
         test/testvector.cpp \
         test/testspline.cpp \
-        test/testlinalg.cpp
+        test/testlinalg.cpp \
+        test/testarclength.cpp
 } else {
     SOURCES += demo/main.cpp
 }

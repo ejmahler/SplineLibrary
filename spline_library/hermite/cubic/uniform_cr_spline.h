@@ -19,8 +19,8 @@ public:
     typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t t) const override { return common.getCurvature(t); }
     typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t t) const override { return common.getWiggle(t); }
 
-    floating_t arcLength(floating_t a, floating_t b) const override { if(a > b) std::swap(a,b); return common.getLength(a,b); }
-    floating_t totalLength(void) const override { return common.getTotalLength(); }
+    floating_t arcLength(floating_t a, floating_t b) const override { if(a > b) std::swap(a,b); return ArcLength::arcLength(*this,a,b); }
+    floating_t totalLength(void) const override { return ArcLength::totalLength(*this); }
 
     floating_t getT(int index) const override { return index - 1; }
     floating_t getMaxT(void) const override { return maxT; }
@@ -28,6 +28,7 @@ public:
     bool isLooping(void) const override { return false; }
 
     size_t segmentCount(void) const override { return common.segmentCount(); }
+    size_t segmentForT(floating_t t) const override { return common.segmentForT(t); }
     floating_t segmentT(size_t segmentIndex) const override { return segmentIndex; }
     floating_t segmentArcLength(size_t segmentIndex, floating_t a, floating_t b) const override { return common.segmentLength(segmentIndex, a, b); }
 

@@ -427,7 +427,7 @@ void MainWindow::runBenchmark(void)
         auto result = future.result();
         for(auto it = result.cbegin(); it != result.cend(); it++)
         {
-            resultText += QString("%1: %2s\n").arg(it.key(), QString::number(it.value(), 'f', 2));
+            resultText += QString("%1: %2ns\n").arg(it.key(), QString::number(it.value(), 'f', 2));
         }
 
 

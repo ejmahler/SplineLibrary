@@ -14,6 +14,10 @@ signals:
 
 private slots:
 
+    //test each spline's basic methods like maxT, segmentCount
+    void testMethods_data(void);
+    void testMethods(void);
+
     //use numeric integration to verify the first, second, and third derivatives
     void testDerivatives_data(void);
     void testDerivatives(void);
@@ -22,14 +26,6 @@ private slots:
     //this one is for splines without continuous curvature
     void testDerivativesNonC2_data(void);
     void testDerivativesNonC2(void);
-
-    //Verify arcLength(0,maxT) equals totalLength() for all non-looping splines
-    void testArcLengthTotalLength_data(void);
-    void testArcLengthTotalLength(void);
-
-    //For some known arc length values, verify that each spline gives the correct result
-    void testKnownArcLength_data(void);
-    void testKnownArcLength(void);
 
 private:
     //use the gauss-legendre quadrature algorithm to numerically integrate f from a to b
