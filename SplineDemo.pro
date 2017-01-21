@@ -5,9 +5,9 @@ TEMPLATE = app
 
 CONFIG += c++14
 
-#on mac we want to look for boost in homebrew folder
-windows:INCLUDEPATH+= "C:\Boost\boost_1_60_0"
-macx:INCLUDEPATH += /usr/local/Cellar/boost/1.59.0/include
+exists(./SplineDemo_Include.pri) {
+    include(SplineDemo_Include.pri)
+}
 
 #on windows we need to manually add opengl because ???
 windows: LIBS += -lopengl32

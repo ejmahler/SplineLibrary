@@ -19,3 +19,4 @@ qrc_*.cpp
 Makefile
 *-build-*
 *.autosave
+SplineDemo_Include.pri
