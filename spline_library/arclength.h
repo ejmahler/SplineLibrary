@@ -90,35 +90,33 @@ namespace ArcLength
             segmentLengths[i] = segmentLength;
         }
 
-        std::vector<floating_t> pieces(size_t(totalArcLength / lengthPerPiece) + 1);
+        size_t n = size_t(totalArcLength / lengthPerPiece) + 1;
+        std::vector<floating_t> pieces(n);
 
+        //set up the inter-piece state
         floating_t segmentRemainder = segmentLengths[0];
-        size_t aIndex = 0;
+        size_t segmentIndex = 0;
 
-        //for each piece, perform the same algorithm as the "solve" method, but we have much fewer arc lenths to compute
-        //because we can reuse work between segments
-        for(size_t i = 1; i < pieces.size(); i++)
+        //for each piece, perform the same algorithm as the "solve" method, except re-use work between segments by referring to the segmentLengths array
+        for(size_t i = 1; i < n; i++)
         {
-            size_t bIndex = aIndex;
-
             floating_t desiredLength = lengthPerPiece;
             floating_t segmentBegin = pieces[i - 1];
 
-            //if aLength is less than desiredLength, B will be in a different segment than A, so search though the spline until we find B's segment
+            //if the segment length is less than desiredLength, B will be in a different segment than A, so search though the spline until we find B's segment
             while(segmentRemainder < desiredLength)
             {
-                bIndex++;
+                segmentIndex++;
                 desiredLength -= segmentRemainder;
-                segmentRemainder = segmentLengths[bIndex];
-                segmentBegin = spline.segmentT(bIndex);
+                segmentRemainder = segmentLengths[segmentIndex];
+                segmentBegin = spline.segmentT(segmentIndex);
             }
 
-            //we now know our answer lies somewhere in the segment bIndex
-            pieces[i] = __ArcLengthSolvePrivate::solveSegment(spline, bIndex, desiredLength, segmentRemainder, segmentBegin);
+            //we've found the segment that b lies in, so solve for the remaining arc length within this segment
+            pieces[i] = __ArcLengthSolvePrivate::solveSegment(spline, segmentIndex, desiredLength, segmentRemainder, segmentBegin);
 
             //set up the next iteration of the loop
             segmentRemainder = segmentRemainder - desiredLength;
-            aIndex = bIndex;
         }
         return pieces;
     }
@@ -142,38 +140,34 @@ namespace ArcLength
 
         //set up the result vector
         std::vector<floating_t> pieces(n + 1);
-        pieces[0] = 0;
-        pieces[n] = spline.getMaxT();
 
         //set up the inter-piece state
         floating_t segmentRemainder = segmentLengths[0];
-        size_t aIndex = 0;
+        size_t segmentIndex = 0;
 
-        //for each piece, perform the same algorithm as the "solve" method, but we have much fewer arc lenths to compute
-        //because we can reuse work between segments
+        //for each piece, perform the same algorithm as the "solve" method, except re-use work between segments by referring to the segmentLengths array
         for(size_t i = 1; i < n; i++)
         {
-            size_t bIndex = aIndex;
-
             floating_t desiredLength = lengthPerPiece;
             floating_t segmentBegin = pieces[i - 1];
 
-            //if aLength is less than desiredLength, B will be in a different segment than A, so search though the spline until we find B's segment
+            //if the segment length is less than desiredLength, B will be in a different segment than A, so search though the spline until we find B's segment
             while(segmentRemainder < desiredLength)
             {
-                bIndex++;
+                segmentIndex++;
                 desiredLength -= segmentRemainder;
-                segmentRemainder = segmentLengths[bIndex];
-                segmentBegin = spline.segmentT(bIndex);
+                segmentRemainder = segmentLengths[segmentIndex];
+                segmentBegin = spline.segmentT(segmentIndex);
             }
 
-            //we now know our answer lies somewhere in the segment bIndex
-            pieces[i] = __ArcLengthSolvePrivate::solveSegment(spline, bIndex, desiredLength, segmentRemainder, segmentBegin);
+            //we've found the segment that b lies in, so solve for the remaining arc length within this segment
+            pieces[i] = __ArcLengthSolvePrivate::solveSegment(spline, segmentIndex, desiredLength, segmentRemainder, segmentBegin);
 
             //set up the next iteration of the loop
             segmentRemainder = segmentRemainder - desiredLength;
-            aIndex = bIndex;
         }
+
+        pieces[n] = spline.getMaxT();
         return pieces;
     }
 }
