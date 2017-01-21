@@ -4,7 +4,6 @@
 
 #include "../../spline.h"
 #include "uniform_cr_spline_common.h"
-#include "../../arclength.h"
 
 template<class InterpolationType, typename floating_t=float>
 class UniformCRSpline final : public Spline<InterpolationType, floating_t>

@@ -7,7 +7,6 @@
 #include "cubic_hermite_spline_common.h"
 
 #include "../../utils/spline_common.h"
-#include "../../arclength.h"
 
 template<class InterpolationType, typename floating_t=float>
 class CubicHermiteSpline final : public Spline<InterpolationType, floating_t>

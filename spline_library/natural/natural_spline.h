@@ -5,7 +5,6 @@
 
 #include "../utils/linearalgebra.h"
 #include "../utils/spline_common.h"
-#include "../arclength.h"
 
 #include <unordered_map>
 #include <cassert>

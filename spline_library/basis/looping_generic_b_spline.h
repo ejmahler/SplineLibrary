@@ -2,7 +2,7 @@
 
 #include "../spline.h"
 #include "../utils/spline_common.h"
-#include "../arclength.h"
+
 #include "generic_b_spline_common.h"
 
 #include <unordered_map>

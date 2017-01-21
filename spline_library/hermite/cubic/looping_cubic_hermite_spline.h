@@ -4,7 +4,6 @@
 #include "cubic_hermite_spline_common.h"
 
 #include "../../utils/spline_common.h"
-#include "../../arclength.h"
 
 #include <unordered_map>
 
