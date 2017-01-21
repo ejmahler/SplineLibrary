@@ -1,6 +1,7 @@
 #include "testarclength.h"
 
 #include "common.h"
+#include "spline_library/arclength.h"
 
 #include "spline_library/utils/calculus.h"
 #include "spline_library/basis/uniform_cubic_bspline.h"
