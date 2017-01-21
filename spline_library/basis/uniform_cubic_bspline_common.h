@@ -101,14 +101,17 @@ public:
                     );
     }
 
-    inline floating_t segmentLength(size_t index, floating_t from, floating_t to) const
+    inline floating_t segmentLength(size_t index, floating_t a, floating_t b) const
     {
         auto segmentFunction = [this, index](floating_t t) -> floating_t {
             auto tangent = computeTangent(index, t);
             return tangent.length();
         };
 
-        return SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, from, to);
+        floating_t localA = a - index;
+        floating_t localB = b - index;
+
+        return SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, localA, localB);
     }
 
 private: //methods

@@ -99,9 +99,17 @@ public:
     }
 
     inline floating_t segmentLength(size_t segmentIndex, floating_t a, floating_t b) const {
-        auto tDistance = knots[segmentIndex + 1] - knots[segmentIndex];
 
-        return computeSegmentLength(segmentIndex, a * tDistance, b * tDistance);
+        floating_t tDiff = knots[segmentIndex + 1] - knots[segmentIndex];
+        auto segmentFunction = [=](floating_t t) -> floating_t {
+            auto tangent = computeTangent(segmentIndex, tDiff, t);
+            return tangent.length();
+        };
+
+        floating_t localA = a - knots[segmentIndex];
+        floating_t localB = b - knots[segmentIndex];
+
+        return SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, localA, localB);
     }
 
 private: //methods
@@ -155,13 +163,7 @@ private: //methods
 
     inline floating_t computeSegmentLength(size_t index, floating_t from, floating_t to) const
     {
-        floating_t tDiff = knots[index + 1] - knots[index];
-        auto segmentFunction = [=](floating_t t) -> floating_t {
-            auto tangent = computeTangent(index, tDiff, t);
-            return tangent.length();
-        };
 
-        return SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, from, to);
     }
 
 private: //data

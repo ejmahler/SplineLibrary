@@ -99,12 +99,18 @@ public:
     inline floating_t segmentLength(size_t segmentIndex, floating_t a, floating_t b) const {
 
         auto innerIndex = segmentIndex + splineDegree - 1;
-        auto tDistance = knots[innerIndex + 1] - knots[innerIndex];
+
+        floating_t tDistance = knots[innerIndex + 1] - knots[innerIndex];
 
         //it's perfectly legal for Bspline segments to have a T distance of 0, in which case the arc length is 0
         if(tDistance > 0)
         {
-            return computeSegmentLength(innerIndex, knots[innerIndex] + a * tDistance, knots[innerIndex] + b * tDistance);
+            auto segmentFunction = [this, innerIndex](floating_t t) -> floating_t {
+                auto tangent = computeDeboorDerivative(innerIndex + 1, splineDegree, t, 1);
+                return tangent.length();
+            };
+
+            return SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, a, b);
         }
         else
         {
@@ -118,12 +124,7 @@ private: //methods
 
     inline floating_t computeSegmentLength(size_t index, floating_t from, floating_t to) const
     {
-        auto segmentFunction = [this, index](floating_t t) -> floating_t {
-            auto tangent = computeDeboorDerivative(index + 1, splineDegree, t, 1);
-            return tangent.length();
-        };
 
-        return SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, from, to);
     }
 
 private: //data

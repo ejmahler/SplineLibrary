@@ -138,13 +138,7 @@ void TestArcLength::testKnownArcLength(void)
     if(sameSegment) {
         QFETCH(size_t, segmentIndex);
 
-        float segmentBeginT = spline->segmentT(segmentIndex);
-        float segmentEndT = spline->segmentT(segmentIndex + 1);
-
-        float aPercent = (a - segmentBeginT) / (segmentEndT - segmentBeginT);
-        float bPercent = (b - segmentBeginT) / (segmentEndT - segmentBeginT);
-
-        float segmentArc = spline->segmentArcLength(segmentIndex, aPercent, bPercent);
+        float segmentArc = spline->segmentArcLength(segmentIndex, a, b);
 
         //no need for a lenient comparison here, because the results should be much closer to identical to the "arcLength" result
         QCOMPARE(arcResult, segmentArc);

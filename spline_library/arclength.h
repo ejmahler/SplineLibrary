@@ -8,20 +8,16 @@ namespace __ArcLengthSolvePrivate
 {
     //solve the arc length for a single spline segment
     template<template <class, typename> class Spline, class InterpolationType, typename floating_t>
-    floating_t solveSegment(const Spline<InterpolationType, floating_t>& spline, size_t segmentIndex, floating_t desiredLength, floating_t maxLength, floating_t aPercent)
+    floating_t solveSegment(const Spline<InterpolationType, floating_t>& spline, size_t segmentIndex, floating_t desiredLength, floating_t maxLength, floating_t segmentA)
     {
         //we can use the lengths we've calculated to formulate a pretty solid guess
         //if desired length is x% of the bLength, then our guess will be x% of the way from aPercent to 1
         floating_t desiredPercent = desiredLength / maxLength;
-        floating_t bGuess = aPercent + desiredPercent * (1 - aPercent);
-
-        floating_t bBegin = spline.segmentT(segmentIndex);
         floating_t bEnd = spline.segmentT(segmentIndex + 1);
+        floating_t bGuess = segmentA + desiredPercent * (bEnd - segmentA);
 
-        auto solveFunction = [&](floating_t bPercent) {
-            floating_t value = spline.segmentArcLength(segmentIndex, aPercent, bPercent) - desiredLength;
-
-            floating_t b = bBegin + bPercent * (bEnd - bBegin);
+        auto solveFunction = [&](floating_t b) {
+            floating_t value = spline.segmentArcLength(segmentIndex, segmentA, b) - desiredLength;
 
             //the derivative will be the length of the tangent
             auto interpolationResult = spline.getCurvature(b);
@@ -34,7 +30,7 @@ namespace __ArcLengthSolvePrivate
             return std::make_tuple(value, tangentLength, secondDerivative);
         };
 
-        return boost::math::tools::halley_iterate(solveFunction, bGuess, aPercent, floating_t(1), int(std::numeric_limits<floating_t>::digits * 0.5));
+        return boost::math::tools::halley_iterate(solveFunction, bGuess, segmentA, bEnd, int(std::numeric_limits<floating_t>::digits * 0.5));
     }
 }
 
@@ -44,49 +40,36 @@ namespace ArcLength
     template<template <class, typename> class Spline, class InterpolationType, typename floating_t>
     floating_t solveLength(const Spline<InterpolationType, floating_t>& spline, floating_t a, floating_t desiredLength)
     {
-        size_t aIndex = spline.segmentForT(a);
-        size_t bIndex = aIndex;
+        size_t index = spline.segmentForT(a);
 
-        floating_t aBegin = spline.segmentT(aIndex);
-        floating_t aEnd = spline.segmentT(aIndex + 1);
-        floating_t aPercent = (a - aBegin) / (aEnd - aBegin);
+        floating_t segmentLength;
+        floating_t segmentBegin = a;
 
-        floating_t aLength = spline.segmentArcLength(aIndex, aPercent, 1);
-        floating_t bLength = aLength;
-
-        //if aLength is less than desiredLength, B will be in a different segment than A, so search though the spline until we find B's segment
-        if(aLength < desiredLength)
+        //scan through the spline's segments until we find the segment that contains b
+        do
         {
-            aPercent = 0;
-            desiredLength -= aLength;
+            segmentLength = spline.segmentArcLength(index, segmentBegin, spline.segmentT(index + 1));
 
-            //scan through the middle segments, stopping when we reach the end of the spline or we reach the segment that contains b
-            while(++bIndex < spline.segmentCount())
+            if(segmentLength < desiredLength)
             {
-                bLength = spline.segmentArcLength(bIndex, 0, 1);
-
-                if(bLength < desiredLength)
-                {
-                    desiredLength -= bLength;
-                }
-                else
-                {
-                    break;
-                }
+                index++;
+                desiredLength -= segmentLength;
+                segmentBegin = spline.segmentT(index);
+            }
+            else
+            {
+                break;
             }
         }
+        while(index < spline.segmentCount());
 
         //if bIndex is equal to the segment count, we've hit the end of the spline, so return maxT
-        if(bIndex == spline.segmentCount()) {
+        if(index == spline.segmentCount())
+        {
             return spline.getMaxT();
         }
 
-        //we now know our answer lies somewhere in the segment bIndex
-        floating_t bPercent = __ArcLengthSolvePrivate::solveSegment(spline, bIndex, desiredLength, bLength, aPercent);
-
-        floating_t bBegin = spline.segmentT(bIndex);
-        floating_t bEnd = spline.segmentT(bIndex + 1);
-        return bBegin + bPercent * (bEnd - bBegin);
+        return __ArcLengthSolvePrivate::solveSegment(spline, index, desiredLength, segmentLength, segmentBegin);
     }
 
 
@@ -102,7 +85,7 @@ namespace ArcLength
         floating_t totalArcLength(0);
         for(size_t i = 0; i < spline.segmentCount(); i++)
         {
-            floating_t segmentLength = spline.segmentArcLength(i, 0, 1);
+            floating_t segmentLength = spline.segmentArcLength(i, spline.segmentT(i), spline.segmentT(i+1));
             totalArcLength += segmentLength;
             segmentLengths[i] = segmentLength;
         }
@@ -110,7 +93,6 @@ namespace ArcLength
         std::vector<floating_t> pieces(size_t(totalArcLength / lengthPerPiece) + 1);
 
         floating_t segmentRemainder = segmentLengths[0];
-        floating_t previousPercent = 0;
         size_t aIndex = 0;
 
         //for each piece, perform the same algorithm as the "solve" method, but we have much fewer arc lenths to compute
@@ -120,33 +102,21 @@ namespace ArcLength
             size_t bIndex = aIndex;
 
             floating_t desiredLength = lengthPerPiece;
+            floating_t segmentBegin = pieces[i - 1];
 
             //if aLength is less than desiredLength, B will be in a different segment than A, so search though the spline until we find B's segment
             while(segmentRemainder < desiredLength)
             {
+                bIndex++;
                 desiredLength -= segmentRemainder;
-                segmentRemainder = segmentLengths[++bIndex];
-            }
-
-            floating_t aPercent;
-            if(aIndex == bIndex)
-            {
-                aPercent = previousPercent;
-            }
-            else
-            {
-                aPercent = 0;
+                segmentRemainder = segmentLengths[bIndex];
+                segmentBegin = spline.segmentT(bIndex);
             }
 
             //we now know our answer lies somewhere in the segment bIndex
-            floating_t bPercent = __ArcLengthSolvePrivate::solveSegment(spline, bIndex, desiredLength, segmentRemainder, aPercent);
-
-            floating_t bBegin = spline.segmentT(bIndex);
-            floating_t bEnd = spline.segmentT(bIndex + 1);
-            pieces[i] = bBegin + bPercent * (bEnd - bBegin);
+            pieces[i] = __ArcLengthSolvePrivate::solveSegment(spline, bIndex, desiredLength, segmentRemainder, segmentBegin);
 
             //set up the next iteration of the loop
-            previousPercent = bPercent;
             segmentRemainder = segmentRemainder - desiredLength;
             aIndex = bIndex;
         }
@@ -164,7 +134,7 @@ namespace ArcLength
         floating_t totalArcLength(0);
         for(size_t i = 0; i < spline.segmentCount(); i++)
         {
-            floating_t segmentLength = spline.segmentArcLength(i, 0, 1);
+            floating_t segmentLength = spline.segmentArcLength(i, spline.segmentT(i), spline.segmentT(i+1));
             totalArcLength += segmentLength;
             segmentLengths[i] = segmentLength;
         }
@@ -177,43 +147,30 @@ namespace ArcLength
 
         //set up the inter-piece state
         floating_t segmentRemainder = segmentLengths[0];
-        floating_t previousPercent = 0;
         size_t aIndex = 0;
 
-        //for each piece, perform the same algorithm as the partition" method
+        //for each piece, perform the same algorithm as the "solve" method, but we have much fewer arc lenths to compute
+        //because we can reuse work between segments
         for(size_t i = 1; i < n; i++)
         {
             size_t bIndex = aIndex;
 
             floating_t desiredLength = lengthPerPiece;
+            floating_t segmentBegin = pieces[i - 1];
 
             //if aLength is less than desiredLength, B will be in a different segment than A, so search though the spline until we find B's segment
             while(segmentRemainder < desiredLength)
             {
+                bIndex++;
                 desiredLength -= segmentRemainder;
-                segmentRemainder = segmentLengths[++bIndex];
-            }
-
-            floating_t aPercent;
-            if(aIndex == bIndex)
-            {
-                aPercent = previousPercent;
-            }
-            else
-            {
-                aPercent = 0;
+                segmentRemainder = segmentLengths[bIndex];
+                segmentBegin = spline.segmentT(bIndex);
             }
 
             //we now know our answer lies somewhere in the segment bIndex
-            floating_t bPercent = __ArcLengthSolvePrivate::solveSegment(spline, bIndex, desiredLength, segmentRemainder, aPercent);
-
-            floating_t bBegin = spline.segmentT(bIndex);
-            floating_t bEnd = spline.segmentT(bIndex + 1);
-
-            pieces[i] = bBegin + bPercent * (bEnd - bBegin);
+            pieces[i] = __ArcLengthSolvePrivate::solveSegment(spline, bIndex, desiredLength, segmentRemainder, segmentBegin);
 
             //set up the next iteration of the loop
-            previousPercent = bPercent;
             segmentRemainder = segmentRemainder - desiredLength;
             aIndex = bIndex;
         }

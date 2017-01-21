@@ -294,35 +294,24 @@ floating_t ArcLength::arcLength(const Spline<InterpolationType, floating_t>& spl
     //if a and b occur inside the same segment, compute the length within that segment
     //but excude cases where a > b, because that means we need to wrap around
     if(aIndex == bIndex) {
-        floating_t segmentBegin = spline.segmentT(aIndex);
-        floating_t segmentEnd = spline.segmentT(aIndex + 1);
-
-        floating_t aPercent = (a - segmentBegin) / (segmentEnd - segmentBegin);
-        floating_t bPercent = (b - segmentBegin) / (segmentEnd - segmentBegin);
-
-        return spline.segmentArcLength(aIndex, aPercent, bPercent);
+        return spline.segmentArcLength(aIndex, a, b);
     }
     else {
         //a and b occur in different segments, so compute one length for every segment
         floating_t result{0};
 
-        floating_t aBegin = spline.segmentT(aIndex);
-        floating_t aEnd = spline.segmentT(aIndex + 1);
-        floating_t bBegin = spline.segmentT(bIndex);
-        floating_t bEnd = spline.segmentT(bIndex + 1);
-
         //first segment
-        floating_t aPercent = (a - aBegin) / (aEnd - aBegin);
-        result += spline.segmentArcLength(aIndex, aPercent, 1);
+        floating_t aEnd = spline.segmentT(aIndex + 1);
+        result += spline.segmentArcLength(aIndex, a, aEnd);
 
         //middle segments
         for(size_t i = aIndex + 1; i < bIndex; i++) {
-            result += spline.segmentArcLength(i, 0, 1);
+            result += spline.segmentArcLength(i, spline.segmentT(i), spline.segmentT(i + 1));
         }
 
         //last segment
-        floating_t bPercent = (b - bBegin) / (bEnd - bBegin);
-        result += spline.segmentArcLength(bIndex, 0, bPercent);
+        floating_t bBegin = spline.segmentT(bIndex);
+        result += spline.segmentArcLength(bIndex, bBegin, b);
 
         return result;
     }
@@ -334,7 +323,7 @@ floating_t ArcLength::totalLength(const Spline<InterpolationType, floating_t>& s
 {
     floating_t result{0};
     for(size_t i = 0; i < spline.segmentCount(); i++) {
-        result += spline.segmentArcLength(i, 0, 1);
+        result += spline.segmentArcLength(i, spline.segmentT(i), spline.segmentT(i+1));
     }
     return result;
 }
