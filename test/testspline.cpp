@@ -48,31 +48,32 @@ void TestSpline::testMethods_data(void)
     QTest::addColumn<float>("alpha");
     QTest::addColumn<size_t>("expectedSegments");
 
-    QTest::newRow("uniformCR") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<UniformCRSpline<Vector2>>(addPadding(data,1))) << 1 << 0.0f << data.size()-1;
-    QTest::newRow("catmullRom") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<CubicHermiteSpline<Vector2>>(addPadding(data,1))) << 1 << 0.0f << data.size()-1;
-    QTest::newRow("catmullRomAlpha") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<CubicHermiteSpline<Vector2>>(addPadding(data,1), 0.5f)) << 1 << 0.5f << data.size()-1;
+    QTest::newRow("uniformCR") <<       TestDataFloat::createUniformCR(data)        << 1 << 0.0f << data.size()-1;
+    QTest::newRow("catmullRom") <<      TestDataFloat::createCatmullRom(data, 0.0f) << 1 << 0.0f << data.size()-1;
+    QTest::newRow("catmullRomAlpha") << TestDataFloat::createCatmullRom(data, 0.5f) << 1 << 0.5f << data.size()-1;
 
-    QTest::newRow("cubicHermite") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<CubicHermiteSpline<Vector2>>(data, makeTangents(data))) << 0 << 0.0f << data.size()-1;
-    QTest::newRow("cubicHermiteAlpha") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<CubicHermiteSpline<Vector2>>(data, makeTangents(data), 0.5f)) << 0 << 0.5f << data.size()-1;
+    QTest::newRow("cubicHermite") <<        TestDataFloat::createCubicHermite(data, 0.0f) << 0 << 0.0f << data.size()-1;
+    QTest::newRow("cubicHermiteAlpha") <<   TestDataFloat::createCubicHermite(data, 0.5f) << 0 << 0.5f << data.size()-1;
 
-    QTest::newRow("quinticCatmullRom") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<QuinticHermiteSpline<Vector2>>(addPadding(data,2))) << 2 << 0.0f << data.size()-1;
-    QTest::newRow("quinticCatmullRomAlpha") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<QuinticHermiteSpline<Vector2>>(addPadding(data,2), 0.5f)) << 2 << 0.5f << data.size()-1;
+    QTest::newRow("quinticCatmullRom") <<       TestDataFloat::createQuinticCatmullRom(data, 0.0f) << 2 << 0.0f << data.size()-1;
+    QTest::newRow("quinticCatmullRomAlpha") <<  TestDataFloat::createQuinticCatmullRom(data, 0.5f) << 2 << 0.5f << data.size()-1;
 
-    QTest::newRow("quinticHermite") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<QuinticHermiteSpline<Vector2>>(data, makeTangents(data), makeTangents(makeTangents(data)))) << 0 << 0.0f << data.size()-1;
-    QTest::newRow("quinticHermiteAlpha") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<QuinticHermiteSpline<Vector2>>(data, makeTangents(data), makeTangents(makeTangents(data)), 0.5f)) << 0 << 0.5f << data.size()-1;
+    QTest::newRow("quinticHermite") <<      TestDataFloat::createQuinticHermite(data, 0.0f) << 0 << 0.0f << data.size()-1;
+    QTest::newRow("quinticHermiteAlpha") << TestDataFloat::createQuinticHermite(data, 0.5f) << 0 << 0.5f << data.size()-1;
 
-    QTest::newRow("natural") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<NaturalSpline<Vector2>>(data, true))            << 0 << 0.0f << data.size()-1;
-    QTest::newRow("naturalAlpha") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<NaturalSpline<Vector2>>(data, true, 0.5f)) << 0 << 0.5f << data.size()-1;
+    QTest::newRow("natural") <<         TestDataFloat::createNatural(data, true, 0.0f) << 0 << 0.0f << data.size()-1;
+    QTest::newRow("naturalAlpha") <<    TestDataFloat::createNatural(data, true, 0.5f) << 0 << 0.5f << data.size()-1;
 
-    QTest::newRow("naturalNotAKnot") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<NaturalSpline<Vector2>>(data, true, 0.0f, NaturalSpline<Vector2>::NotAKnot))      << 0 << 0.0f << data.size()-1;
-    QTest::newRow("naturalAlphaNotAKnot") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<NaturalSpline<Vector2>>(data, true, 0.5f, NaturalSpline<Vector2>::NotAKnot)) << 0 << 0.5f << data.size()-1;
+    QTest::newRow("naturalNotAKnot") <<         TestDataFloat::createNotAKnot(data, true, 0.0f) << 0 << 0.0f << data.size()-1;
+    QTest::newRow("naturalAlphaNotAKnot") <<    TestDataFloat::createNotAKnot(data, true, 0.5f) << 0 << 0.5f << data.size()-1;
 
-    QTest::newRow("naturalWithoutEndpoints") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<NaturalSpline<Vector2>>(addPadding(data,1), false))            << 1 << 0.0f << data.size()-1;
-    QTest::newRow("naturalWithoutEndpointsAlpha") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<NaturalSpline<Vector2>>(addPadding(data,1), false, 0.5f)) << 1 << 0.5f << data.size()-1;
+    QTest::newRow("naturalWithoutEndpoints") <<         TestDataFloat::createNatural(data, false, 0.0f) << 1 << 0.0f << data.size()-1;
+    QTest::newRow("naturalWithoutEndpointsAlpha") <<    TestDataFloat::createNatural(data, false, 0.5f) << 1 << 0.5f << data.size()-1;
 
-    QTest::newRow("uniformB") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<UniformCubicBSpline<Vector2>>(addPadding(data,1)))     << 1 << 0.0f << data.size()-1;
-    QTest::newRow("genericBCubic") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<GenericBSpline<Vector2>>(addPadding(data,1), 3))  << 1 << 0.0f << data.size()-1;
-    QTest::newRow("genericBQuintic") << std::static_pointer_cast<Spline<Vector2>>(std::make_shared<GenericBSpline<Vector2>>(addPadding(data,2), 5)) << 2 << 0.0f << data.size()-1;
+    QTest::newRow("uniformB") << TestDataFloat::createUniformBSpline(data) << 1 << 0.0f << data.size()-1;
+
+    QTest::newRow("genericBCubic") <<   TestDataFloat::createGenericBSpline(data, 3) << 1 << 0.0f << data.size()-1;
+    QTest::newRow("genericBQuintic") << TestDataFloat::createGenericBSpline(data, 5) << 2 << 0.0f << data.size()-1;
 }
 
 void TestSpline::testMethods(void)
