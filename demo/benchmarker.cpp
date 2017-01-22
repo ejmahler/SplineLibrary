@@ -7,10 +7,10 @@
 #include <QVector3D>
 #include <QTime>
 
-#include "spline_library/arclength.h"
-#include "spline_library/basis/generic_b_spline.h"
-#include "spline_library/hermite/cubic/uniform_cr_spline.h"
-#include "spline_library/natural/natural_spline.h"
+#include "spline_library/utils/arclength.h"
+#include "spline_library/splines/generic_b_spline.h"
+#include "spline_library/splines/uniform_cr_spline.h"
+#include "spline_library/splines/natural_spline.h"
 
 #include <boost/math/tools/roots.hpp>
 

@@ -5,7 +5,7 @@ The `Spline` class is an abstract class that serves as the base class of all spl
 
 The Spline class (and all subclasses) is a template class. It takes two template arguments: The first is the type of data to be interpolated (IE, a 2d vector, or a 3d vector). It expects the vector to have an API matching Qt's QVector2D class, but will support data with any dimension. Custom classes may be used as long as they provide the same public methods as QVector2D. Custom classes can ven use double instead of float as the internal data type if more precision is needed.
 
-The second templae marameter is the floating point type to use for internal calculations (IE, float, double, some BigDecimal class). This defaults to float and it's safe to leave this a float for most applications, but if you use an InterpolationType custom class that stores its data as doubles, you'll get more precision by telling the Spline to use doubles as well.
+The second template parameter is the floating point type to use for internal calculations (IE, float, double, some BigDecimal class). This defaults to float and it's safe to leave this a float for most applications, but if you use an InterpolationType custom class that stores its data as doubles, you'll get more precision by telling the Spline to use doubles as well.
 
 #### getPosition(t)
 This method computes the interpolated position at T.
@@ -57,11 +57,6 @@ This is found by numerically computing the integral of the magnitude of the tang
 
 For computing the total length of non-looping splines, calling `totalLength()` is preferred over calling `arcLength(0, maxT)` because it's slightly faster.
 
-#### getT(int index) const
-The provided index should be an index into the original vector of control points provided to the constructor. The return value is the T value that the spline has assigned to that control point. This is very useful when using the [Centripetal Catmull-Rom Spline](SplineTypes.md#centripetal-catmull-rom-spline) or any other spline type where T values for points aren't necessarily evenly spaced.
-
-The behavior when the index is out of range is undefined.
-
 #### getMaxT() const
 This method returns the largest in-range T value.
 
@@ -73,3 +68,9 @@ The minimum T value is always 0.
 
 #### isLooping() const
 Returns true if this spline is a looping spline, and false if this is a non-looping spline.
+
+#### segmentCount() const
+Returns the number of segments in the spline. As indicated in the [glossary](Glossary.md), most splines are piecewise functions. Internally, this library refers to these pieces as "segments".
+
+#### segmentT(size_t index) const
+Return the T value for the beginning of the specified segment index. Index should be less than segmentCount()

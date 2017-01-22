@@ -6,7 +6,7 @@
 #include <QWidget>
 
 #include "spline_library/spline.h"
-#include "spline_library/splineinverter.h"
+#include "spline_library/utils/splineinverter.h"
 
 #include <QVector2D>
 

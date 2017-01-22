@@ -1,15 +1,15 @@
 #include "testarclength.h"
 
 #include "common.h"
-#include "spline_library/arclength.h"
+#include "spline_library/utils/arclength.h"
 
 #include "spline_library/utils/calculus.h"
-#include "spline_library/basis/uniform_cubic_bspline.h"
-#include "spline_library/basis/generic_b_spline.h"
-#include "spline_library/natural/natural_spline.h"
-#include "spline_library/hermite/cubic/cubic_hermite_spline.h"
-#include "spline_library/hermite/cubic/uniform_cr_spline.h"
-#include "spline_library/hermite/quintic/quintic_hermite_spline.h"
+#include "spline_library/splines/uniform_cubic_bspline.h"
+#include "spline_library/splines/generic_b_spline.h"
+#include "spline_library/splines/natural_spline.h"
+#include "spline_library/splines/cubic_hermite_spline.h"
+#include "spline_library/splines/uniform_cr_spline.h"
+#include "spline_library/splines/quintic_hermite_spline.h"
 
 #include <QtTest/QtTest>
 

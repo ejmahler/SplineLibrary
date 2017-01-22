@@ -25,34 +25,22 @@ HEADERS  += \
     demo/settings.h \
     demo/mainwindow.h \
     demo/graphicscontroller.h \
-    spline_library/splineinverter.h \
     spline_library/spline.h \
-    spline_library/natural/looping_natural_spline.h \
-    spline_library/natural/natural_spline.h \
-    spline_library/hermite/cubic/cubic_hermite_spline.h \
-    spline_library/hermite/cubic/looping_cubic_hermite_spline.h \
-    spline_library/hermite/quintic/looping_quintic_hermite_spline.h \
-    spline_library/hermite/quintic/quintic_hermite_spline.h \
     spline_library/utils/linearalgebra.h \
     spline_library/utils/nanoflann.hpp \
     spline_library/utils/splinesample_adaptor.h \
-    spline_library/basis/generic_b_spline.h \
-    spline_library/basis/looping_generic_b_spline.h \
-    spline_library/basis/generic_b_spline_common.h \
     demo/benchmarker.h \
-    spline_library/natural/natural_spline_common.h \
-    spline_library/hermite/cubic/cubic_hermite_spline_common.h \
-    spline_library/hermite/quintic/quintic_hermite_spline_common.h \
-    spline_library/basis/uniform_cubic_bspline_common.h \
-    spline_library/basis/uniform_cubic_bspline.h \
-    spline_library/basis/looping_uniform_cubic_bspline.h \
-    spline_library/hermite/cubic/uniform_cr_spline.h \
-    spline_library/hermite/cubic/uniform_cr_spline_common.h \
-    spline_library/hermite/cubic/looping_uniform_cr_spline.h \
     spline_library/utils/calculus.h \
     spline_library/vector.h \
     spline_library/utils/spline_common.h \
-    spline_library/arclength.h
+    spline_library/splines/generic_b_spline.h \
+    spline_library/splines/uniform_cubic_bspline.h \
+    spline_library/splines/cubic_hermite_spline.h \
+    spline_library/splines/uniform_cr_spline.h \
+    spline_library/splines/quintic_hermite_spline.h \
+    spline_library/splines/natural_spline.h \
+    spline_library/utils/arclength.h \
+    spline_library/utils/splineinverter.h
 
 FORMS    += \
     demo/settingswidget.ui \

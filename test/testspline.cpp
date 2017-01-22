@@ -3,14 +3,14 @@
 #include "spline_library/vector.h"
 #include "spline_library/utils/spline_common.h"
 
-#include "spline_library/basis/uniform_cubic_bspline.h"
-#include "spline_library/basis/generic_b_spline.h"
-#include "spline_library/natural/natural_spline.h"
-#include "spline_library/hermite/cubic/cubic_hermite_spline.h"
-#include "spline_library/hermite/cubic/uniform_cr_spline.h"
-#include "spline_library/hermite/quintic/quintic_hermite_spline.h"
+#include "spline_library/splines/uniform_cubic_bspline.h"
+#include "spline_library/splines/generic_b_spline.h"
+#include "spline_library/splines/natural_spline.h"
+#include "spline_library/splines/cubic_hermite_spline.h"
+#include "spline_library/splines/uniform_cr_spline.h"
+#include "spline_library/splines/quintic_hermite_spline.h"
 
-#include "spline_library/splineinverter.h"
+#include "spline_library/utils/splineinverter.h"
 
 #include "common.h"
 
@@ -163,23 +163,18 @@ void TestSpline::testDerivatives(void)
         return spline->getWiggle(t).wiggle;
     };
 
-    //find the "first" t in the spline
-    size_t firstT = 0;
-    while(spline->getT(firstT) < 0)
-        firstT++;
-
     //numerically integrate the tangent
     Vector2 integratedTangent =
-            gaussLegendreQuadratureIntegral(tangentFunction, spline->getT(firstT), spline->getT(firstT + 1))
-            + gaussLegendreQuadratureIntegral(tangentFunction, spline->getT(firstT + 1), spline->getT(firstT + 2));
+            gaussLegendreQuadratureIntegral(tangentFunction, spline->segmentT(0), spline->segmentT(1))
+            + gaussLegendreQuadratureIntegral(tangentFunction, spline->segmentT(1), spline->segmentT(2));
 
     QCOMPARE(integratedTangent[0], expectedPosition[0]);
     QCOMPARE(integratedTangent[1], expectedPosition[1]);
 
     //numerically integrate the curvature
     Vector2 integratedCurvature =
-            gaussLegendreQuadratureIntegral(curveFunction, spline->getT(firstT), spline->getT(firstT + 1))
-            + gaussLegendreQuadratureIntegral(curveFunction, spline->getT(firstT + 1), spline->getT(firstT + 2));
+            gaussLegendreQuadratureIntegral(curveFunction, spline->segmentT(0), spline->segmentT(1))
+            + gaussLegendreQuadratureIntegral(curveFunction, spline->segmentT(1), spline->segmentT(2));
 
     QCOMPARE(integratedCurvature[0], expectedTangent[0]);
     QCOMPARE(integratedCurvature[1], expectedTangent[1]);
@@ -187,8 +182,8 @@ void TestSpline::testDerivatives(void)
     //numerically integrate the wiggle
     //this test will fail if the spline algorithm doesn't have a continuous curvature! Spline algorithms that should not have continuous curvature
     //IE cubic hermite spline, generic b spline with degree 2) should go in the non c2 test below
-    Vector2 integratedWiggle1 = gaussLegendreQuadratureIntegral(wiggleFunction, spline->getT(firstT), spline->getT(firstT + 1));
-    Vector2 integratedWiggle2 = gaussLegendreQuadratureIntegral(wiggleFunction, spline->getT(firstT + 1), spline->getT(firstT + 2));
+    Vector2 integratedWiggle1 = gaussLegendreQuadratureIntegral(wiggleFunction, spline->segmentT(0), spline->segmentT(1));
+    Vector2 integratedWiggle2 = gaussLegendreQuadratureIntegral(wiggleFunction, spline->segmentT(1), spline->segmentT(2));
 
     Vector2 integratedWiggle = integratedWiggle1 + integratedWiggle2;
 
@@ -214,9 +209,9 @@ void TestSpline::testDerivativesNonC2_data(void)
     QTest::addColumn<Vector2>("expectedCurvature");
 
     auto rowFunction = [=](const char* name, std::shared_ptr<Spline<Vector2>> spline) {
-        auto endResults = spline->getCurvature(spline->getMaxT());
-        auto midResults = spline->getCurvature(spline->getT(2));
-        auto beginResults = spline->getCurvature(0);
+        auto endResults = spline->getCurvature(spline->segmentT(2));
+        auto midResults = spline->getCurvature(spline->segmentT(1));
+        auto beginResults = spline->getCurvature(spline->segmentT(0));
 
         QTest::newRow(name)
                 << spline
@@ -247,29 +242,25 @@ void TestSpline::testDerivativesNonC2(void)
     };
 
     //find the "first" t in the spline
-    size_t firstT = 0;
-    while(spline->getT(firstT) < 0)
-        firstT++;
-
     //numerically integrate the tangent
     Vector2 integratedTangent =
-            gaussLegendreQuadratureIntegral(tangentFunction, spline->getT(firstT), spline->getT(firstT + 1))
-            + gaussLegendreQuadratureIntegral(tangentFunction, spline->getT(firstT + 1), spline->getT(firstT + 2));
+            gaussLegendreQuadratureIntegral(tangentFunction, spline->segmentT(0), spline->segmentT(1))
+            + gaussLegendreQuadratureIntegral(tangentFunction, spline->segmentT(1), spline->segmentT(2));
 
     QCOMPARE(integratedTangent[0], expectedPosition[0]);
     QCOMPARE(integratedTangent[1], expectedPosition[1]);
 
     //numerically integrate the curvature
     Vector2 integratedCurvature =
-            gaussLegendreQuadratureIntegral(curveFunction, spline->getT(firstT), spline->getT(firstT + 1))
-            + gaussLegendreQuadratureIntegral(curveFunction, spline->getT(firstT + 1), spline->getT(firstT + 2));
+            gaussLegendreQuadratureIntegral(curveFunction, spline->segmentT(0), spline->segmentT(1))
+            + gaussLegendreQuadratureIntegral(curveFunction, spline->segmentT(1), spline->segmentT(2));
 
     QCOMPARE(integratedCurvature[0], expectedTangent[0]);
     QCOMPARE(integratedCurvature[1], expectedTangent[1]);
 
     //numerically integrate the wiggle. unlike the other test we're only doing the second of the two segments
     //because the code to account for the discontinuity in curvature is really awkward and non-accurate
-    Vector2 integratedWiggle = gaussLegendreQuadratureIntegral(wiggleFunction, spline->getT(firstT + 1), spline->getT(firstT + 2));
+    Vector2 integratedWiggle = gaussLegendreQuadratureIntegral(wiggleFunction, spline->segmentT(1), spline->segmentT(2));
 
     QCOMPARE(integratedWiggle[0], expectedCurvature[0]);
     QCOMPARE(integratedWiggle[1], expectedCurvature[1]);

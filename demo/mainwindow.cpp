@@ -25,17 +25,12 @@
 #include "settingswidget.h"
 #include "benchmarker.h"
 
-#include "spline_library/hermite/quintic/quintic_hermite_spline.h"
-#include "spline_library/hermite/quintic/looping_quintic_hermite_spline.h"
-#include "spline_library/hermite/cubic/cubic_hermite_spline.h"
-#include "spline_library/hermite/cubic/looping_cubic_hermite_spline.h"
-#include "spline_library/basis/uniform_cubic_bspline.h"
-#include "spline_library/basis/looping_uniform_cubic_bspline.h"
-#include "spline_library/basis/generic_b_spline.h"
-#include "spline_library/basis/looping_generic_b_spline.h"
-#include "spline_library/natural/natural_spline.h"
-#include "spline_library/natural/looping_natural_spline.h"
-#include "spline_library/splineinverter.h"
+#include "spline_library/splines/quintic_hermite_spline.h"
+#include "spline_library/splines/cubic_hermite_spline.h"
+#include "spline_library/splines/uniform_cubic_bspline.h"
+#include "spline_library/splines/generic_b_spline.h"
+#include "spline_library/splines/natural_spline.h"
+#include "spline_library/utils/splineinverter.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QWidget(parent),
@@ -234,7 +229,7 @@ void MainWindow::rebuildSpline(std::vector<QVector2D> pointList)
     }
     graphicsController->setSecondarySpline(secondarySpline);
 
-    splineInverter = std::make_shared<SplineInverter<QVector2D>>(*mainSpline.get(), 10);
+    splineInverter = std::make_shared<SplineInverter<QVector2D>>(*mainSpline, 10);
 
 	DisplayData d;
     d.showConnectingLines = settingsWidget->getOption("misc_showConnectingLines").toBool();
@@ -331,8 +326,8 @@ void MainWindow::addVertex(void)
     if(selectedObject == 0)
     {
         int index = 1;
-        float currentT = mainSpline->getT(selectedObject);
-        float nextT = mainSpline->getT(index);
+        float currentT = mainSpline->segmentT(selectedObject);
+        float nextT = mainSpline->segmentT(index);
         QVector2D halfPoint = mainSpline->getPosition((currentT + nextT) * 0.5);
 
         //insert this new point
@@ -342,8 +337,8 @@ void MainWindow::addVertex(void)
     else
     {
         int index = selectedObject - 1;
-        float currentT = mainSpline->getT(selectedObject);
-        float nextT = mainSpline->getT(index);
+        float currentT = mainSpline->segmentT(selectedObject);
+        float nextT = mainSpline->segmentT(index);
         QVector2D halfPoint = mainSpline->getPosition((currentT + nextT) * 0.5);
 
         //insert this new point

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vector>
+#include <cassert>
 
-#include "../utils/calculus.h"
+#include "../spline.h"
 
 template<class InterpolationType, typename floating_t>
 class UniformCubicBSplineCommon
@@ -22,82 +22,61 @@ public:
     inline size_t segmentForT(floating_t t) const
     {
         if(t < 0)
-        {
             return 0;
-        }
 
         size_t segmentIndex = size_t(t);
         if(segmentIndex > segmentCount() - 1)
-        {
             return segmentCount() - 1;
-        }
         else
-        {
             return segmentIndex;
-        }
+    }
+
+    inline floating_t segmentT(size_t segmentIndex) const
+    {
+        return segmentIndex;
     }
 
     inline InterpolationType getPosition(floating_t globalT) const
     {
-        size_t knotIndex = size_t(globalT);
+        size_t segmentIndex = segmentForT(globalT);
+        floating_t localT = globalT - segmentIndex;
 
-        //make sure the knot index stays in-bounds
-        if(knotIndex > points.size() - 4)
-            knotIndex = points.size() - 4;
-
-        floating_t localT = globalT - knotIndex;
-
-        return computePosition(knotIndex, localT);
+        return computePosition(segmentIndex, localT);
     }
 
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPT getTangent(floating_t globalT) const
     {
-        size_t knotIndex = size_t(globalT);
-
-        //make sure the knot index stays in-bounds
-        if(knotIndex > points.size() - 4)
-            knotIndex = points.size() - 4;
-
-        floating_t localT = globalT - knotIndex;
+        size_t segmentIndex = segmentForT(globalT);
+        floating_t localT = globalT - segmentIndex;
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPT(
-                    computePosition(knotIndex, localT),
-                    computeTangent(knotIndex, localT)
+                    computePosition(segmentIndex, localT),
+                    computeTangent(segmentIndex, localT)
                     );
     }
 
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t globalT) const
     {
-        size_t knotIndex = size_t(globalT);
-
-        //make sure the knot index stays in-bounds
-        if(knotIndex > points.size() - 4)
-            knotIndex = points.size() - 4;
-
-        floating_t localT = globalT - knotIndex;
+        size_t segmentIndex = segmentForT(globalT);
+        floating_t localT = globalT - segmentIndex;
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPTC(
-                    computePosition(knotIndex, localT),
-                    computeTangent(knotIndex, localT),
-                    computeCurvature(knotIndex, localT)
+                    computePosition(segmentIndex, localT),
+                    computeTangent(segmentIndex, localT),
+                    computeCurvature(segmentIndex, localT)
                     );
     }
 
     inline typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t globalT) const
     {
-        size_t knotIndex = size_t(globalT);
-
-        //make sure the knot index stays in-bounds
-        if(knotIndex > points.size() - 4)
-            knotIndex = points.size() - 4;
-
-        floating_t localT = globalT - knotIndex;
+        size_t segmentIndex = segmentForT(globalT);
+        floating_t localT = globalT - segmentIndex;
 
         return typename Spline<InterpolationType,floating_t>::InterpolatedPTCW(
-                    computePosition(knotIndex, localT),
-                    computeTangent(knotIndex, localT),
-                    computeCurvature(knotIndex, localT),
-                    computeWiggle(knotIndex)
+                    computePosition(segmentIndex, localT),
+                    computeTangent(segmentIndex, localT),
+                    computeCurvature(segmentIndex, localT),
+                    computeWiggle(segmentIndex)
                     );
     }
 
@@ -152,4 +131,49 @@ private: //methods
 
 private: //data
     std::vector<InterpolationType> points;
+};
+
+
+
+
+template<class InterpolationType, typename floating_t=float>
+class UniformCubicBSpline final : public SplineImpl<UniformCubicBSplineCommon, InterpolationType, floating_t>
+{
+public:
+    UniformCubicBSpline(const std::vector<InterpolationType> &points)
+        :SplineImpl<UniformCubicBSplineCommon, InterpolationType,floating_t>(points, points.size() - 3)
+    {
+        assert(points.size() >= 4);
+
+        common = UniformCubicBSplineCommon<InterpolationType, floating_t>(points);
+    }
+};
+
+
+
+template<class InterpolationType, typename floating_t=float>
+class LoopingUniformCubicBSpline final : public SplineLoopingImpl<UniformCubicBSplineCommon, InterpolationType, floating_t>
+{
+public:
+    LoopingUniformCubicBSpline(const std::vector<InterpolationType> &points)
+        :SplineLoopingImpl<UniformCubicBSplineCommon, InterpolationType,floating_t>(points, points.size())
+    {
+        assert(points.size() >= 3);
+
+        int size = points.size();
+        int degree = 3;
+
+        //we need enough space to repeat the last 'degree' elements
+        std::vector<InterpolationType> positions(points.size() + degree);
+
+        //it would be easiest to just copy the points vector to the position vector, then copy the first 'degree' elements again
+        //this DOES work, but interpolation begins in the wrong place (ie getPosition(0) occurs at the wrong place on the spline)
+        //to fix this, we effectively "rotate" the position vector backwards, by copying point[size-1] to the beginning
+        //then copying the points vector in after, then copying degree-1 elements from the beginning
+        positions[0] = points[size - 1];
+        std::copy(points.begin(), points.end(), positions.begin() + 1);
+        std::copy_n(points.begin(), degree - 1, positions.end() - (degree - 1));
+
+        common = UniformCubicBSplineCommon<InterpolationType, floating_t>(positions);
+    }
 };

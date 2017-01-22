@@ -11,9 +11,9 @@
 #include <ctime>
 #include <algorithm>
 
-#include "spline_library/splineinverter.h"
-#include "spline_library/natural/natural_spline.h"
-#include "spline_library/hermite/cubic/looping_cubic_hermite_spline.h"
+#include "spline_library/utils/splineinverter.h"
+#include "spline_library/splines/natural_spline.h"
+#include "spline_library/splines/cubic_hermite_spline.h"
 
 GraphicsController::GraphicsController(QWidget *parent)
 	: QGLWidget(parent), 

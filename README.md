@@ -4,15 +4,29 @@ A C++ library created to provide open-source reference implementations of many s
 
 A spline is a formula for smoothly transitioning from one data point to the next in a data set. For example, you could create a spline containing ten colors (each stored as R, G, and B values) to create a color gradient that smoothly transitions from one color to the next.
 
+Example
+-------------
+Create a Catmull-Rom Spline with four data points, and compute the interpolated position at T = 0.5
+```c++
+std::vector<Qvector2D> splinePoints{
+    QVector2D( 0, 0),
+    QVector2D( 5, 0),
+    QVector2D( 8, 3),
+    QVector2D( 6, 1),
+};
+UniformCRSpline<QVector2D> mySpline(splinePoints);
+QVector2D interpolatedPosition = mySpline.getPosition(0.5f);
+```
+
 Features
 -------------
 * Interpolation of catmull-rom splines
-    * Include `spline_library/hermite/cubic/uniform_cr_spline.h`, create a `UniformCRSpline` object, and call its `getPosition` method.
+    * Include `spline_library/splines/uniform_cr_spline.h`, create a `UniformCRSpline` object, and call its `getPosition` method.
     * Several more spline types. See [Spline Types](docs/SplineTypes.md) for the full list
 * Looping Splines
 	* Also called "Periodic" or "Cyclic": These splines form a loop, in that the ending connects with the beginning
 	* Calling getPosition(t) with an out-of-range T value will _wrap around" to the other end of the spline
-    * To make a looping catmull-rom spline, include `spline_library/hermite/cubic/looping_uniform_cr_spline.h` and create a `LoopingUniformCRSpline` object instead.
+    * To make a looping catmull-rom spline, include `spline_library/splines/uniform_cr_spline.h` and create a `LoopingUniformCRSpline` object.
     * Every spline type has both looping and non-looping variants
 * Compute the arc length of a spline
 	* Call a spline's totalLength() method to find the arc length of the entire spline

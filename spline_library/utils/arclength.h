@@ -2,7 +2,7 @@
 
 #include <boost/math/tools/roots.hpp>
 
-#include "utils/spline_common.h"
+#include "spline_common.h"
 
 namespace __ArcLengthSolvePrivate
 {
