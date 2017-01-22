@@ -59,9 +59,9 @@ float b = ArcLength::solveLength(mySpline, a, desiredArcLength);
 ### ArcLength::partition(const spline&, desiredLength)
 Given a spline and a desired arc length `desiredLength`, partition the spline into as many pieces as possible, such that each piece has arc length `desiredLength`. Returns a `std::vector` of T values marking the beginning/end of each partitioned piece.
 
-IE, if it returns `std::vector<float>{0.0, 1.2, 2.6f}` this signifies that the spline was partitioned into two pieces, with the first starting at T = 0 and ending at T = 1.2, and the second beginning at T = 1.2 and ending at T = 2.6.
+IE, if it returns `std::vector<float>{0.0, 1.2, 2.6}` this signifies that the spline was partitioned into two pieces, with the first starting at T = 0 and ending at T = 1.2, and the second beginning at T = 1.2 and ending at T = 2.6.
 
-If `desiredLength` does not cleanly divide the spline's total arc length (it almost certainly won't due to floating point inaccuracy), the "remainder" is not included in the list, so the final value will be the T value at the end of the final full-length piece. If you want a guarantee that the whole spline is divided
+If `desiredLength` does not cleanly divide the spline's total arc length (it almost certainly won't due to floating point inaccuracy), the "remainder" is not included in the list, so the final value will be the T value at the end of the final full-length piece. If you want a guarantee that the entire spline is partitioned and there is no remainder, see `ArcLength::partitionN` below.
 
 Example:
 ```c++
