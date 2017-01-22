@@ -202,12 +202,12 @@ public:
 
         //pre-arrange the data needed for interpolation
         std::vector<floating_t> knots(numSegments + 1);
-        std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplineSegment> positionData(numSegments + 1);
+        std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplinePoint> positionData(numSegments + 1);
         for(int i = 0; i < numSegments + 1; i++)
         {
             knots[i] = indexToT[i];
-            points[i].position = points[i];
-            points[i].tangent = tangents[i];
+            positionData[i].position = points[i];
+            positionData[i].tangent = tangents[i];
         }
 
         common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
