@@ -187,9 +187,9 @@ public:
         :SplineImpl<NaturalSplineCommon, InterpolationType,floating_t>(points, includeEndpoints ? points.size()- 1 : points.size() - 3)
     {
         size_t size = points.size();
-        int firstPoint;
+        size_t firstPoint;
+        size_t numSegments;
 
-        int numSegments;
         if(includeEndpoints)
         {
             assert(points.size() >= 3);
@@ -204,22 +204,22 @@ public:
         }
 
         //compute the T values for each point
-        auto indexToT = SplineCommon::computeTValuesWithInnerPadding(points, alpha, firstPoint);
+        std::vector<floating_t> paddedKnots = SplineCommon::computeTValuesWithInnerPadding(points, alpha, firstPoint);
 
         //next we compute curvatures
         std::vector<InterpolationType> curvatures;
         if(endConditions == Natural)
-            curvatures = computeCurvaturesNatural(indexToT);
+            curvatures = computeCurvaturesNatural(paddedKnots);
         else
-            curvatures = computeCurvaturesNotAKnot(indexToT);
+            curvatures = computeCurvaturesNotAKnot(paddedKnots);
 
         //we now have 0 curvature for index 0 and n - 1, and the final (usually nonzero) curvature for every other point
         //use this curvature to determine a,b,c,and d to build each segment
         std::vector<floating_t> knots(numSegments + 1);
         std::vector<typename NaturalSplineCommon<InterpolationType, floating_t>::NaturalSplineSegment> segments(numSegments + 1);
-        for(int i = firstPoint; i < numSegments + firstPoint + 1; i++) {
+        for(size_t i = firstPoint; i < numSegments + firstPoint + 1; i++) {
 
-            knots[i - firstPoint] = indexToT.at(i);
+            knots[i - firstPoint] = paddedKnots[i];
             segments[i - firstPoint].a = points.at(i);
             segments[i - firstPoint].c = curvatures.at(i);
         }
@@ -227,8 +227,8 @@ public:
         common = NaturalSplineCommon<InterpolationType, floating_t>(std::move(segments), std::move(knots));
     }
 private:
-    std::vector<InterpolationType> computeCurvaturesNatural(const std::unordered_map<int, floating_t> indexToT) const;
-    std::vector<InterpolationType> computeCurvaturesNotAKnot(const std::unordered_map<int, floating_t> indexToT) const;
+    std::vector<InterpolationType> computeCurvaturesNatural(const std::vector<floating_t> tValues) const;
+    std::vector<InterpolationType> computeCurvaturesNotAKnot(const std::vector<floating_t> tValues) const;
 };
 
 template<class InterpolationType, typename floating_t=float>
@@ -240,10 +240,9 @@ public:
         :SplineLoopingImpl<NaturalSplineCommon, InterpolationType,floating_t>(points, points.size())
     {
         size_t size = points.size();
-        int numSegments = size;
 
         //compute the T values for each point
-        auto indexToT = SplineCommon::computeLoopingTValues(points, alpha, 1);
+        std::vector<floating_t> knots = SplineCommon::computeLoopingTValues(points, alpha, 0);
 
         //now that we know the t values, we need to prepare the tridiagonal matrix calculation
         //note that there several ways to formulate this matrix - i chose the following:
@@ -256,7 +255,7 @@ public:
         std::vector<floating_t> upperDiagonal(size);
         for(size_t i = 0; i < size; i++)
         {
-            floating_t delta = indexToT.at(i + 1) - indexToT.at(i);
+            floating_t delta = knots[i + 1] - knots[i];
             upperDiagonal[i] = delta;
         }
 
@@ -295,11 +294,9 @@ public:
 
         //we now have the curvature for every point
         //use this curvature to determine a,b,c,and d to build each segment
-        std::vector<floating_t> knots(numSegments + 1);
-        std::vector<typename NaturalSplineCommon<InterpolationType, floating_t>::NaturalSplineSegment> segments(numSegments + 1);
-        for(int i = 0; i < numSegments + 1; i++) {
-
-            knots[i] = indexToT.at(i);
+        std::vector<typename NaturalSplineCommon<InterpolationType, floating_t>::NaturalSplineSegment> segments(size + 1);
+        for(int i = 0; i < size + 1; i++)
+        {
             segments[i].a = points.at(i%size);
             segments[i].c = curvatures.at(i%size);
         }
@@ -309,7 +306,7 @@ public:
 };
 
 template<class InterpolationType, typename floating_t>
-std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::computeCurvaturesNatural(const std::unordered_map<int, floating_t> indexToT) const
+std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::computeCurvaturesNatural(const std::vector<floating_t> tValues) const
 {
 
     //now that we know the t values, we need to prepare the tridiagonal matrix calculation
@@ -325,7 +322,7 @@ std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::comp
     std::vector<floating_t> upperDiagonal(loop_limit);
     for(size_t i = 0; i < loop_limit; i++)
     {
-        floating_t delta = indexToT.at(i + 1) - indexToT.at(i);
+        floating_t delta = tValues[i + 1] - tValues[i];
         upperDiagonal[i] = delta;
     }
 
@@ -333,7 +330,7 @@ std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::comp
     std::vector<floating_t> diagonal(loop_limit - 1);
     for(size_t i = 1; i < loop_limit; i++)
     {
-        floating_t neighborDelta = floating_t(2) * (upperDiagonal.at(i - 1) + upperDiagonal.at(i));
+        floating_t neighborDelta = floating_t(2) * (upperDiagonal[i - 1] + upperDiagonal[i]);
         diagonal[i - 1] = neighborDelta;
     }
 
@@ -341,15 +338,15 @@ std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::comp
     std::vector<InterpolationType> deltaPoint(loop_limit);
     for(size_t i = 0; i < loop_limit; i++)
     {
-        InterpolationType displacement = this->getOriginalPoints().at(i + 1) - this->getOriginalPoints().at(i);
-        deltaPoint[i] = displacement / upperDiagonal.at(i);
+        InterpolationType displacement = this->getOriginalPoints()[i + 1] - this->getOriginalPoints()[i];
+        deltaPoint[i] = displacement / upperDiagonal[i];
     }
 
     //create an array that stores 3 * (deltaPoint(i - 1) + deltaPoint(i))
     std::vector<InterpolationType> inputVector(loop_limit - 1);
     for(size_t i = 1; i < loop_limit; i++)
     {
-        InterpolationType neighborDelta = floating_t(3) * (deltaPoint.at(i) - deltaPoint.at(i - 1));
+        InterpolationType neighborDelta = floating_t(3) * (deltaPoint[i] - deltaPoint[i - 1]);
         inputVector[i - 1] = neighborDelta;
     }
 
@@ -372,9 +369,8 @@ std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::comp
 
 
 template<class InterpolationType, typename floating_t>
-std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::computeCurvaturesNotAKnot(const std::unordered_map<int, floating_t> indexToT) const
+std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::computeCurvaturesNotAKnot(const std::vector<floating_t> tValues) const
 {
-
     //now that we know the t values, we need to prepare the tridiagonal matrix calculation
     //note that there several ways to formulate this matrix; for "not a knot" i chose the following:
     // http://sepwww.stanford.edu/data/media/public/sep//sergey/128A/answers6.pdf
@@ -388,7 +384,7 @@ std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::comp
     std::vector<floating_t> deltaT(size);
     for(size_t i = 0; i < size; i++)
     {
-        deltaT[i] = indexToT.at(i + 1) - indexToT.at(i);
+        deltaT[i] = tValues[i + 1] - tValues[i];
     }
 
     //the main diagonal of the tridiagonal will be 2 * (deltaT[i] + deltaT[i + 1])
@@ -414,15 +410,15 @@ std::vector<InterpolationType> NaturalSpline<InterpolationType,floating_t>::comp
     std::vector<InterpolationType> deltaPoint(size);
     for(size_t i = 0; i < size; i++)
     {
-        InterpolationType displacement = this->getOriginalPoints().at(i + 1) - this->getOriginalPoints().at(i);
-        deltaPoint[i] = displacement / deltaT.at(i);
+        InterpolationType displacement = this->getOriginalPoints()[i + 1] - this->getOriginalPoints()[i];
+        deltaPoint[i] = displacement / deltaT[i];
     }
 
     //create an array that stores 3 * (deltaPoint(i - 1) + deltaPoint(i))
     std::vector<InterpolationType> inputVector(mainDiagonalSize);
     for(size_t i = 0; i < mainDiagonalSize; i++)
     {
-        inputVector[i] = floating_t(3) * (deltaPoint.at(i + 1) - deltaPoint.at(i));
+        inputVector[i] = floating_t(3) * (deltaPoint[i + 1] - deltaPoint[i]);
     }
 
     //the first and last of the values in maindiagonalare different than normal

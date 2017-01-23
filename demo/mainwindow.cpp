@@ -357,8 +357,9 @@ void MainWindow::deleteVertex(void)
 	points.erase(points.begin() + selectedObject);
 
     //return the "previous" index. if the current
-    if(selectedObject > points.size())
-        selectedObject = points.size() - 1;
+    int size = int(points.size());
+    if(selectedObject >= size)
+        selectedObject = size - 1;
 
 	//redraw spline
 	rebuildSpline(points);

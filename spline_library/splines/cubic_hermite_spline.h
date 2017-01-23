@@ -193,19 +193,16 @@ public:
         assert(points.size() >= 2);
         assert(points.size() == tangents.size());
 
-        int size = points.size();
-        int firstTangent = 0;
-        int numSegments = size - 1;
+        size_t firstTangent = 0;
+        size_t numSegments = points.size() - 1;
 
         //compute the T values for each point
-        auto indexToT = SplineCommon::computeTValuesWithInnerPadding(points, alpha, firstTangent);
+        std::vector<floating_t> knots = SplineCommon::computeTValuesWithInnerPadding(points, alpha, firstTangent);
 
         //pre-arrange the data needed for interpolation
-        std::vector<floating_t> knots(numSegments + 1);
         std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplinePoint> positionData(numSegments + 1);
-        for(int i = 0; i < numSegments + 1; i++)
+        for(int i = 0; i < positionData.size(); i++)
         {
-            knots[i] = indexToT[i];
             positionData[i].position = points[i];
             positionData[i].tangent = tangents[i];
         }
@@ -218,20 +215,19 @@ public:
     {
         assert(points.size() >= 4);
 
-        int size = points.size();
-        int firstTangent = 1;
-        int numSegments = size - 3;
+        size_t firstTangent = 1;
+        size_t numSegments = points.size() - 3;
 
         //compute the T values for each point
-        auto indexToT = SplineCommon::computeTValuesWithInnerPadding(points, alpha, firstTangent);
+        std::vector<floating_t> paddedKnots = SplineCommon::computeTValuesWithInnerPadding(points, alpha, firstTangent);
 
         //compute the tangents
-        std::vector<InterpolationType> tangents(size);
-        for(int i = firstTangent; i < firstTangent + numSegments + 1; i++)
+        std::vector<InterpolationType> tangents(points.size());
+        for(size_t i = firstTangent; i < firstTangent + numSegments + 1; i++)
         {
-            floating_t tPrev = indexToT.at(i - 1);
-            floating_t tCurrent = indexToT.at(i);
-            floating_t tNext = indexToT.at(i + 1);
+            floating_t tPrev = paddedKnots[i - 1];
+            floating_t tCurrent = paddedKnots[i];
+            floating_t tNext = paddedKnots[i + 1];
 
             InterpolationType pPrev = points.at(i - 1);
             InterpolationType pCurrent = points.at(i);
@@ -251,11 +247,11 @@ public:
         //pre-arrange the data needed for interpolation
         std::vector<floating_t> knots(numSegments + 1);
         std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplinePoint> positionData(numSegments + 1);
-        for(int i = firstTangent; i < firstTangent + numSegments + 1; i++)
+        for(size_t i = 0; i < positionData.size(); i++)
         {
-            knots[i - firstTangent] = indexToT[i];
-            positionData[i - firstTangent].position = points[i];
-            positionData[i - firstTangent].tangent = tangents[i];
+            knots[i] = paddedKnots[i + firstTangent];
+            positionData[i].position = points[i + firstTangent];
+            positionData[i].tangent = tangents[i + firstTangent];
         }
 
         common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
@@ -276,22 +272,17 @@ public:
         assert(points.size() >= 2);
         assert(points.size() == tangents.size());
 
-        int size = points.size();
-        int numSegments = size;
-
         //compute the T values for each point
-        int padding = 0;
-        auto indexToT = SplineCommon::computeLoopingTValues(points, alpha, padding);
+        std::vector<floating_t> knots = SplineCommon::computeLoopingTValues(points, alpha, 0);
 
         //pre-arrange the data needed for interpolation
-        std::vector<floating_t> knots(numSegments + 1);
-        std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplinePoint> positionData(numSegments + 1);
-        for(int i = 0; i < numSegments + 1; i++)
+        std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplinePoint> positionData(points.size());
+        for(int i = 0; i < points.size(); i++)
         {
-            knots[i] = indexToT[i];
             positionData[i].position = points[i];
             positionData[i].tangent = tangents[i];
         }
+        positionData[points.size()] = positionData[0];
 
         common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
     }
@@ -301,24 +292,23 @@ public:
     {
         assert(points.size() >= 4);
 
-        int size = points.size();
-        int numSegments = size;
+        size_t size = points.size();
 
         //compute the T values for each point
-        int padding = 1;
-        auto indexToT = SplineCommon::computeLoopingTValues(points, alpha, padding);
+        size_t padding = 1;
+        std::vector<floating_t> paddedKnots = SplineCommon::computeLoopingTValues(points, alpha, padding);
 
         //compute the tangents
-        std::vector<InterpolationType> tangents(size + 1);
-        for(int i = 0; i < size + 1; i++)
+        std::vector<InterpolationType> tangents(size);
+        for(size_t i = 0; i < size; i++)
         {
-            floating_t tPrev = indexToT.at(i - 1);
-            floating_t tCurrent = indexToT.at(i);
-            floating_t tNext = indexToT.at(i + 1);
+            floating_t tPrev = paddedKnots[i - 1 + padding];
+            floating_t tCurrent = paddedKnots[i + padding];
+            floating_t tNext = paddedKnots[i + 1 + padding];
 
-            InterpolationType pPrev = points.at((i - 1 + size)%size);
-            InterpolationType pCurrent = points.at((i + size)%size);
-            InterpolationType pNext = points.at((i + 1)%size);
+            InterpolationType pPrev = points[(i - 1 + size)%size];
+            InterpolationType pCurrent = points[i];
+            InterpolationType pNext = points[(i + 1)%size];
 
             //the tangent is the standard catmull-rom spline tangent calculation
             tangents[i] =
@@ -332,14 +322,15 @@ public:
         }
 
         //pre-arrange the data needed for interpolation
-        std::vector<floating_t> knots(numSegments + 1);
-        std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplinePoint> positionData(numSegments + 1);
-        for(int i = 0; i < numSegments + 1; i++)
+        std::vector<floating_t> knots(size + 1);
+        std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplinePoint> positionData(size + 1);
+        for(size_t i = 0; i < size; i++)
         {
-            knots[i] = indexToT[i];
-            positionData[i].position = points[i%size];
+            knots[i] = paddedKnots[i + padding];
+            positionData[i].position = points[i];
             positionData[i].tangent = tangents[i];
         }
+        positionData[size] = positionData[0];
 
         common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
     }

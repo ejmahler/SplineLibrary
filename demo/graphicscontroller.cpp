@@ -263,7 +263,7 @@ int GraphicsController::pickVertex(const QPoint &screenPoint)
 
 		if((position - convertedPoint).lengthSquared() < pointRadius * pointRadius)
 		{
-			return i;
+            return int(i);
 		}
 	}
 
@@ -458,8 +458,6 @@ void GraphicsController::drawSplineSegmentDerivative(QPainter &painter, const Sp
 
 void GraphicsController::drawPoints(QPainter &painter, const std::vector<QVector2D> &points)
 {
-    int size = points.size();
-
     //draw straight lines connecting each control point
     painter.setPen(qRgb(32,32,32));
 
@@ -483,7 +481,7 @@ void GraphicsController::drawPoints(QPainter &painter, const std::vector<QVector
     }
 
     //draw control points on top of lines
-    for(int i = 0; i < size; i++)
+    for(size_t i = 0; i < points.size(); i++)
     {
         painter.save();
 
