@@ -373,17 +373,17 @@ void GraphicsController::drawSplineSegment(QPainter &painter, const Spline<QVect
     auto beginData = s.getPosition(beginT);
     auto endData = s.getPosition(endT);
 
-    float middleT = (beginT + endT) * .5;
+    float middleT = (beginT + endT) * .5f;
 
-    QVector2D midExpected = (beginData + endData) * .5;
-    auto midActual = s.getPosition((beginT + endT) * .5);
+    QVector2D midExpected = (beginData + endData) * .5f;
+    auto midActual = s.getPosition((beginT + endT) * .5f);
 
 
 
     //if the difference in T is too small, we're almost certainly at a break point in the spline
     //this obviously isn't supposed to happen, but if there's a bug in the spline code that creates a break, we want to show it
-    float minDelta = .001;
-    float maxDistance = .1;
+    float minDelta = .001f;
+    float maxDistance = .1f;
     if((endT - beginT) > minDelta)
     {
         //if the actual midpoint is too far away from the expected midpoint, subdivide and try again
@@ -433,8 +433,8 @@ void GraphicsController::drawSplineSegmentDerivative(QPainter &painter, const Sp
 
 
 
-    float minDelta = .001;
-    float maxDistance = .1;
+    float minDelta = .001f;
+    float maxDistance = .1f;
     if((endT - beginT) > minDelta)
     {
         if((midExpected - midActual.tangent).lengthSquared() > maxDistance)
