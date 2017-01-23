@@ -100,7 +100,7 @@ public:
         floating_t localA = (a - knots[index]) / tDiff;
         floating_t localB = (b - knots[index]) / tDiff;
 
-        return tDiff * SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, localA, localB);
+        return tDiff * SplineLibraryCalculus::gaussLegendreQuadratureIntegral<floating_t>(segmentFunction, localA, localB);
     }
 
 

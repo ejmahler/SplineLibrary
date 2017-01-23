@@ -2,6 +2,7 @@
 
 #include "spline_library/vector.h"
 #include "spline_library/utils/spline_common.h"
+#include "spline_library/utils/calculus.h"
 
 #include "spline_library/splines/uniform_cubic_bspline.h"
 #include "spline_library/splines/generic_b_spline.h"
@@ -27,26 +28,14 @@ TestSpline::TestSpline(QObject *parent) : QObject(parent)
 
 void TestSpline::testMethods_data(void)
 {
-    //our data will just be points on a straight line between 0 and 100
-    //this makes the total length of this line 100 * sqrt(2) so it'll be easy to verify
-    std::vector<Vector2> data {
-        Vector2({0,0}),
-        Vector2({1,0}),
-        Vector2({3,3}),
-        Vector2({6,6}),
-        Vector2({10,10}),
-        Vector2({15,15}),
-        Vector2({21,21}),
-        Vector2({28,28}),
-        Vector2({36,36}),
-        Vector2({45,45}),
-        Vector2({55,55})
-    };
-
     QTest::addColumn<std::shared_ptr<Spline<Vector2>>>("spline");
     QTest::addColumn<int>("padding");
     QTest::addColumn<float>("alpha");
     QTest::addColumn<size_t>("expectedSegments");
+
+    //our data will just be points on a straight line
+    //this makes the total arc length of this line (data[size-1] - data[0]).length() so it'll be easy to verify
+    auto data = TestDataFloat::generateTriangleNumberData(10);
 
     QTest::newRow("uniformCR") <<       TestDataFloat::createUniformCR(data)        << 1 << 0.0f << data.size()-1;
     QTest::newRow("catmullRom") <<      TestDataFloat::createCatmullRom(data, 0.0f) << 1 << 0.0f << data.size()-1;
@@ -117,54 +106,24 @@ void TestSpline::testMethods(void)
 
 void TestSpline::testDerivatives_data(void)
 {
-    std::vector<Vector2> cubicPoints {
-        Vector2({-4,-1}),
-        Vector2({ 0, 1}),
-        Vector2({ 1, 3}),
-        Vector2({ 6, -4}),
-        Vector2({ 5, 0}),
-    };
-
-    std::vector<Vector2> quinticPoints {
-        Vector2({-2,-2}),
-        Vector2({-4,-1}),
-        Vector2({ 0, 1}),
-        Vector2({ 2, 3}),
-        Vector2({ 1, 1}),
-        Vector2({ 2, 1}),
-        Vector2({ 3, 2}),
-    };
-
     QTest::addColumn<std::shared_ptr<Spline<Vector2>>>("spline");
-    QTest::addColumn<Vector2>("expectedPosition");
-    QTest::addColumn<Vector2>("expectedTangent");
-    QTest::addColumn<Vector2>("expectedCurvature");
 
-    auto rowFunction = [=](const char* name, std::shared_ptr<Spline<Vector2>> spline) {
-        auto endResults = spline->getCurvature(spline->getMaxT());
-        auto beginResults = spline->getCurvature(0);
+    auto data = TestDataFloat::generateRandomData(8);
 
-        QTest::newRow(name)
-                << spline
-                << endResults.position - beginResults.position
-                << endResults.tangent - beginResults.tangent
-                << endResults.curvature - beginResults.curvature;
-    };
-
-    rowFunction("uniformCubicB", std::make_shared<UniformCubicBSpline<Vector2>>(cubicPoints));
-    rowFunction("genericB3", std::make_shared<GenericBSpline<Vector2>>(cubicPoints, 3));
-    rowFunction("natural", std::make_shared<NaturalSpline<Vector2>>(cubicPoints,false));
-    rowFunction("naturalAlpha1", std::make_shared<NaturalSpline<Vector2>>(cubicPoints, false, 1.0f));
-    rowFunction("quinticHermite", std::make_shared<QuinticHermiteSpline<Vector2>>(quinticPoints));
-    rowFunction("quinticHermiteAlpha1", std::make_shared<QuinticHermiteSpline<Vector2>>(quinticPoints, 1.0f));
+    QTest::newRow("uniformCubicB") <<       TestDataFloat::createUniformBSpline(data);
+    QTest::newRow("genericB3") <<           TestDataFloat::createGenericBSpline(data,3);
+    QTest::newRow("natural") <<             TestDataFloat::createNatural(data, true, 0.0f);
+    QTest::newRow("naturalAlpha") <<        TestDataFloat::createNatural(data, true, 0.5f);
+    QTest::newRow("quinticHermite") <<      TestDataFloat::createQuinticHermite(data, 0.0f);
+    QTest::newRow("quinticHermiteAlpha1")<< TestDataFloat::createQuinticHermite(data, 0.5f);
+    QTest::newRow("UniformCR") <<           TestDataFloat::createUniformCR(data);
+    QTest::newRow("cubicHermite") <<        TestDataFloat::createCubicHermite(data, 0.0f);
+    QTest::newRow("cubicHermiteAlpha") <<   TestDataFloat::createCubicHermite(data, 0.5f);
 }
 
 void TestSpline::testDerivatives(void)
 {
     QFETCH(std::shared_ptr<Spline<Vector2>>, spline);
-    QFETCH(Vector2, expectedPosition);
-    QFETCH(Vector2, expectedTangent);
-    QFETCH(Vector2, expectedCurvature);
 
     auto tangentFunction = [=](float t) {
         return spline->getTangent(t).tangent;
@@ -176,105 +135,101 @@ void TestSpline::testDerivatives(void)
         return spline->getWiggle(t).wiggle;
     };
 
-    //numerically integrate the tangent
-    Vector2 integratedTangent =
-            gaussLegendreQuadratureIntegral(tangentFunction, spline->segmentT(0), spline->segmentT(1))
-            + gaussLegendreQuadratureIntegral(tangentFunction, spline->segmentT(1), spline->segmentT(2));
+    //test the tangent within each segment
+    for(size_t i = 0; i < spline->segmentCount(); i++)
+    {
+        Vector2 expectedPosition = spline->getPosition(spline->segmentT(i+1)) - spline->getPosition(spline->segmentT(i));
+        Vector2 integratedTangent = SplineLibraryCalculus::gaussLegendreQuadratureIntegral<Vector2>(tangentFunction, spline->segmentT(i), spline->segmentT(i+1));
 
-    QCOMPARE(integratedTangent[0], expectedPosition[0]);
-    QCOMPARE(integratedTangent[1], expectedPosition[1]);
+        compareFloatsLenient(integratedTangent[0], expectedPosition[0], 0.001f);
+        compareFloatsLenient(integratedTangent[1], expectedPosition[1], 0.001f);
+    }
 
-    //numerically integrate the curvature
-    Vector2 integratedCurvature =
-            gaussLegendreQuadratureIntegral(curveFunction, spline->segmentT(0), spline->segmentT(1))
-            + gaussLegendreQuadratureIntegral(curveFunction, spline->segmentT(1), spline->segmentT(2));
+    //test the curvature within each segment
+    for(size_t i = 0; i < spline->segmentCount(); i++)
+    {
+        Vector2 expectedTangent = tangentFunction(spline->segmentT(i+1)) - tangentFunction(spline->segmentT(i));
+        Vector2 integratedCurvature = SplineLibraryCalculus::gaussLegendreQuadratureIntegral<Vector2>(curveFunction, spline->segmentT(i), spline->segmentT(i+1));
 
-    QCOMPARE(integratedCurvature[0], expectedTangent[0]);
-    QCOMPARE(integratedCurvature[1], expectedTangent[1]);
+        compareFloatsLenient(integratedCurvature[0], expectedTangent[0], 0.001f);
+        compareFloatsLenient(integratedCurvature[1], expectedTangent[1], 0.001f);
+    }
 
-    //numerically integrate the wiggle
-    //this test will fail if the spline algorithm doesn't have a continuous curvature! Spline algorithms that should not have continuous curvature
-    //IE cubic hermite spline, generic b spline with degree 2) should go in the non c2 test below
-    Vector2 integratedWiggle1 = gaussLegendreQuadratureIntegral(wiggleFunction, spline->segmentT(0), spline->segmentT(1));
-    Vector2 integratedWiggle2 = gaussLegendreQuadratureIntegral(wiggleFunction, spline->segmentT(1), spline->segmentT(2));
+    //test the wiggle within each segment
+    //note the "-.0001f" for T values - this makes sure the T value we're testing falls inside the segment we want
+    //this is critical for spline types where the curvature is not continuous, because the curvature is expected to jump at the segment boundary
+    //and we don't want that jump reflected in our expected result
+    for(size_t i = 0; i < spline->segmentCount(); i++)
+    {
+        Vector2 expectedCurvature = curveFunction(spline->segmentT(i+1)-.0001f) - curveFunction(spline->segmentT(i));
+        Vector2 integratedWiggle = SplineLibraryCalculus::gaussLegendreQuadratureIntegral<Vector2>(wiggleFunction, spline->segmentT(i), spline->segmentT(i+1)-.0001f);
 
-    Vector2 integratedWiggle = integratedWiggle1 + integratedWiggle2;
-
-    QCOMPARE(integratedWiggle[0], expectedCurvature[0]);
-    QCOMPARE(integratedWiggle[1], expectedCurvature[1]);
+        compareFloatsLenient(integratedWiggle[0], expectedCurvature[0], 0.001f);
+        compareFloatsLenient(integratedWiggle[1], expectedCurvature[1], 0.001f);
+    }
 }
 
 
 
-void TestSpline::testDerivativesNonC2_data(void)
+
+
+void TestSpline::testSegmentArcLength_data(void)
 {
-    std::vector<Vector2> cubicPoints {
-        Vector2({-4,-1}),
-        Vector2({ 0, 1}),
-        Vector2({ 1, 3}),
-        Vector2({ 6, -4}),
-        Vector2({ 5, 0}),
-    };
-
     QTest::addColumn<std::shared_ptr<Spline<Vector2>>>("spline");
-    QTest::addColumn<Vector2>("expectedPosition");
-    QTest::addColumn<Vector2>("expectedTangent");
-    QTest::addColumn<Vector2>("expectedCurvature");
 
-    auto rowFunction = [=](const char* name, std::shared_ptr<Spline<Vector2>> spline) {
-        auto endResults = spline->getCurvature(spline->segmentT(2));
-        auto midResults = spline->getCurvature(spline->segmentT(1));
-        auto beginResults = spline->getCurvature(spline->segmentT(0));
+    auto data = TestDataFloat::generateTriangleNumberData(10);
 
-        QTest::newRow(name)
-                << spline
-                << endResults.position - beginResults.position
-                << endResults.tangent - beginResults.tangent
-                << endResults.curvature - midResults.curvature;
-    };
-    rowFunction("uniformCR", std::make_shared<UniformCRSpline<Vector2>>(cubicPoints));
-    rowFunction("cubicHermite", std::make_shared<CubicHermiteSpline<Vector2>>(cubicPoints));
-    rowFunction("cubicHermiteAlpha1", std::make_shared<CubicHermiteSpline<Vector2>>(cubicPoints, 1.0f));
+    QTest::newRow("uniformCubicB") <<       TestDataFloat::createUniformBSpline(data);
+    QTest::newRow("genericB3") <<           TestDataFloat::createGenericBSpline(data,3);
+    QTest::newRow("natural") <<             TestDataFloat::createNatural(data, true, 0.0f);
+    QTest::newRow("naturalAlpha") <<        TestDataFloat::createNatural(data, true, 0.5f);
+    QTest::newRow("quinticHermite") <<      TestDataFloat::createQuinticHermite(data, 0.0f);
+    QTest::newRow("quinticHermiteAlpha1")<< TestDataFloat::createQuinticHermite(data, 0.5f);
+    QTest::newRow("UniformCR") <<           TestDataFloat::createUniformCR(data);
+    QTest::newRow("cubicHermite") <<        TestDataFloat::createCubicHermite(data, 0.0f);
+    QTest::newRow("cubicHermiteAlpha") <<   TestDataFloat::createCubicHermite(data, 0.5f);
 }
 
-void TestSpline::testDerivativesNonC2(void)
+void TestSpline::testSegmentArcLength(void)
 {
     QFETCH(std::shared_ptr<Spline<Vector2>>, spline);
-    QFETCH(Vector2, expectedPosition);
-    QFETCH(Vector2, expectedTangent);
-    QFETCH(Vector2, expectedCurvature);
 
-    auto tangentFunction = [=](float t) {
-        return spline->getTangent(t).tangent;
-    };
-    auto curveFunction = [=](float t) {
-        return spline->getCurvature(t).curvature;
-    };
-    auto wiggleFunction = [=](float t) {
-        return spline->getWiggle(t).wiggle;
+    auto arcLengthDerivative = [=](float t) {
+        return spline->getTangent(t).tangent.length();
     };
 
-    //find the "first" t in the spline
-    //numerically integrate the tangent
-    Vector2 integratedTangent =
-            gaussLegendreQuadratureIntegral(tangentFunction, spline->segmentT(0), spline->segmentT(1))
-            + gaussLegendreQuadratureIntegral(tangentFunction, spline->segmentT(1), spline->segmentT(2));
+    auto arcLength2ndDerivative = [=](float t) {
+        auto interpolationResult = spline->getCurvature(t);
+        return Vector2::dotProduct(interpolationResult.tangent.normalized(), interpolationResult.curvature);
+    };
 
-    QCOMPARE(integratedTangent[0], expectedPosition[0]);
-    QCOMPARE(integratedTangent[1], expectedPosition[1]);
+    for(size_t i = 0; i < spline->segmentCount(); i++)
+    {
+        //test the whole segment
+        float segmentBeginT = spline->segmentT(i);
+        float segmentEndT = spline->segmentT(i+1);
 
-    //numerically integrate the curvature
-    Vector2 integratedCurvature =
-            gaussLegendreQuadratureIntegral(curveFunction, spline->segmentT(0), spline->segmentT(1))
-            + gaussLegendreQuadratureIntegral(curveFunction, spline->segmentT(1), spline->segmentT(2));
+        float expectedLength = (spline->getPosition(segmentBeginT) - spline->getPosition(segmentEndT)).length();
+        float actualLength = spline->segmentArcLength(i, segmentBeginT, segmentEndT);
 
-    QCOMPARE(integratedCurvature[0], expectedTangent[0]);
-    QCOMPARE(integratedCurvature[1], expectedTangent[1]);
+        QCOMPARE(actualLength, expectedLength);
 
-    //numerically integrate the wiggle. unlike the other test we're only doing the second of the two segments
-    //because the code to account for the discontinuity in curvature is really awkward and non-accurate
-    Vector2 integratedWiggle = gaussLegendreQuadratureIntegral(wiggleFunction, spline->segmentT(1), spline->segmentT(2));
+        //test just part of the segment
+        float partialBeginT = lerp(segmentBeginT, segmentEndT, 0.25f);
+        float partialEndT = lerp(segmentBeginT, segmentEndT, 0.75f);
 
-    QCOMPARE(integratedWiggle[0], expectedCurvature[0]);
-    QCOMPARE(integratedWiggle[1], expectedCurvature[1]);
+        float expectedPartialLength = (spline->getPosition(partialBeginT) - spline->getPosition(partialEndT)).length();
+        float actualPartialLength = spline->segmentArcLength(i, partialBeginT, partialEndT);
+
+        QCOMPARE(actualPartialLength, expectedPartialLength);
+
+        //verify the 1st derivative
+        float integratedTangentLength = SplineLibraryCalculus::gaussLegendreQuadratureIntegral<float>(arcLengthDerivative, segmentBeginT, segmentEndT);
+        QCOMPARE(integratedTangentLength, expectedLength);
+
+        //verify the 2nd derivative
+        float integrated2ndDerivative = SplineLibraryCalculus::gaussLegendreQuadratureIntegral<float>(arcLength2ndDerivative, segmentBeginT, segmentEndT);
+        float expected2ndDerivativeResult = arcLengthDerivative(segmentEndT) - arcLengthDerivative(segmentBeginT);
+        compareFloatsLenient(integrated2ndDerivative, expected2ndDerivativeResult, 0.0001f);
+    }
 }

@@ -98,7 +98,7 @@ public:
                 return tangent.length();
             };
 
-            return SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, a, b);
+            return SplineLibraryCalculus::gaussLegendreQuadratureIntegral<floating_t>(segmentFunction, a, b);
         }
         else
         {

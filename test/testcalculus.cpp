@@ -27,7 +27,7 @@ void TestCalculus::testGaussLegendre(void)
     QFETCH(float, to);
     QFETCH(float, expected);
 
-    auto result = SplineLibraryCalculus::gaussLegendreQuadratureIntegral([](auto x){return x*x*(x-1);}, from, to);
+    auto result = SplineLibraryCalculus::gaussLegendreQuadratureIntegral<float>([](auto x){return x*x*(x-1);}, from, to);
 
     QCOMPARE(result, expected);
 }

@@ -91,7 +91,7 @@ public:
         floating_t localA = a - index;
         floating_t localB = b - index;
 
-        return SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, localA, localB);
+        return SplineLibraryCalculus::gaussLegendreQuadratureIntegral<floating_t>(segmentFunction, localA, localB);
     }
 
 

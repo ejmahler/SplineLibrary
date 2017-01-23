@@ -109,7 +109,7 @@ public:
         floating_t localA = a - knots[segmentIndex];
         floating_t localB = b - knots[segmentIndex];
 
-        return SplineLibraryCalculus::gaussLegendreQuadratureIntegral(segmentFunction, localA, localB);
+        return SplineLibraryCalculus::gaussLegendreQuadratureIntegral<floating_t>(segmentFunction, localA, localB);
     }
 
 private: //methods

@@ -4,6 +4,7 @@
 #include <QtTest/QtTest>
 
 #include <memory>
+#include <random>
 
 #include "spline_library/vector.h"
 #include "spline_library/spline.h"
@@ -45,60 +46,91 @@ void compareFloatsLenient(T actual, T expected, T tol)
     }
 };
 
-
-
 //we have a bunch of functions to help create test data. the alternative is copy/pasting a list of snarled one-liners into 10 different tests
-template<class InterpolationType, typename floating_t>
+//we're putting all these functions in a class so we can typedef the whole class,
+//so that every infocation doesn't need to supply template parameters
+template<typename floating_t>
 class SplineCreator
 {
 public:
-    typedef std::shared_ptr<Spline<InterpolationType, floating_t>> SplinePtr;
+    typedef std::shared_ptr<Spline<Vector<2,floating_t>, floating_t>> SplinePtr;
+    typedef Vector<2, floating_t> T;
 
-    static SplinePtr createUniformCR(std::vector<InterpolationType> data) {
-        return std::make_shared<UniformCRSpline<InterpolationType, floating_t>>(addPadding(data,1));
+    //several functions that create instances of splines
+    static SplinePtr createUniformCR(std::vector<T> data) {
+        return std::make_shared<UniformCRSpline<T, floating_t>>(addPadding(data,1));
     }
-    static SplinePtr createCatmullRom(std::vector<InterpolationType> data, floating_t alpha) {
+    static SplinePtr createCatmullRom(std::vector<T> data, floating_t alpha) {
         auto padded = addPadding(data,1);
-        return std::make_shared<CubicHermiteSpline<InterpolationType, floating_t>>(padded, alpha);
+        return std::make_shared<CubicHermiteSpline<T, floating_t>>(padded, alpha);
     }
-    static SplinePtr createCubicHermite(std::vector<InterpolationType> data, floating_t alpha) {
+    static SplinePtr createCubicHermite(std::vector<T> data, floating_t alpha) {
         auto tangents = makeTangents(data);
-        return std::make_shared<CubicHermiteSpline<InterpolationType, floating_t>>(data, tangents, alpha);
+        return std::make_shared<CubicHermiteSpline<T, floating_t>>(data, tangents, alpha);
     }
-    static SplinePtr createQuinticCatmullRom(std::vector<InterpolationType> data, floating_t alpha) {
+    static SplinePtr createQuinticCatmullRom(std::vector<T> data, floating_t alpha) {
         auto padded = addPadding(data,2);
-        return std::make_shared<QuinticHermiteSpline<InterpolationType, floating_t>>(padded, alpha);
+        return std::make_shared<QuinticHermiteSpline<T, floating_t>>(padded, alpha);
     }
-    static SplinePtr createQuinticHermite(std::vector<InterpolationType> data, floating_t alpha) {
+    static SplinePtr createQuinticHermite(std::vector<T> data, floating_t alpha) {
         auto tangents = makeTangents(data);
         auto curves = makeTangents(tangents);
-        return std::make_shared<QuinticHermiteSpline<InterpolationType, floating_t>>(data, tangents, curves, alpha);
+        return std::make_shared<QuinticHermiteSpline<T, floating_t>>(data, tangents, curves, alpha);
     }
-    static SplinePtr createNatural(std::vector<InterpolationType> data, bool includeEndpoints, floating_t alpha) {
+    static SplinePtr createNatural(std::vector<T> data, bool includeEndpoints, floating_t alpha) {
         if(!includeEndpoints) {
             data = addPadding(data, 1);
         }
-        return std::make_shared<NaturalSpline<InterpolationType, floating_t>>(data, includeEndpoints, alpha);
+        return std::make_shared<NaturalSpline<T, floating_t>>(data, includeEndpoints, alpha);
     }
-    static SplinePtr createNotAKnot(std::vector<InterpolationType> data, bool includeEndpoints, floating_t alpha) {
+    static SplinePtr createNotAKnot(std::vector<T> data, bool includeEndpoints, floating_t alpha) {
         if(!includeEndpoints) {
             data = addPadding(data, 1);
         }
-        return std::make_shared<NaturalSpline<InterpolationType, floating_t>>(data, includeEndpoints, alpha, NaturalSpline<InterpolationType, floating_t>::NotAKnot);
+        return std::make_shared<NaturalSpline<T, floating_t>>(data, includeEndpoints, alpha, NaturalSpline<Vector<2,floating_t>, floating_t>::NotAKnot);
     }
-    static SplinePtr createUniformBSpline(std::vector<InterpolationType> data) {
-        return std::make_shared<UniformCubicBSpline<InterpolationType, floating_t>>(addPadding(data,1));
+    static SplinePtr createUniformBSpline(std::vector<T> data) {
+        return std::make_shared<UniformCubicBSpline<T, floating_t>>(addPadding(data,1));
     }
-    static SplinePtr createGenericBSpline(std::vector<InterpolationType> data, size_t degree) {
+    static SplinePtr createGenericBSpline(std::vector<T> data, size_t degree) {
         auto padded = addPadding(data, (degree - 1)/2);
-        return std::make_shared<GenericBSpline<InterpolationType, floating_t>>(padded, degree);
+        return std::make_shared<GenericBSpline<T, floating_t>>(padded, degree);
+    }
+
+
+
+    //several functions that generate data points
+    static std::vector<T> generateRandomData(size_t size, size_t seed=10) {
+        std::minstd_rand gen;
+        gen.seed(seed);
+        std::uniform_real_distribution<floating_t> distribution(2,5);
+
+        std::vector<T> result(size);
+        result[0] = T({distribution(gen), distribution(gen)});
+        for(size_t i = 1; i < size; i++)
+        {
+            result[i] = result[i - 1] + T({distribution(gen), distribution(gen)});
+        }
+        return result;
+    }
+
+    static std::vector<Vector<2, floating_t>> generateTriangleNumberData(size_t size) {
+        std::vector<Vector<2, floating_t>> result(size);
+        size_t currentTriangleNumber = 0;
+        for(size_t i = 0; i < size; i++)
+        {
+            currentTriangleNumber += i;
+            floating_t value = currentTriangleNumber;
+            result[i] = T({value, value});
+        }
+        return result;
     }
 private:
 
     //Given a list of points, compute an equal-sized list of tangents to use in a cubic or quintic hermite spline
     //use the finite difference algorithm
-    static std::vector<InterpolationType> makeTangents(std::vector<InterpolationType> points) {
-        std::vector<InterpolationType> tangents(points.size());
+    static std::vector<T> makeTangents(std::vector<T> points) {
+        std::vector<T> tangents(points.size());
 
         //one-sided difference at the start
         tangents[0] = points[1] - points[0];
@@ -115,8 +147,8 @@ private:
     }
 };
 
-typedef SplineCreator<Vector<2, float>, float> TestDataFloat;
-typedef SplineCreator<Vector<2, float>, float> TestDataDouble;
+typedef SplineCreator<float> TestDataFloat;
+typedef SplineCreator<float> TestDataDouble;
 
 
 
