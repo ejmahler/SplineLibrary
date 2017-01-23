@@ -21,21 +21,6 @@ InterpolationType lerp(InterpolationType a, InterpolationType b, floating_t t)
     return a * (floating_t(1) - t) + b * t;
 }
 
-//we need to pad out the ends of the data differently depending on spline type
-//this way all of the splines will have the same arc length, so it'll be easier to test
-template<class T>
-std::vector<T> addPadding(std::vector<T> list, size_t paddingSize)
-{
-    list.reserve(list.size() + paddingSize * 2);
-    for(size_t i = 0; i < paddingSize; i++) {
-        list.insert(list.begin(), list[0] - (list[1] - list[0]));
-    }
-    for(size_t i = 0; i < paddingSize; i++) {
-        list.push_back(list[list.size() - 1] + (list[list.size() - 1] - list[list.size() - 2]));
-    }
-    return list;
-}
-
 template<class T>
 void compareFloatsLenient(T actual, T expected, T tol)
 {
@@ -100,7 +85,7 @@ public:
 
 
     //several functions that generate data points
-    static std::vector<T> generateRandomData(size_t size, size_t seed=10) {
+    static std::vector<T> generateRandomData(size_t size, unsigned seed=10) {
         std::minstd_rand gen;
         gen.seed(seed);
         std::uniform_real_distribution<floating_t> distribution(2,5);
@@ -144,6 +129,20 @@ private:
         //one-sided difference at the start
         tangents[tangents.size() - 1] = points[points.size() - 1] - points[points.size() - 2];
         return tangents;
+    }
+
+    //we need to pad out the ends of the data differently depending on spline type
+    //this way all of the splines will have the same arc length, so it'll be easier to test
+    static std::vector<T> addPadding(std::vector<T> list, size_t paddingSize)
+    {
+        list.reserve(list.size() + paddingSize * 2);
+        for(size_t i = 0; i < paddingSize; i++) {
+            list.insert(list.begin(), list[0] - (list[1] - list[0]));
+        }
+        for(size_t i = 0; i < paddingSize; i++) {
+            list.push_back(list[list.size() - 1] + (list[list.size() - 1] - list[list.size() - 2]));
+        }
+        return list;
     }
 };
 

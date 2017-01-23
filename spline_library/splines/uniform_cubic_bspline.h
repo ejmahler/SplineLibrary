@@ -158,10 +158,9 @@ public:
     LoopingUniformCubicBSpline(const std::vector<InterpolationType> &points)
         :SplineLoopingImpl<UniformCubicBSplineCommon, InterpolationType,floating_t>(points, points.size())
     {
-        assert(points.size() >= 3);
+        size_t degree = 3;
 
-        int size = points.size();
-        int degree = 3;
+        assert(points.size() >= degree);
 
         //we need enough space to repeat the last 'degree' elements
         std::vector<InterpolationType> positions(points.size() + degree);
@@ -170,7 +169,7 @@ public:
         //this DOES work, but interpolation begins in the wrong place (ie getPosition(0) occurs at the wrong place on the spline)
         //to fix this, we effectively "rotate" the position vector backwards, by copying point[size-1] to the beginning
         //then copying the points vector in after, then copying degree-1 elements from the beginning
-        positions[0] = points[size - 1];
+        positions[0] = points[points.size() - 1];
         std::copy(points.begin(), points.end(), positions.begin() + 1);
         std::copy_n(points.begin(), degree - 1, positions.end() - (degree - 1));
 

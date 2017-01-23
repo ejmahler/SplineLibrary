@@ -9,7 +9,7 @@ class GenericBSplineCommon
 {
 public:
     inline GenericBSplineCommon(void) = default;
-    inline GenericBSplineCommon(std::vector<InterpolationType> positions, std::vector<floating_t> knots, int splineDegree)
+    inline GenericBSplineCommon(std::vector<InterpolationType> positions, std::vector<floating_t> knots, size_t splineDegree)
         :positions(std::move(positions)), knots(std::move(knots)), splineDegree(splineDegree)
     {}
 
@@ -107,17 +107,17 @@ public:
     }
 
 private: //methods
-    InterpolationType computeDeboor(size_t knotIndex, int degree, float globalT) const;
-    InterpolationType computeDeboorDerivative(size_t knotIndex, int degree, float globalT, int derivativeLevel) const;
+    InterpolationType computeDeboor(size_t knotIndex, size_t degree, float globalT) const;
+    InterpolationType computeDeboorDerivative(size_t knotIndex, size_t degree, float globalT, int derivativeLevel) const;
 
 private: //data
     std::vector<InterpolationType> positions;
     std::vector<floating_t> knots;
-    int splineDegree;
+    size_t splineDegree;
 };
 
 template<class InterpolationType, typename floating_t>
-InterpolationType GenericBSplineCommon<InterpolationType,floating_t>::computeDeboor(size_t knotIndex, int degree, float globalT) const
+InterpolationType GenericBSplineCommon<InterpolationType,floating_t>::computeDeboor(size_t knotIndex, size_t degree, float globalT) const
 {
     if(degree == 0)
     {
@@ -137,7 +137,7 @@ InterpolationType GenericBSplineCommon<InterpolationType,floating_t>::computeDeb
 }
 
 template<class InterpolationType, typename floating_t>
-InterpolationType GenericBSplineCommon<InterpolationType,floating_t>::computeDeboorDerivative(size_t knotIndex, int degree, float globalT, int derivativeLevel) const
+InterpolationType GenericBSplineCommon<InterpolationType,floating_t>::computeDeboorDerivative(size_t knotIndex, size_t degree, float globalT, int derivativeLevel) const
 {
     if(degree == 0)
     {
@@ -174,23 +174,15 @@ class GenericBSpline final : public SplineImpl<GenericBSplineCommon, Interpolati
 {
 //constructors
 public:
-    GenericBSpline(const std::vector<InterpolationType> &points, int degree)
+    GenericBSpline(const std::vector<InterpolationType> &points, size_t degree)
         :SplineImpl<GenericBSplineCommon, InterpolationType,floating_t>(points, points.size() - degree)
     {
-        assert(points.size() > size_t(degree));
+        assert(points.size() > degree);
 
-        int size = points.size();
-        int padding = degree - 1;
-
-        //compute the T values for each point
-        auto indexToT = SplineCommon::computeTValuesWithOuterPadding(points, 0.0f, padding);
-
-        //for purposes of actual interpolation, we don't need the negative indexes found in indexToT
-        //so we're going to add the minimum possible value to every entry and stick them in a vector
-        std::vector<floating_t> knots = std::vector<floating_t>(indexToT.size());
-        for(int i = -padding; i < size + padding; i++)
+        std::vector<floating_t> knots(points.size() + degree - 1);
+        for(size_t i = 0; i < knots.size(); i++)
         {
-            knots[i + padding] = indexToT[i];
+            knots[i] = floating_t(i) - floating_t(degree - 1);
         }
 
         common = GenericBSplineCommon<InterpolationType, floating_t>(points, std::move(knots), degree);
@@ -202,37 +194,27 @@ class LoopingGenericBSpline final : public SplineLoopingImpl<GenericBSplineCommo
 {
 //constructors
 public:
-    LoopingGenericBSpline(const std::vector<InterpolationType> &points, int degree)
+    LoopingGenericBSpline(const std::vector<InterpolationType> &points, size_t degree)
         :SplineLoopingImpl<GenericBSplineCommon, InterpolationType,floating_t>(points, points.size())
     {
-        assert(points.size() > size_t(degree));
+        assert(points.size() > degree);
 
-        int size = points.size();
-        int padding = degree - 1;
-
-        //compute the T values for each point
-        auto indexToT = SplineCommon::computeLoopingTValues(points, 0.0f, padding);
-
-        //we need enough space to repeat the last 'degree' elements
-        std::vector<InterpolationType> positions(points.size() + degree);
+        std::vector<floating_t> knots(points.size() + degree * 2 - 1);
+        for(size_t i = 0; i < knots.size(); i++)
+        {
+            knots[i] = floating_t(i) - floating_t(degree - 1);
+        }
 
         //it would be easiest to just copy the points vector to the position vector, then copy the first 'degree' elements again
         //this DOES work, but interpolation begins in the wrong place (ie getPosition(0) occurs at the wrong place on the spline)
         //to fix this, we effectively "rotate" the position vector backwards, by copying point[size-1] to the beginning
         //then copying the points vector in after, then copying degree-1 elements from the beginning
-        positions[0] = points[size - 1];
+        std::vector<InterpolationType> positions(points.size() + degree);
+
+        size_t padding = degree - 1;
+        positions[0] = points[points.size() - 1];
         std::copy(points.begin(), points.end(), positions.begin() + 1);
         std::copy_n(points.begin(), padding, positions.end() - padding);
-
-        //the index to t calculation computes an extra T value that we don't need, we just discard it here when creating the knot vector
-        std::vector<floating_t> knots(indexToT.size());
-
-        //for purposes of actual interpolation, we don't need the negative indexes found in indexToT
-        //so we're going to add the minimum possible value to every entry and stick them in a vector
-        for(int i = -padding; i < size + padding+1; i++)
-        {
-            knots[i + padding] = indexToT[i];
-        }
 
         common = GenericBSplineCommon<InterpolationType, floating_t>(std::move(positions), std::move(knots), degree);
     }
