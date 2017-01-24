@@ -104,6 +104,87 @@ void TestSpline::testMethods(void)
     QCOMPARE(spline->segmentForT(spline->getMaxT() * 2), expectedSegments - 1);
 }
 
+
+void TestSpline::testMethods_Looping_data(void)
+{
+    QTest::addColumn<std::shared_ptr<Spline<Vector2>>>("spline");
+    QTest::addColumn<float>("alpha");
+    QTest::addColumn<size_t>("expectedSegments");
+
+    //our data will just be points on a straight line
+    //this makes the total arc length of this line (data[size-1] - data[0]).length() so it'll be easy to verify
+    auto data = TestDataFloat::generateRandomData(10);
+
+    QTest::newRow("uniformCR") <<       TestDataFloat::createLoopingUniformCR(data)        << 0.0f << data.size();
+    QTest::newRow("catmullRom") <<      TestDataFloat::createLoopingCatmullRom(data, 0.0f) << 0.0f << data.size();
+    QTest::newRow("catmullRomAlpha") << TestDataFloat::createLoopingCatmullRom(data, 0.5f) << 0.5f << data.size();
+
+    QTest::newRow("cubicHermite") <<        TestDataFloat::createLoopingCubicHermite(data, 0.0f) << 0.0f << data.size();
+    QTest::newRow("cubicHermiteAlpha") <<   TestDataFloat::createLoopingCubicHermite(data, 0.5f) << 0.5f << data.size();
+
+    QTest::newRow("quinticCatmullRom") <<       TestDataFloat::createLoopingQuinticCatmullRom(data, 0.0f) << 0.0f << data.size();
+    QTest::newRow("quinticCatmullRomAlpha") <<  TestDataFloat::createLoopingQuinticCatmullRom(data, 0.5f) << 0.5f << data.size();
+
+    QTest::newRow("quinticHermite") <<      TestDataFloat::createLoopingQuinticHermite(data, 0.0f) << 0.0f << data.size();
+    QTest::newRow("quinticHermiteAlpha") << TestDataFloat::createLoopingQuinticHermite(data, 0.5f) << 0.5f << data.size();
+
+    QTest::newRow("natural") <<         TestDataFloat::createLoopingNatural(data, 0.0f) << 0.0f << data.size();
+    QTest::newRow("naturalAlpha") <<    TestDataFloat::createLoopingNatural(data, 0.5f) << 0.5f << data.size();
+
+    QTest::newRow("uniformB") <<        TestDataFloat::createLoopingUniformBSpline(data) << 0.0f << data.size();
+
+    QTest::newRow("genericBCubic") <<   TestDataFloat::createLoopingGenericBSpline(data, 3) << 0.0f << data.size();
+    QTest::newRow("genericBQuintic") << TestDataFloat::createLoopingGenericBSpline(data, 5) << 0.0f << data.size();
+}
+
+void TestSpline::testMethods_Looping(void)
+{
+    QFETCH(std::shared_ptr<Spline<Vector2>>, spline);
+    QFETCH(float, alpha);
+    QFETCH(size_t, expectedSegments);
+
+    //test the methods that require no input
+    float maxT = spline->getMaxT();
+    QCOMPARE(maxT, float(expectedSegments));
+
+    size_t segmentCount = spline->segmentCount();
+    QCOMPARE(segmentCount, expectedSegments);
+
+    bool looping = spline -> isLooping();
+    QCOMPARE(looping, true);
+
+    //test the "segmentT" method to make sure it returns the expected values
+    std::vector<float> expectedT = SplineCommon::computeLoopingTValues(spline->getOriginalPoints(), alpha, 0);
+
+    for(size_t i = 0; i < spline->segmentCount(); i++) {
+        QCOMPARE(spline->segmentT(i), expectedT[i]);
+    }
+
+    //test the "segment for T" method to make sure it returns the segment index we expect
+    for(size_t i = 0; i < spline->segmentCount(); i++) {
+        float beginT = expectedT[i];
+        QCOMPARE(spline->segmentForT(beginT), i);
+
+        float halfwayT = (expectedT[i] + expectedT[i + 1]) / 2;
+        QCOMPARE(spline->segmentForT(halfwayT), i);
+    }
+
+    //make sure out-of-range T values in segmentForT return correct results
+    QCOMPARE(spline->segmentForT(-3), spline->segmentForT(maxT - 3));
+    QCOMPARE(spline->segmentForT(spline->getMaxT() + 2), spline->segmentForT(2));
+
+    //verify that getPosition calls wrap around from the end to the beginning
+    Vector2 frontPosition = spline->getPosition(0);
+
+    float dt = .0001f;
+    Vector2 backPosition = spline->getPosition(maxT-dt) + spline->getTangent(maxT-dt).tangent*dt;
+
+    QCOMPARE(frontPosition[0], backPosition[0]);
+    QCOMPARE(frontPosition[1], backPosition[1]);
+}
+
+
+
 void TestSpline::testDerivatives_data(void)
 {
     QTest::addColumn<std::shared_ptr<Spline<Vector2>>>("spline");

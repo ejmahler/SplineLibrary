@@ -281,7 +281,7 @@ public:
         std::vector<InterpolationType> inputVector(size);
         for(size_t i = 0; i < size; i++)
         {
-            InterpolationType neighborDelta = 3 * (deltaPoint.at(i) - deltaPoint.at((i - 1 + size) % size));
+            InterpolationType neighborDelta = floating_t(3) * (deltaPoint.at(i) - deltaPoint.at((i - 1 + size) % size));
             inputVector[i] = neighborDelta;
         }
 

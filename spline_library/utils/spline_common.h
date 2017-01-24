@@ -139,7 +139,7 @@ std::vector<floating_t> SplineCommon::computeLoopingTValues(
 {
     size_t size = points.size();
     floating_t maxT = floating_t(size);
-    std::vector<floating_t> tValues(size + padding * 2);
+    std::vector<floating_t> tValues(size + padding * 2 + 1);
 
     //compute the t values each point
     tValues[padding] = 0;
@@ -164,8 +164,8 @@ std::vector<floating_t> SplineCommon::computeLoopingTValues(
     //we calculate the padding by basically wraping the difference in T values
     for(size_t i = 0; i < padding; i++)
     {
-        tValues[i] = tValues[i + size + 1] - maxT;
-        tValues[i + size + padding + 1] = tValues[i + padding] + maxT;
+        tValues[i] = tValues[i + size] - maxT;
+        tValues[i + size + padding + 1] = tValues[i + padding + 1] + maxT;
     }
 
     return tValues;

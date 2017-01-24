@@ -353,7 +353,7 @@ public:
         std::vector<floating_t> knots = SplineCommon::computeLoopingTValues(points, alpha, 0);
 
         //pre-arrange the data needed for interpolation
-        std::vector<typename QuinticHermiteSplineCommon<InterpolationType, floating_t>::QuinticHermiteSplinePoint> positionData(numSegments + 1);
+        std::vector<typename QuinticHermiteSplineCommon<InterpolationType, floating_t>::QuinticHermiteSplinePoint> positionData(points.size() + 1);
         for(size_t i = 0; i < points.size(); i++)
         {
             positionData[i].position = points.at(i);
@@ -434,6 +434,7 @@ public:
             positionData[i].curvature = curves[i];
         }
         positionData[size] = positionData[0];
+        knots[size] = paddedKnots[size + padding];
 
         common = QuinticHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
     }

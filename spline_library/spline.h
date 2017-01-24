@@ -118,7 +118,7 @@ public:
     bool isLooping(void) const override { return true; }
 
     size_t segmentCount(void) const override { return common.segmentCount(); }
-    size_t segmentForT(floating_t t) const override { return common.segmentForT(t); }
+    size_t segmentForT(floating_t t) const override { return common.segmentForT(SplineCommon::wrapGlobalT(t, maxT)); }
     floating_t segmentT(size_t segmentIndex) const override { return common.segmentT(segmentIndex); }
     floating_t segmentArcLength(size_t segmentIndex, floating_t a, floating_t b) const override { return common.segmentLength(segmentIndex, a, b); }
 

@@ -14,9 +14,13 @@ signals:
 
 private slots:
 
-    //test each spline's basic methods like maxT, segmentCount
+    //test each spline's basic methods like constructors,  maxT, segmentCount
     void testMethods_data(void);
     void testMethods(void);
+
+    //test each looping spline's basic methods like constructors, maxT, segmentCount
+    void testMethods_Looping_data(void);
+    void testMethods_Looping(void);
 
     //use numeric integration to verify the first, second, and third derivatives
     void testDerivatives_data(void);

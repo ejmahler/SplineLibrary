@@ -276,7 +276,7 @@ public:
         std::vector<floating_t> knots = SplineCommon::computeLoopingTValues(points, alpha, 0);
 
         //pre-arrange the data needed for interpolation
-        std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplinePoint> positionData(points.size());
+        std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplinePoint> positionData(points.size() + 1);
         for(int i = 0; i < points.size(); i++)
         {
             positionData[i].position = points[i];
@@ -331,6 +331,7 @@ public:
             positionData[i].tangent = tangents[i];
         }
         positionData[size] = positionData[0];
+        knots[size] = paddedKnots[size + padding];
 
         common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
     }

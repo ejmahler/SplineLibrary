@@ -84,6 +84,37 @@ public:
 
 
 
+    //several functions that create instances of looping splines
+    static SplinePtr createLoopingUniformCR(std::vector<T> data) {
+        return std::make_shared<LoopingUniformCRSpline<T, floating_t>>(data);
+    }
+    static SplinePtr createLoopingCatmullRom(std::vector<T> data, floating_t alpha) {
+        return std::make_shared<LoopingCubicHermiteSpline<T, floating_t>>(data, alpha);
+    }
+    static SplinePtr createLoopingCubicHermite(std::vector<T> data, floating_t alpha) {
+        auto tangents = makeTangents(data);
+        return std::make_shared<LoopingCubicHermiteSpline<T, floating_t>>(data, tangents, alpha);
+    }
+    static SplinePtr createLoopingQuinticCatmullRom(std::vector<T> data, floating_t alpha) {
+        return std::make_shared<LoopingQuinticHermiteSpline<T, floating_t>>(data, alpha);
+    }
+    static SplinePtr createLoopingQuinticHermite(std::vector<T> data, floating_t alpha) {
+        auto tangents = makeTangents(data);
+        auto curves = makeTangents(tangents);
+        return std::make_shared<LoopingQuinticHermiteSpline<T, floating_t>>(data, tangents, curves, alpha);
+    }
+    static SplinePtr createLoopingNatural(std::vector<T> data, floating_t alpha) {
+        return std::make_shared<LoopingNaturalSpline<T, floating_t>>(data, alpha);
+    }
+    static SplinePtr createLoopingUniformBSpline(std::vector<T> data) {
+        return std::make_shared<LoopingUniformCubicBSpline<T, floating_t>>(data);
+    }
+    static SplinePtr createLoopingGenericBSpline(std::vector<T> data, size_t degree) {
+        return std::make_shared<LoopingGenericBSpline<T, floating_t>>(data, degree);
+    }
+
+
+
     //several functions that generate data points
     static std::vector<T> generateRandomData(size_t size, unsigned seed=10) {
         std::minstd_rand gen;
