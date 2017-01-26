@@ -15,7 +15,7 @@
 const size_t D = 2;
 typedef float FloatingT;
 typedef Vector<D, FloatingT> VectorT;
-typedef std::unique_ptr<Spline<VectorT, FloatingT>> SplinePtr;
+typedef LoopingSpline<VectorT, FloatingT> SplineType;
 
 class Benchmarker : public QObject
 {
@@ -36,15 +36,13 @@ public slots:
 private:
     void timeSplineMemberFunction(
             QMap<QString, float>& results,
-            void(Benchmarker::*testFunction)(QString, int, const Spline<VectorT, FloatingT>&),
-            std::function<SplinePtr(size_t)> splineFunction,
+            void(Benchmarker::*testFunction)(int, const SplineType&),
+            std::function<std::unique_ptr<SplineType>(size_t)> splineFunction,
             QString message, int queries, size_t size);
 
     //**********
     //all of these functions can change based on whatever you want - i just needed a common place to put performance comparisons
-    void testSolveArcLength(QString message, int queries, const Spline<VectorT, FloatingT> &spline);
-    void testNaiveSolve(QString message, int queries, const Spline<VectorT, FloatingT> &spline);
-    void controlGroup(QString message, int queries, const Spline<VectorT, FloatingT> &spline);
+    void testArcLength(int queries, const SplineType &spline);
 
 private://support stuff
 

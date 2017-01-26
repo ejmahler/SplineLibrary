@@ -37,8 +37,8 @@ namespace __ArcLengthSolvePrivate
 namespace ArcLength
 {
     //compute b such that arcLength(a,b) == desiredLength
-    template<template <class, typename> class Spline, class InterpolationType, typename floating_t>
-    floating_t solveLength(const Spline<InterpolationType, floating_t>& spline, floating_t a, floating_t desiredLength)
+    template<template <class, typename> class SplineT, class InterpolationType, typename floating_t>
+    floating_t solveLength(const SplineT<InterpolationType, floating_t>& spline, floating_t a, floating_t desiredLength)
     {
         size_t index = spline.segmentForT(a);
 
@@ -70,6 +70,37 @@ namespace ArcLength
         }
 
         return __ArcLengthSolvePrivate::solveSegment(spline, index, desiredLength, segmentLength, segmentBegin);
+    }
+
+    //compute b such that cyclicArcLength(a,b) == desiredLength, respecting the cyclic semantics of a looping spline
+    //IE, a can be out of range, if desiredLength is totalLength*2 + 1, the result will be equal to solveCyclic(a,1) + maxT*2
+    template<template <class, typename> class LoopingSplineT, class InterpolationType, typename floating_t>
+    floating_t solveLengthCyclic(const LoopingSplineT<InterpolationType, floating_t>& spline, floating_t a, floating_t desiredLength)
+    {
+        size_t index = spline.segmentForT(a);
+
+        floating_t wrappedA = spline.wrapT(a);
+        floating_t segmentBegin = wrappedA;
+        floating_t segmentLength = spline.segmentArcLength(index, segmentBegin, spline.segmentT(index + 1));
+
+        //scan through the spline's segments until we find the segment that contains b
+        while(segmentLength < desiredLength)
+        {
+            index++;
+            size_t wrappedIndex = index % spline.segmentCount();
+            desiredLength -= segmentLength;
+            segmentBegin = spline.segmentT(wrappedIndex);
+            segmentLength = spline.segmentArcLength(wrappedIndex, segmentBegin, spline.segmentT(wrappedIndex + 1));
+        }
+
+        //index % segmentCount is the segment that contains b, now solve for b within this segment
+        floating_t wrappedB = __ArcLengthSolvePrivate::solveSegment(spline, index % spline.segmentCount(), desiredLength, segmentLength, segmentBegin);
+
+        //we now have to "unwrap" b
+        floating_t initialWrap = a - wrappedA;
+        size_t numCycles = index / spline.segmentCount();
+
+        return wrappedB + initialWrap + numCycles * spline.getMaxT();
     }
 
 

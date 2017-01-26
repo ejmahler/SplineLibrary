@@ -84,6 +84,68 @@ void TestArcLength::testKnownArcLength(void)
     QCOMPARE(arcResult, expectedLength);
 }
 
+
+
+void TestArcLength::testCyclicArcLength_data(void)
+{
+    QTest::addColumn<std::shared_ptr<LoopingSpline<Vector2>>>("spline");
+    QTest::addColumn<float>("a");
+    QTest::addColumn<float>("b");
+
+    auto data = TestDataFloat::generateRandomData(10);
+
+    auto rowFunction = [=](const char* name, std::shared_ptr<LoopingSpline<Vector2>> spline) {
+
+        //add a row for just part of the spline. we want to make sure a and b fall partway through a segment
+        //so we'll explicitly get segment boundaries via spline->getT and lerp between them
+        float partialA = lerp(spline->segmentT(2), spline->segmentT(3), 0.75f);
+        float partialB = lerp(spline->segmentT(spline->segmentCount() - 3), spline->segmentT(spline->segmentCount() - 2), 0.25f);
+        std::string partialName = QString("%1 (DifferentSegment)").arg(name).toStdString();
+        QTest::newRow(partialName.data()) << spline << partialA << partialB;
+
+        //add a row where a and b are in the same segment
+        size_t testIndex = 3;
+        float sameSegmentA = lerp(spline->segmentT(testIndex), spline->segmentT(testIndex + 1), 0.2f);
+        float sameSegmentB = lerp(spline->segmentT(testIndex), spline->segmentT(testIndex + 1), 0.6f);
+        std::string sameSegmentName = QString("%1 (SameSegment)").arg(name).toStdString();
+        QTest::newRow(sameSegmentName.data()) << spline << sameSegmentA << sameSegmentB;
+    };
+
+    rowFunction("uniformCR", TestDataFloat::createLoopingUniformCR(data));
+    rowFunction("cubicHermiteAlpha", TestDataFloat::createLoopingCatmullRom(data, 0.5f));
+}
+
+void TestArcLength::testCyclicArcLength(void)
+{
+    QFETCH(std::shared_ptr<LoopingSpline<Vector2>>, spline);
+    QFETCH(float, a);
+    QFETCH(float, b);
+
+    float maxT = spline->getMaxT();
+
+    //when a < b and both values are in range, the result should be the same as arcLength
+    float arcResult = spline->arcLength(a, b);
+    float cyclicArcResult = spline->cyclicArcLength(a, b);
+    QCOMPARE(cyclicArcResult, arcResult);
+
+    float totalLength = spline->totalLength();
+
+    //verify that if we reverse a and b, we get totalLength - arcResult
+    float reversedResult = spline->cyclicArcLength(b, a);
+    QCOMPARE(reversedResult, totalLength - arcResult);
+
+    //verify that we can independently move a and b out of range and get the same result
+    float outOfRangeA = spline->cyclicArcLength(a + maxT, b);
+    float outOfRangeB = spline->cyclicArcLength(a, b + maxT);
+    float outOfRangeAReversed = spline->cyclicArcLength(b, a + maxT);
+    float outOfRangeBReversed = spline->cyclicArcLength(b + maxT, a);
+
+    QCOMPARE(outOfRangeA, arcResult);
+    QCOMPARE(outOfRangeB, arcResult);
+    QCOMPARE(outOfRangeAReversed, reversedResult);
+    QCOMPARE(outOfRangeBReversed, reversedResult);
+}
+
 void TestArcLength::testSolve_data(void)
 {
     auto data = TestDataFloat::generateRandomData(10);
@@ -128,6 +190,69 @@ void TestArcLength::testSolve(void)
     float totalLength = ArcLength::totalLength(*spline.get());
     float calculatedOverLength = ArcLength::solveLength(*spline.get(), a, totalLength);
     QCOMPARE(calculatedOverLength, spline->getMaxT());
+}
+
+
+void TestArcLength::testSolveCyclic_data(void)
+{
+    auto data = TestDataFloat::generateRandomData(10);
+
+    QTest::addColumn<std::shared_ptr<LoopingSpline<Vector2>>>("spline");
+    QTest::addColumn<float>("a");
+    QTest::addColumn<float>("b");
+
+    auto rowFunction = [=](const char* name, std::shared_ptr<LoopingSpline<Vector2>> spline) {
+
+        //add a row for just part of the spline. we want to make sure a and b fall partway through a segment
+        //so we'll explicitly get segment boundaries via spline->getT and lerp between them
+        float partialA = lerp(spline->segmentT(1), spline->segmentT(2), 0.75f);
+        float partialB = lerp(spline->segmentT(spline->segmentCount() - 3), spline->segmentT(spline->segmentCount() - 2), 0.25f);
+        std::string partialName = QString("%1 (Partial)").arg(name).toStdString();
+        QTest::newRow(partialName.data()) << spline << partialA << partialB;
+
+        //add a row where a and b are in the same segment, since this is a special case
+        size_t testIndex = 3;
+        float sameSegmentA = lerp(spline->segmentT(testIndex), spline->segmentT(testIndex + 1), 0.2f);
+        float sameSegmentB = lerp(spline->segmentT(testIndex), spline->segmentT(testIndex + 1), 0.6f);
+        std::string sameSegmentName = QString("%1 (Same)").arg(name).toStdString();
+        QTest::newRow(sameSegmentName.data()) << spline << sameSegmentA << sameSegmentB;
+    };
+
+    rowFunction("uniformCR", TestDataFloat::createLoopingUniformCR(data));
+    rowFunction("cubicHermiteAlpha", TestDataFloat::createLoopingCubicHermite(data, 0.5f));
+}
+
+void TestArcLength::testSolveCyclic(void)
+{
+    QFETCH(std::shared_ptr<LoopingSpline<Vector2>>, spline);
+    QFETCH(float, a);
+    QFETCH(float, b);
+
+    float maxT = spline ->getMaxT();
+    float desiredLength = ArcLength::arcLength(*spline, a, b);
+    float totalLength = ArcLength::totalLength(*spline);
+
+    //when a and what will eventually be b are both in range, solve and solveCyclic should return the same result
+    float calculatedB = ArcLength::solveLength(*spline, a, desiredLength);
+    float cyclicB = ArcLength::solveLengthCyclic(*spline, a, desiredLength);
+    QCOMPARE(cyclicB, calculatedB);
+
+    //when desiredLength is greater than total length, we should go multiple times around the spline
+    float cyclicBCycle1 = ArcLength::solveLengthCyclic(*spline, a, desiredLength + totalLength);
+    float cyclicBCycle2 = ArcLength::solveLengthCyclic(*spline, a, desiredLength + totalLength*2);
+    QCOMPARE(cyclicBCycle1, calculatedB + maxT);
+    QCOMPARE(cyclicBCycle2, calculatedB + 2*maxT);
+
+    //when A isn't in range, the result should respect the unwrapped A, rather than the wrapped A
+    float cyclicBCycle3 = ArcLength::solveLengthCyclic(*spline, a + maxT, desiredLength + totalLength*2);
+    float cyclicBCycleN = ArcLength::solveLengthCyclic(*spline, a - maxT, desiredLength);
+    QCOMPARE(cyclicBCycle3, calculatedB + 3*maxT);
+    QCOMPARE(cyclicBCycleN, calculatedB - maxT);
+
+    //test that it works when we give an input value that has to wrap around but do less than one full cycle
+    //the result should be on the "next cycle" relative to the input, as opposed to being wrapped around to be less than the input
+    float calculatedA = ArcLength::solveLengthCyclic(*spline, b, totalLength - desiredLength);
+    QCOMPARE(calculatedA, a + maxT);
 }
 
 

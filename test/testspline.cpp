@@ -105,9 +105,9 @@ void TestSpline::testMethods(void)
 }
 
 
-void TestSpline::testMethods_Looping_data(void)
+void TestSpline::testMethods_Cyclic_data(void)
 {
-    QTest::addColumn<std::shared_ptr<Spline<Vector2>>>("spline");
+    QTest::addColumn<std::shared_ptr<LoopingSpline<Vector2>>>("spline");
     QTest::addColumn<float>("alpha");
     QTest::addColumn<size_t>("expectedSegments");
 
@@ -137,9 +137,9 @@ void TestSpline::testMethods_Looping_data(void)
     QTest::newRow("genericBQuintic") << TestDataFloat::createLoopingGenericBSpline(data, 5) << 0.0f << data.size();
 }
 
-void TestSpline::testMethods_Looping(void)
+void TestSpline::testMethods_Cyclic(void)
 {
-    QFETCH(std::shared_ptr<Spline<Vector2>>, spline);
+    QFETCH(std::shared_ptr<LoopingSpline<Vector2>>, spline);
     QFETCH(float, alpha);
     QFETCH(size_t, expectedSegments);
 
@@ -175,12 +175,19 @@ void TestSpline::testMethods_Looping(void)
 
     //verify that getPosition calls wrap around from the end to the beginning
     Vector2 frontPosition = spline->getPosition(0);
-
-    float dt = .0001f;
-    Vector2 backPosition = spline->getPosition(maxT-dt) + spline->getTangent(maxT-dt).tangent*dt;
+    Vector2 backPosition = spline->getPosition(maxT);
 
     QCOMPARE(frontPosition[0], backPosition[0]);
     QCOMPARE(frontPosition[1], backPosition[1]);
+
+    //verify that the "wrapT" method works correctly
+    QCOMPARE(2.5f, spline->wrapT(2.5f));
+    QCOMPARE(2.5f, spline->wrapT(2.5f + maxT));
+    QCOMPARE(2.5f, spline->wrapT(2.5f + 2*maxT));
+    QCOMPARE(2.5f, spline->wrapT(2.5f - maxT));
+    QCOMPARE(2.5f, spline->wrapT(2.5f - 2*maxT));
+
+    QCOMPARE(0.0f, spline->wrapT(maxT));
 }
 
 
@@ -312,5 +319,55 @@ void TestSpline::testSegmentArcLength(void)
         float integrated2ndDerivative = SplineLibraryCalculus::gaussLegendreQuadratureIntegral<float>(arcLength2ndDerivative, segmentBeginT, segmentEndT);
         float expected2ndDerivativeResult = arcLengthDerivative(segmentEndT) - arcLengthDerivative(segmentBeginT);
         compareFloatsLenient(integrated2ndDerivative, expected2ndDerivativeResult, 0.0001f);
+    }
+}
+
+
+void TestSpline::testSegmentArcLengthCyclic_data(void)
+{
+    QTest::addColumn<std::shared_ptr<LoopingSpline<Vector2>>>("spline");
+
+    QTest::newRow("quintic")  << TestDataFloat::createCircularQuinticHermite(10, 5.0f);
+    QTest::newRow("genericB") << TestDataFloat::createCircularGenericBSpline(10, 7, 10.0f);
+}
+
+void TestSpline::testSegmentArcLengthCyclic(void)
+{
+    QFETCH(std::shared_ptr<LoopingSpline<Vector2>>, spline);
+
+    auto arcLengthDerivative = [=](float t) {
+        return spline->getTangent(t).tangent.length();
+    };
+
+    auto arcLength2ndDerivative = [=](float t) {
+        auto interpolationResult = spline->getCurvature(t);
+        return Vector2::dotProduct(interpolationResult.tangent.normalized(), interpolationResult.curvature);
+    };
+
+    float radius = spline->getPosition(0).length();
+    float expectedTotalLength = 2.0f * 3.14159265f * radius;
+
+    for(size_t i = 0; i < spline->segmentCount(); i++)
+    {
+        //test the whole segment
+        float segmentBeginT = spline->segmentT(i);
+        float segmentEndT = spline->segmentT(i+1);
+
+        float expectedLength = expectedTotalLength / spline->segmentCount();
+        float actualLength = spline->segmentArcLength(i, segmentBeginT, segmentEndT);
+
+        compareFloatsLenient(actualLength, expectedLength, 0.01f);
+
+        //verify the 1st derivative
+        float integratedTangentLength = SplineLibraryCalculus::gaussLegendreQuadratureIntegral<float>(arcLengthDerivative, segmentBeginT, segmentEndT);
+        QCOMPARE(integratedTangentLength, actualLength);
+
+        //verify the 2nd derivative
+        float integrated2ndDerivative = SplineLibraryCalculus::gaussLegendreQuadratureIntegral<float>(arcLength2ndDerivative, segmentBeginT, segmentEndT);
+        float expected2ndDerivativeResult = arcLengthDerivative(segmentEndT) - arcLengthDerivative(segmentBeginT);
+
+        //add 1 to each, because for circular splines, the 2nd derivative of arc length should be 0
+        //and it's hard to compare floats that are very close to 0
+        compareFloatsLenient(integrated2ndDerivative + 1, expected2ndDerivativeResult + 1, 0.0001f);
     }
 }

@@ -12,6 +12,7 @@
 Q_DECLARE_METATYPE(Vector2)
 Q_DECLARE_METATYPE(Vector3)
 Q_DECLARE_METATYPE(std::shared_ptr<Spline<Vector2>>)
+Q_DECLARE_METATYPE(std::shared_ptr<LoopingSpline<Vector2>>)
 
 
 //perform a linear interpolation between a and b
@@ -38,7 +39,11 @@ template<typename floating_t>
 class SplineCreator
 {
 public:
-    typedef std::shared_ptr<Spline<Vector<2,floating_t>, floating_t>> SplinePtr;
+    typedef Spline<Vector<2,floating_t>, floating_t> SplineT;
+    typedef LoopingSpline<Vector<2,floating_t>, floating_t> LoopingSplineT;
+
+    typedef std::shared_ptr<SplineT> SplinePtr;
+    typedef std::shared_ptr<LoopingSplineT> LoopingSplinePtr;
     typedef Vector<2, floating_t> T;
 
     //several functions that create instances of splines
@@ -85,32 +90,51 @@ public:
 
 
     //several functions that create instances of looping splines
-    static SplinePtr createLoopingUniformCR(std::vector<T> data) {
+    static LoopingSplinePtr createLoopingUniformCR(std::vector<T> data) {
         return std::make_shared<LoopingUniformCRSpline<T, floating_t>>(data);
     }
-    static SplinePtr createLoopingCatmullRom(std::vector<T> data, floating_t alpha) {
+    static LoopingSplinePtr createLoopingCatmullRom(std::vector<T> data, floating_t alpha) {
         return std::make_shared<LoopingCubicHermiteSpline<T, floating_t>>(data, alpha);
     }
-    static SplinePtr createLoopingCubicHermite(std::vector<T> data, floating_t alpha) {
+    static LoopingSplinePtr createLoopingCubicHermite(std::vector<T> data, floating_t alpha) {
         auto tangents = makeTangents(data);
         return std::make_shared<LoopingCubicHermiteSpline<T, floating_t>>(data, tangents, alpha);
     }
-    static SplinePtr createLoopingQuinticCatmullRom(std::vector<T> data, floating_t alpha) {
+    static LoopingSplinePtr createLoopingQuinticCatmullRom(std::vector<T> data, floating_t alpha) {
         return std::make_shared<LoopingQuinticHermiteSpline<T, floating_t>>(data, alpha);
     }
-    static SplinePtr createLoopingQuinticHermite(std::vector<T> data, floating_t alpha) {
+    static LoopingSplinePtr createLoopingQuinticHermite(std::vector<T> data, floating_t alpha) {
         auto tangents = makeTangents(data);
         auto curves = makeTangents(tangents);
         return std::make_shared<LoopingQuinticHermiteSpline<T, floating_t>>(data, tangents, curves, alpha);
     }
-    static SplinePtr createLoopingNatural(std::vector<T> data, floating_t alpha) {
+    static LoopingSplinePtr createLoopingNatural(std::vector<T> data, floating_t alpha) {
         return std::make_shared<LoopingNaturalSpline<T, floating_t>>(data, alpha);
     }
-    static SplinePtr createLoopingUniformBSpline(std::vector<T> data) {
+    static LoopingSplinePtr createLoopingUniformBSpline(std::vector<T> data) {
         return std::make_shared<LoopingUniformCubicBSpline<T, floating_t>>(data);
     }
-    static SplinePtr createLoopingGenericBSpline(std::vector<T> data, size_t degree) {
+    static LoopingSplinePtr createLoopingGenericBSpline(std::vector<T> data, size_t degree) {
         return std::make_shared<LoopingGenericBSpline<T, floating_t>>(data, degree);
+    }
+
+    //special functions to make circular generic B splines and circular quintic splines
+    //circular splines are really easy to test arc length for, and those two spline types will retain the most "circularity"
+    static LoopingSplinePtr createCircularGenericBSpline(size_t size, size_t degree, floating_t radius) {
+        auto positions = generateCircularPositions(size, radius);
+        return std::make_shared<LoopingGenericBSpline<T, floating_t>>(positions, degree);
+    }
+    static LoopingSplinePtr createCircularQuinticHermite(size_t size, floating_t radius) {
+        auto positions = generateCircularPositions(size, radius);
+        auto tangents = computeCircularTangents(positions);
+        auto curves = computeCircularTangents(tangents);
+        return std::make_shared<LoopingQuinticHermiteSpline<T, floating_t>>(positions, tangents, curves, 0.0f);
+    }
+
+
+    //cast a looping spline ot a non-looping
+    static SplinePtr cast(LoopingSplinePtr ptr) {
+        return std::static_pointer_cast<SplineT>(ptr);
     }
 
 
@@ -130,8 +154,8 @@ public:
         return result;
     }
 
-    static std::vector<Vector<2, floating_t>> generateTriangleNumberData(size_t size) {
-        std::vector<Vector<2, floating_t>> result(size);
+    static std::vector<T> generateTriangleNumberData(size_t size) {
+        std::vector<T> result(size);
         size_t currentTriangleNumber = 0;
         for(size_t i = 0; i < size; i++)
         {
@@ -141,6 +165,8 @@ public:
         }
         return result;
     }
+
+
 private:
 
     //Given a list of points, compute an equal-sized list of tangents to use in a cubic or quintic hermite spline
@@ -174,6 +200,29 @@ private:
             list.push_back(list[list.size() - 1] + (list[list.size() - 1] - list[list.size() - 2]));
         }
         return list;
+    }
+
+    static std::vector<T> generateCircularPositions(size_t size, floating_t radius) {
+        std::vector<Vector<2, floating_t>> result(size);
+        floating_t angle = 2 * floating_t(3.14159265) / size;
+        for(size_t i = 0; i < size; i++)
+        {
+            floating_t currentAngle = angle * i;
+
+            result[i] = T({std::cos(currentAngle), std::sin(currentAngle)}) * radius;
+        }
+        return result;
+    }
+
+    static std::vector<T> computeCircularTangents(std::vector<T> positions)
+    {
+        //just rotate each position by 90 degrees
+        for(T& item: positions)
+        {
+            item = T({-item[1], item[0]});
+        }
+
+        return positions;
     }
 };
 

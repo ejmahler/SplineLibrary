@@ -36,24 +36,18 @@ namespace SplineCommon
     //given a list of knots and a t value, return the index of the knot the t value falls within
     template<typename floating_t>
     size_t getIndexForT(const std::vector<floating_t> &knotData, floating_t t);
-
-
-    template<typename floating_t>
-    inline floating_t wrapGlobalT(floating_t globalT, floating_t maxT)
-    {
-        globalT = std::fmod(globalT, maxT);
-        if(globalT < 0)
-            return globalT + maxT;
-        else
-            return globalT;
-    }
 }
 
 namespace ArcLength
 {
     //compute the arc length from a to b on the given spline
-    template<template <class, typename> class Spline, class InterpolationType, typename floating_t>
-    floating_t arcLength(const Spline<InterpolationType, floating_t>& spline, floating_t a, floating_t b);
+    template<template <class, typename> class SplineT, class InterpolationType, typename floating_t>
+    floating_t arcLength(const SplineT<InterpolationType, floating_t>& spline, floating_t a, floating_t b);
+
+    //compute the arc length from a to b on the given spline, using wrapping/cylic logic
+    //for cyclic splines only!
+    template<template <class, typename> class CyclicSplineT, class InterpolationType, typename floating_t>
+    floating_t cyclicArcLength(const CyclicSplineT<InterpolationType, floating_t>& spline, floating_t a, floating_t b);
 
     //compute the arc length from the beginning to the end on the given spline
     template<template <class, typename> class Spline, class InterpolationType, typename floating_t>
@@ -223,6 +217,10 @@ size_t SplineCommon::getIndexForT(const std::vector<floating_t> &knotData, float
 template<template <class, typename> class Spline, class InterpolationType, typename floating_t>
 floating_t ArcLength::arcLength(const Spline<InterpolationType, floating_t>& spline, floating_t a, floating_t b)
 {
+    if(a > b) {
+        std::swap(a,b);
+    }
+
     //get the knot indices for the beginning and end
     size_t aIndex = spline.segmentForT(a);
     size_t bIndex = spline.segmentForT(b);
@@ -248,6 +246,50 @@ floating_t ArcLength::arcLength(const Spline<InterpolationType, floating_t>& spl
         //last segment
         floating_t bBegin = spline.segmentT(bIndex);
         result += spline.segmentArcLength(bIndex, bBegin, b);
+
+        return result;
+    }
+}
+
+//compute the arc length from a to b on the given spline, using wrapping/cyclic logic
+//for cyclic splines only!
+template<template <class, typename> class CyclicSplineT, class InterpolationType, typename floating_t>
+floating_t ArcLength::cyclicArcLength(const CyclicSplineT<InterpolationType, floating_t>& spline, floating_t a, floating_t b)
+{
+    floating_t wrappedA = spline.wrapT(a);
+    floating_t wrappedB = spline.wrapT(b);
+
+    if(wrappedA <= wrappedB)
+    {
+        return arcLength(spline, wrappedA, wrappedB);
+    }
+    else
+    {
+        //get the knot indices for the beginning and end
+        size_t aIndex = spline.segmentForT(wrappedA);
+        size_t bIndex = spline.segmentForT(wrappedB);
+
+        //a and b occur in different segments, so compute one length for every segment
+        floating_t result{0};
+
+        //first segment
+        floating_t aEnd = spline.segmentT(aIndex + 1);
+        result += spline.segmentArcLength(aIndex, wrappedA, aEnd);
+
+        //for the "middle" segments. we're going to wrap around -- go from the segment after a to the end, then go from 0 to the segment before b
+        for(size_t i = aIndex + 1; i < spline.segmentCount(); i++) {
+            result += spline.segmentArcLength(i, spline.segmentT(i), spline.segmentT(i + 1));
+        }
+        for(size_t i = 0; i < bIndex; i++) {
+            result += spline.segmentArcLength(i, spline.segmentT(i), spline.segmentT(i + 1));
+        }
+
+        //last segment. if wrappedB == 0 then we've got a special case where b is maxT and was wrapped to 0, so we shouldn't compute the segment
+        floating_t bBegin = spline.segmentT(bIndex);
+        if(wrappedB > 0)
+        {
+            result += spline.segmentArcLength(bIndex, bBegin, wrappedB);
+        }
 
         return result;
     }

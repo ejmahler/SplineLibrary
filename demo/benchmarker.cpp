@@ -32,30 +32,22 @@ QMap<QString, float> Benchmarker::runBenchmark(void)
 
     //create the functions used to generate the splines
     auto crSpline = [this, randomSource](size_t size) {
-        auto points = randomPoints_SmallVariance<VectorT, D, FloatingT>(randomSource, size);
-        SplinePtr result = std::make_unique<UniformCRSpline<VectorT,FloatingT>>(points);
+        auto points = randomPoints_Uniform<VectorT, D, FloatingT>(randomSource, size);
+        std::unique_ptr<SplineType> result = std::make_unique<LoopingUniformCRSpline<VectorT,FloatingT>>(points);
         return result;
     };
 
     auto genericBSpline = [this, randomSource](size_t size) {
-        auto points = randomPoints_SmallVariance<VectorT, D, FloatingT>(randomSource, size);
-        SplinePtr result = std::make_unique<GenericBSpline<VectorT,FloatingT>>(points, 7);
-        return result;
-    };
-
-    auto natural = [this, randomSource](size_t size) {
-        auto points = randomPoints_SmallVariance<VectorT, D, FloatingT>(randomSource, size);
-        SplinePtr result = std::make_unique<NaturalSpline<VectorT,FloatingT>>(points, true, 0.5f);
+        auto points = randomPoints_Uniform<VectorT, D, FloatingT>(randomSource, size);
+        std::unique_ptr<SplineType> result = std::make_unique<LoopingGenericBSpline<VectorT,FloatingT>>(points, 7);
         return result;
     };
 
     QMap<QString, float> results;
-    timeSplineMemberFunction(results, &Benchmarker::testSolveArcLength, crSpline, "FAST: uniform_cr[10]",    10000, 12);
-    timeSplineMemberFunction(results, &Benchmarker::testSolveArcLength, crSpline, "FAST: uniform_cr[1000]",  1000, 1002);
-    timeSplineMemberFunction(results, &Benchmarker::testSolveArcLength, genericBSpline, "FAST: bspline[10]",    1000, 16);
-    timeSplineMemberFunction(results, &Benchmarker::testSolveArcLength, genericBSpline, "FAST: bspline[1000]",  100, 1006);
-    timeSplineMemberFunction(results, &Benchmarker::testSolveArcLength, natural, "FAST: natural[10]",    10000, 10);
-    timeSplineMemberFunction(results, &Benchmarker::testSolveArcLength, natural, "FAST: natural[1000]",  1000, 1000);
+    timeSplineMemberFunction(results, &Benchmarker::testArcLength, crSpline, "uniform_cr[10]",    10000, 12);
+    timeSplineMemberFunction(results, &Benchmarker::testArcLength, crSpline, "uniform_cr[1000]",  1000, 1002);
+    timeSplineMemberFunction(results, &Benchmarker::testArcLength, genericBSpline, "bspline[10]",    1000, 16);
+    timeSplineMemberFunction(results, &Benchmarker::testArcLength, genericBSpline, "bspline[1000]",  100, 1006);
 
     return results;
 }
@@ -67,8 +59,8 @@ void Benchmarker::cancel(void)
 
 void Benchmarker::timeSplineMemberFunction(
         QMap<QString, float>& results,
-        void(Benchmarker::*testFunction)(QString, int, const Spline<VectorT, FloatingT>&) ,
-        std::function<SplinePtr(size_t)> splineFunction,
+        void(Benchmarker::*testFunction)(int, const SplineType&) ,
+        std::function<std::unique_ptr<SplineType>(size_t)> splineFunction,
         QString message, int queries, size_t size) {
 
     emit setProgressText(message);
@@ -85,7 +77,7 @@ void Benchmarker::timeSplineMemberFunction(
         auto spline = splineFunction(size);
 
         t.start();
-        (this->*testFunction)(message, queries, *spline.get());
+        (this->*testFunction)(queries, *spline);
         totalElapsed += t.elapsed();
     }
     emit setProgressValue(repeats);
@@ -93,16 +85,16 @@ void Benchmarker::timeSplineMemberFunction(
     results[message] = 1000 * float(totalElapsed) / (repeats * queries);
 }
 
-void Benchmarker::testSolveArcLength(QString message, int queries, const Spline<VectorT, FloatingT> &spline)
+void Benchmarker::testArcLength(int queries, const LoopingSpline<VectorT, FloatingT> &spline)
 {
-    std::uniform_real_distribution<FloatingT> lengthDist(1, spline.totalLength()/2);
+    std::uniform_real_distribution<FloatingT> dist(0, spline.getMaxT());
 
     for(int q = 0; q < queries; q++)
     {
-        //set up the test
-        FloatingT desired = lengthDist(gen);
+        FloatingT a = dist(gen);
+        FloatingT b = dist(gen);
 
-        ArcLength::partition(spline, desired);
+        float result = spline.cyclicArcLength(a,b);
     }
 }
 
