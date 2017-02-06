@@ -259,6 +259,7 @@ floating_t ArcLength::cyclicArcLength(const CyclicSplineT<InterpolationType, flo
     floating_t wrappedA = spline.wrapT(a);
     floating_t wrappedB = spline.wrapT(b);
 
+    //if wrapped A is less than wrapped B, then we can use the normal arc legth formula
     if(wrappedA <= wrappedB)
     {
         return arcLength(spline, wrappedA, wrappedB);
@@ -269,7 +270,6 @@ floating_t ArcLength::cyclicArcLength(const CyclicSplineT<InterpolationType, flo
         size_t aIndex = spline.segmentForT(wrappedA);
         size_t bIndex = spline.segmentForT(wrappedB);
 
-        //a and b occur in different segments, so compute one length for every segment
         floating_t result{0};
 
         //first segment
@@ -280,14 +280,16 @@ floating_t ArcLength::cyclicArcLength(const CyclicSplineT<InterpolationType, flo
         for(size_t i = aIndex + 1; i < spline.segmentCount(); i++) {
             result += spline.segmentArcLength(i, spline.segmentT(i), spline.segmentT(i + 1));
         }
-        for(size_t i = 0; i < bIndex; i++) {
-            result += spline.segmentArcLength(i, spline.segmentT(i), spline.segmentT(i + 1));
-        }
 
-        //last segment. if wrappedB == 0 then we've got a special case where b is maxT and was wrapped to 0, so we shouldn't compute the segment
-        floating_t bBegin = spline.segmentT(bIndex);
+        //special case: if "b" is a multiple of maxT, then wrappedB wil be 0 and we don't need to bother computing the segments from T=0 to T=wrappedB
         if(wrappedB > 0)
         {
+            for(size_t i = 0; i < bIndex; i++) {
+                result += spline.segmentArcLength(i, spline.segmentT(i), spline.segmentT(i + 1));
+            }
+
+            //last segment. if wrappedB == 0 then we've got a special case where b is maxT and was wrapped to 0, so we shouldn't compute the segment
+            floating_t bBegin = spline.segmentT(bIndex);
             result += spline.segmentArcLength(bIndex, bBegin, wrappedB);
         }
 
