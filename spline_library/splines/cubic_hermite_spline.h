@@ -207,7 +207,7 @@ public:
             positionData[i].tangent = tangents[i];
         }
 
-        common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
+        this->common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
     }
 
     CubicHermiteSpline(const std::vector<InterpolationType> &points, floating_t alpha = 0.0)
@@ -254,7 +254,7 @@ public:
             positionData[i].tangent = tangents[i + firstTangent];
         }
 
-        common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
+        this->common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
     }
 };
 
@@ -284,7 +284,7 @@ public:
         }
         positionData[points.size()] = positionData[0];
 
-        common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
+        this->common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
     }
 
     LoopingCubicHermiteSpline(const std::vector<InterpolationType> &points, floating_t alpha = 0.0)
@@ -333,6 +333,6 @@ public:
         positionData[size] = positionData[0];
         knots[size] = paddedKnots[size + padding];
 
-        common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
+        this->common = CubicHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
     }
 };

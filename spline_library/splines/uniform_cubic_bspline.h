@@ -145,7 +145,7 @@ public:
     {
         assert(points.size() >= 4);
 
-        common = UniformCubicBSplineCommon<InterpolationType, floating_t>(points);
+        this->common = UniformCubicBSplineCommon<InterpolationType, floating_t>(points);
     }
 };
 
@@ -173,6 +173,6 @@ public:
         std::copy(points.begin(), points.end(), positions.begin() + 1);
         std::copy_n(points.begin(), degree - 1, positions.end() - (degree - 1));
 
-        common = UniformCubicBSplineCommon<InterpolationType, floating_t>(positions);
+        this->common = UniformCubicBSplineCommon<InterpolationType, floating_t>(positions);
     }
 };

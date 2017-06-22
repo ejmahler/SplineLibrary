@@ -10,7 +10,7 @@ class Spline
 {
 public:
     Spline(std::vector<InterpolationType> originalPoints, floating_t maxT)
-        :originalPoints(std::move(originalPoints)), maxT(maxT)
+        :maxT(maxT), originalPoints(std::move(originalPoints))
     {}
 
 public:
@@ -54,9 +54,9 @@ public:
     {}
 
     inline floating_t wrapT(floating_t t) const {
-        float wrappedT = std::fmod(t, maxT);
+        float wrappedT = std::fmod(t, this->maxT);
         if(wrappedT < 0)
-            return wrappedT + maxT;
+            return wrappedT + this->maxT;
         else
             return wrappedT;
     }
@@ -101,19 +101,19 @@ template<template<class, typename> class SplineCore, class InterpolationType, ty
 class SplineLoopingImpl: public LoopingSpline<InterpolationType, floating_t>
 {
 public:
-    InterpolationType getPosition(floating_t globalT) const override { return common.getPosition(wrapT(globalT)); }
-    typename Spline<InterpolationType,floating_t>::InterpolatedPT getTangent(floating_t globalT) const override { return common.getTangent(wrapT(globalT)); }
-    typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t globalT) const override { return common.getCurvature(wrapT(globalT)); }
-    typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t globalT) const override { return common.getWiggle(wrapT(globalT)); }
+    InterpolationType getPosition(floating_t globalT) const override { return common.getPosition(this->wrapT(globalT)); }
+    typename Spline<InterpolationType,floating_t>::InterpolatedPT getTangent(floating_t globalT) const override { return common.getTangent(this->wrapT(globalT)); }
+    typename Spline<InterpolationType,floating_t>::InterpolatedPTC getCurvature(floating_t globalT) const override { return common.getCurvature(this->wrapT(globalT)); }
+    typename Spline<InterpolationType,floating_t>::InterpolatedPTCW getWiggle(floating_t globalT) const override { return common.getWiggle(this->wrapT(globalT)); }
 
-    floating_t arcLength(floating_t a, floating_t b) const override { return ArcLength::arcLength(*this, wrapT(a), wrapT(b)); }
+    floating_t arcLength(floating_t a, floating_t b) const override { return ArcLength::arcLength(*this, this->wrapT(a), this->wrapT(b)); }
     floating_t cyclicArcLength(floating_t a, floating_t b) const override { return ArcLength::cyclicArcLength(*this, a, b); }
     floating_t totalLength(void) const override { return ArcLength::totalLength(*this); }
 
     bool isLooping(void) const override { return true; }
 
     size_t segmentCount(void) const override { return common.segmentCount(); }
-    size_t segmentForT(floating_t t) const override { return common.segmentForT(wrapT(t)); }
+    size_t segmentForT(floating_t t) const override { return common.segmentForT(this->wrapT(t)); }
     floating_t segmentT(size_t segmentIndex) const override { return common.segmentT(segmentIndex); }
     floating_t segmentArcLength(size_t segmentIndex, floating_t a, floating_t b) const override { return common.segmentLength(segmentIndex, a, b); }
 

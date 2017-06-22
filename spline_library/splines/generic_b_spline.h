@@ -185,7 +185,7 @@ public:
             knots[i] = floating_t(i) - floating_t(degree - 1);
         }
 
-        common = GenericBSplineCommon<InterpolationType, floating_t>(points, std::move(knots), degree);
+        this->common = GenericBSplineCommon<InterpolationType, floating_t>(points, std::move(knots), degree);
     }
 };
 
@@ -216,7 +216,7 @@ public:
         std::copy(points.begin(), points.end(), positions.begin() + 1);
         std::copy_n(points.begin(), padding, positions.end() - padding);
 
-        common = GenericBSplineCommon<InterpolationType, floating_t>(std::move(positions), std::move(knots), degree);
+        this->common = GenericBSplineCommon<InterpolationType, floating_t>(std::move(positions), std::move(knots), degree);
     }
 };
 
