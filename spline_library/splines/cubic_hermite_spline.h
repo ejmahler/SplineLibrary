@@ -201,7 +201,7 @@ public:
 
         //pre-arrange the data needed for interpolation
         std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplinePoint> positionData(numSegments + 1);
-        for(int i = 0; i < positionData.size(); i++)
+        for(size_t i = 0; i < positionData.size(); i++)
         {
             positionData[i].position = points[i];
             positionData[i].tangent = tangents[i];
@@ -277,7 +277,7 @@ public:
 
         //pre-arrange the data needed for interpolation
         std::vector<typename CubicHermiteSplineCommon<InterpolationType, floating_t>::CubicHermiteSplinePoint> positionData(points.size() + 1);
-        for(int i = 0; i < points.size(); i++)
+        for(size_t i = 0; i < points.size(); i++)
         {
             positionData[i].position = points[i];
             positionData[i].tangent = tangents[i];

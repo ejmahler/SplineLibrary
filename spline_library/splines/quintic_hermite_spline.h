@@ -243,7 +243,7 @@ public:
 
         //pre-arrange the data needed for interpolation
         std::vector<typename QuinticHermiteSplineCommon<InterpolationType, floating_t>::QuinticHermiteSplinePoint> positionData(points.size());
-        for(int i = 0; i < points.size(); i++)
+        for(size_t i = 0; i < points.size(); i++)
         {
             positionData[i].position = points.at(i);
             positionData[i].tangent = tangents.at(i);
@@ -370,7 +370,7 @@ public:
     {
         assert(points.size() >= 3);
 
-        size_t size = points.size();
+        int size = points.size();
 
         //compute the T values for each point
         size_t padding = 2;

@@ -490,11 +490,11 @@ void GraphicsController::drawPoints(QPainter &painter, const std::vector<QVector
         painter.translate(position.x(),position.y());
 
         QColor color;
-        if(displayData.draggedObject == i)
+        if(displayData.draggedObject == int(i))
         {
             color = QColor(qRgb(255,128,64));
         }
-        else if(displayData.selectedObject == i)
+        else if(displayData.selectedObject == int(i))
         {
             color = Qt::cyan;
         }
