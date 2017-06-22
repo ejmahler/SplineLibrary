@@ -8,6 +8,12 @@
 
 #include "spline_library/vector.h"
 #include "spline_library/spline.h"
+#include "spline_library/splines/cubic_hermite_spline.h"
+#include "spline_library/splines/generic_b_spline.h"
+#include "spline_library/splines/natural_spline.h"
+#include "spline_library/splines/quintic_hermite_spline.h"
+#include "spline_library/splines/uniform_cr_spline.h"
+#include "spline_library/splines/uniform_cubic_bspline.h"
 
 Q_DECLARE_METATYPE(Vector2)
 Q_DECLARE_METATYPE(Vector3)

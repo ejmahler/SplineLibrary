@@ -181,13 +181,13 @@ void TestArcLength::testSolve(void)
     QFETCH(float, a);
     QFETCH(float, b);
 
-    float arcLength = ArcLength::arcLength(*spline.get(), a, b);
+    float arcLength = spline->arcLength(a, b);
 
     float calculatedB = ArcLength::solveLength(*spline.get(), a, arcLength);
     QCOMPARE(calculatedB, b);
 
     //verify that if the desiredLength is longer than the spline, maxT is returned
-    float totalLength = ArcLength::totalLength(*spline.get());
+    float totalLength = spline->totalLength();
     float calculatedOverLength = ArcLength::solveLength(*spline.get(), a, totalLength);
     QCOMPARE(calculatedOverLength, spline->getMaxT());
 }
@@ -228,9 +228,9 @@ void TestArcLength::testSolveCyclic(void)
     QFETCH(float, a);
     QFETCH(float, b);
 
-    float maxT = spline ->getMaxT();
-    float desiredLength = ArcLength::arcLength(*spline, a, b);
-    float totalLength = ArcLength::totalLength(*spline);
+    float maxT = spline->getMaxT();
+    float desiredLength = spline->arcLength(a, b);
+    float totalLength = spline->totalLength();
 
     //when a and what will eventually be b are both in range, solve and solveCyclic should return the same result
     float calculatedB = ArcLength::solveLength(*spline, a, desiredLength);
@@ -298,7 +298,7 @@ void TestArcLength::testPartition(void)
     //verify that each piece has the correct arc length
     for(size_t i = 0; i < expectedPieces; i++)
     {
-        float pieceLength = ArcLength::arcLength(*spline.get(), pieces[i], pieces[i+1]);
+        float pieceLength = spline->arcLength(pieces[i], pieces[i+1]);
         QCOMPARE(pieceLength, desiredLength);
     }
 }
@@ -338,12 +338,12 @@ void TestArcLength::testPartitionN(void)
     //verify that we have the correct number of results
     QCOMPARE(pieces.size(), n + 1);
 
-    float totalLength = ArcLength::totalLength(*spline.get());
+    float totalLength = spline->totalLength();
 
     //verify that each piece has the correct arc length
     for(size_t i = 0; i < n; i++)
     {
-        float pieceLength = ArcLength::arcLength(*spline.get(), pieces[i], pieces[i+1]);
+        float pieceLength = spline->arcLength(pieces[i], pieces[i+1]);
         QCOMPARE(pieceLength, totalLength/n);
     }
 }
