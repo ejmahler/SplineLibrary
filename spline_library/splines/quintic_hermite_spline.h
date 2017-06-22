@@ -243,14 +243,14 @@ public:
 
         //pre-arrange the data needed for interpolation
         std::vector<typename QuinticHermiteSplineCommon<InterpolationType, floating_t>::QuinticHermiteSplinePoint> positionData(points.size());
-        for(int i = 0; i < points.size(); i++)
+        for(size_t i = 0; i < points.size(); i++)
         {
             positionData[i].position = points.at(i);
             positionData[i].tangent = tangents.at(i);
             positionData[i].curvature = curvatures.at(i);
         }
 
-        common = QuinticHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
+        this->common = QuinticHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
     }
 
     QuinticHermiteSpline(const std::vector<InterpolationType> &points, floating_t alpha = 0.0f)
@@ -327,7 +327,7 @@ public:
             positionData[i].tangent = tangents[i + padding];
             positionData[i].curvature = curves[i + padding];
         }
-        common = QuinticHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
+        this->common = QuinticHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
     }
 };
 
@@ -362,7 +362,7 @@ public:
         }
         positionData[points.size()] = positionData[0];
 
-        common = QuinticHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
+        this->common = QuinticHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
     }
 
     LoopingQuinticHermiteSpline(const std::vector<InterpolationType> &points, floating_t alpha = 0.0)
@@ -370,7 +370,7 @@ public:
     {
         assert(points.size() >= 3);
 
-        size_t size = points.size();
+        int size = int(points.size());
 
         //compute the T values for each point
         size_t padding = 2;
@@ -436,6 +436,6 @@ public:
         positionData[size] = positionData[0];
         knots[size] = paddedKnots[size + padding];
 
-        common = QuinticHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
+        this->common = QuinticHermiteSplineCommon<InterpolationType, floating_t>(std::move(positionData), std::move(knots));
     }
 };

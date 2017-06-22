@@ -94,7 +94,7 @@ void Benchmarker::testArcLength(int queries, const LoopingSpline<VectorT, Floati
         FloatingT a = dist(gen);
         FloatingT b = dist(gen);
 
-        float result = spline.cyclicArcLength(a,b);
+        spline.cyclicArcLength(a,b);
     }
 }
 

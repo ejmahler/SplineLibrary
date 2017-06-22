@@ -11,7 +11,7 @@ public:
     //use the gauss-legendre quadrature algorithm to numerically integrate f from a to b
     //as of this writing, hardcoded to use 13 points
     template<class IntegrandType, class Function, typename floating_t>
-    inline static IntegrandType SplineLibraryCalculus::gaussLegendreQuadratureIntegral(Function f, floating_t a, floating_t b)
+    inline static IntegrandType gaussLegendreQuadratureIntegral(Function f, floating_t a, floating_t b)
     {
         const size_t NUM_POINTS = 13;
 
