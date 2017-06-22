@@ -370,7 +370,7 @@ public:
     {
         assert(points.size() >= 3);
 
-        int size = points.size();
+        int size = int(points.size());
 
         //compute the T values for each point
         size_t padding = 2;
