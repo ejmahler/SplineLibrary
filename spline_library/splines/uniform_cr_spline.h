@@ -196,7 +196,7 @@ public:
     {
         assert(points.size() >= 4);
 
-        common = UniformCRSplineCommon<InterpolationType, floating_t>(points);
+        this->common = UniformCRSplineCommon<InterpolationType, floating_t>(points);
     }
 };
 
@@ -222,6 +222,6 @@ public:
         std::copy(points.begin(), points.end(), positions.begin() + 1);
         std::copy_n(points.begin(), 2, positions.end() - 2);
 
-        common = UniformCRSplineCommon<InterpolationType, floating_t>(std::move(positions));
+        this->common = UniformCRSplineCommon<InterpolationType, floating_t>(std::move(positions));
     }
 };
