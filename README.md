@@ -8,7 +8,7 @@ Example
 -------------
 Create a Catmull-Rom Spline with four data points, and compute the interpolated position at T = 0.5
 ```c++
-std::vector<Qvector2D> splinePoints{
+std::vector<QVector2D> splinePoints{
     QVector2D( 0, 0),
     QVector2D( 5, 0),
     QVector2D( 8, 3),
@@ -21,23 +21,23 @@ QVector2D interpolatedPosition = mySpline.getPosition(0.5f);
 Features
 -------------
 * Interpolation of catmull-rom splines
-    * Include `spline_library/splines/uniform_cr_spline.h`, create a `UniformCRSpline` object, and call its `getPosition` method.
-    * Several more spline types. See [Spline Types](docs/SplineTypes.md) for the full list
+	* Include `spline_library/splines/uniform_cr_spline.h`, create a `UniformCRSpline` object, and call its `getPosition` method.
+	* Several more spline types. See [Spline Types](docs/SplineTypes.md) for the full list
 * Looping Splines
 	* Also called "Periodic" or "Cyclic": These splines form a loop, in that the ending connects with the beginning
-	* Calling getPosition(t) with an out-of-range T value will _wrap around" to the other end of the spline
-    * To make a looping catmull-rom spline, include `spline_library/splines/uniform_cr_spline.h` and create a `LoopingUniformCRSpline` object.
-    * Every spline type has both looping and non-looping variants
+	* Calling getPosition(t) with an out-of-range T value will "wrap around" to the other end of the spline
+	* To make a looping catmull-rom spline, include `spline_library/splines/uniform_cr_spline.h` and create a `LoopingUniformCRSpline` object.
+	* Every spline type has both looping and non-looping variants
 * Compute the arc length of a spline
 	* Call a spline's totalLength() method to find the arc length of the entire spline
-    * Call a spline's arcLength(a,b) method to find the arc length between two arbitrary T values
+	* Call a spline's arcLength(a,b) method to find the arc length between two arbitrary T values
 * Compute the inverse of a spline
-    * Given a data point (not necessarily on the spline, or even close to it), what T value brings the spline closest to that data point?
-    * Create a SplineInverter object and call its findClosestT method
+	* Given a data point (not necessarily on the spline, or even close to it), what T value brings the spline closest to that data point?
+	* Create a SplineInverter object and call its findClosestT method
 * Computation of the first, second, and third derivatives of the spline
-    * The first derivative is called the "tangent" - this is how quickly and in what direction the interpolated position is changing, per T
-    * The second derivative is called the "curvature" - this is how quickly and in what direction the interpolated tangent is changing, per T
-    * The third derivative is called the "wiggle" - this is how quickly and in what direction the interpolated curvature is changing, per T
+	* The first derivative is called the "tangent" - this is how quickly and in what direction the interpolated position is changing, per T
+	* The second derivative is called the "curvature" - this is how quickly and in what direction the interpolated tangent is changing, per T
+	* The third derivative is called the "wiggle" - this is how quickly and in what direction the interpolated curvature is changing, per T
     
 
 Documentation
