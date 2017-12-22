@@ -251,8 +251,12 @@ void TestArcLength::testSolveCyclic(void)
 
     //test that it works when we give an input value that has to wrap around but do less than one full cycle
     //the result should be on the "next cycle" relative to the input, as opposed to being wrapped around to be less than the input
-    float calculatedA = ArcLength::solveLengthCyclic(*spline, b, totalLength - desiredLength);
+    // The easiest way to do this is to just reverse the inputs, so that we go from b to a
+    float reversedLength = totalLength - desiredLength;
+    float calculatedA = ArcLength::solveLengthCyclic(*spline, b, reversedLength);
+    float calculatedNegA = ArcLength::solveLengthCyclic(*spline, b - maxT, reversedLength);
     QCOMPARE(calculatedA, a + maxT);
+    QCOMPARE(calculatedNegA, a);
 }
 
 
