@@ -161,11 +161,11 @@ size_t SplineCommon::getIndexForT(const std::vector<floating_t> &knotData, float
         return knotData.size() - 1;
 
     //our initial guess will be to subtract the minimum t value, then take the floor
-    size_t currentIndex = std::floor(t - knotData.front());
-    size_t size = knotData.size();
+    int64_t currentIndex = std::floor(t - knotData.front());
+    int64_t size = knotData.size();
 
     //move left or right in the array until we've found the correct index
-    size_t searchSize = 1;
+    int64_t searchSize = 1;
     while(t < knotData[currentIndex])
     {
         while(currentIndex >= 0 && t < knotData[currentIndex])
