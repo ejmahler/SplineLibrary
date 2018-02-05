@@ -323,27 +323,23 @@ void MainWindow::addVertex(void)
     //if this is the first vertex, use the next one instead
 
     std::vector<QVector2D> points = mainSpline->getOriginalPoints();
-    if(selectedObject == 0)
-    {
-        int index = 1;
-        float currentT = mainSpline->segmentT(selectedObject);
-        float nextT = mainSpline->segmentT(index);
-        QVector2D halfPoint = mainSpline->getPosition((currentT + nextT) * 0.5);
 
-        //insert this new point
-        points.insert(points.begin() + index, halfPoint);
-        selectedObject = index;
+    int pointSize = int(points.size());
+    int insertPoint;
+    if(selectedObject == pointSize - 1)
+    {
+        insertPoint = pointSize - 2;
     }
     else
     {
-        int index = selectedObject - 1;
-        float currentT = mainSpline->segmentT(selectedObject);
-        float nextT = mainSpline->segmentT(index);
-        QVector2D halfPoint = mainSpline->getPosition((currentT + nextT) * 0.5);
-
-        //insert this new point
-        points.insert(points.begin() + selectedObject, halfPoint);
+        insertPoint = selectedObject;
     }
+
+    QVector2D halfPoint = (points[insertPoint] + points[insertPoint + 1]) / 2;
+
+    //insert this new point
+    points.insert(points.begin() + insertPoint + 1, halfPoint);
+    selectedObject = insertPoint + 1;
 
 	//redraw spline
 	rebuildSpline(points);
