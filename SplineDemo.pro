@@ -42,6 +42,7 @@ HEADERS  += \
     spline_library/utils/arclength.h \
     spline_library/utils/splineinverter.h
 
+
 FORMS    += \
     demo/settingswidget.ui \
     demo/mainwindow.ui
@@ -57,6 +58,7 @@ test {
         test/testspline.h \
         test/testlinalg.h \
         test/testarclength.h \
+        test/testsplinecommon.h \
         test/common.h
 
     SOURCES += \
@@ -65,7 +67,9 @@ test {
         test/testvector.cpp \
         test/testspline.cpp \
         test/testlinalg.cpp \
-        test/testarclength.cpp
+        test/testarclength.cpp \
+        test/testsplinecommon.cpp
+
 } else {
     SOURCES += demo/main.cpp
 }

@@ -90,9 +90,9 @@ std::vector<floating_t> SplineCommon::computeTValuesWithInnerPadding(
     }
 
     //compute the t values of the other points
-    for(size_t i = 1; i < size - innerPadding; i++)
+    for(size_t i = innerPadding + 1; i < size; i++)
     {
-        tValues[i + innerPadding] = tValues[i - 1 + innerPadding] + computeTDiff(points[i], points[i - 1], alpha);
+        tValues[i] = tValues[i - 1] + computeTDiff(points[i], points[i - 1], alpha);
     }
 
     //we want to know the t value of the last segment so that we can normalize them all

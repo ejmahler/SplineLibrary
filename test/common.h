@@ -172,6 +172,16 @@ public:
         return result;
     }
 
+    static std::vector<T> generateStraightLineData(size_t size) {
+        std::vector<T> result(size);
+        for(size_t i = 0; i < size; i++)
+        {
+            floating_t value = i;
+            result[i] = T({value, value});
+        }
+        return result;
+    }
+
 
 private:
 
