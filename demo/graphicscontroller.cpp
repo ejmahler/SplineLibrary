@@ -160,7 +160,7 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 		drawControlText(painter,5,"[c]", "Hide Controls");
         drawControlText(painter,25,"[i]", "Add Vertex");
         drawControlText(painter,45,"[d]", "Delete Vertex");
-        drawControlText(painter,65,"[i]", "Generate distance field");
+        drawControlText(painter,65,"[g]", "Generate distance field");
         drawControlText(painter,85,"[s]", "Open Settings");
 	}
 	else
