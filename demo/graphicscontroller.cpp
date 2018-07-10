@@ -138,13 +138,17 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 
     drawDiagnosticText(painter, 5, "Spline Length", QString::number(mainSpline->totalLength()));
     if(displayData.highlightT)
+    {
         drawDiagnosticText(painter, 25, "Closest T", QString::number(displayData.highlightedT));
-
+    }
+    
 	//draw container for control data
     int controlBoxWidth = 225;
 	int controlBoxHeight = 150;
 	if(!displayControls)
+    {
 		controlBoxHeight = 25;
+    }
 
 	painter.setOpacity(0.75);
 	painter.setPen(bgColor);
@@ -160,7 +164,7 @@ void GraphicsController::paintEvent(QPaintEvent *event)
 		drawControlText(painter,5,"[c]", "Hide Controls");
         drawControlText(painter,25,"[i]", "Add Vertex");
         drawControlText(painter,45,"[d]", "Delete Vertex");
-        drawControlText(painter,65,"[i]", "Generate distance field");
+        drawControlText(painter,65,"[g]", "Generate distance field");
         drawControlText(painter,85,"[s]", "Open Settings");
 	}
 	else
