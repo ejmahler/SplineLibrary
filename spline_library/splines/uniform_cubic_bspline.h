@@ -84,7 +84,7 @@ public:
     {
         auto segmentFunction = [this, index](floating_t t) -> floating_t {
             auto tangent = computeTangent(index, t);
-            return tangent.length();
+            return tangent.norm();
         };
 
         floating_t localA = a - index;

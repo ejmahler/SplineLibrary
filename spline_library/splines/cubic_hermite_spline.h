@@ -94,7 +94,7 @@ public:
         floating_t tDiff = knots[index + 1] - knots[index];
         auto segmentFunction = [this, index, tDiff](floating_t t) -> floating_t {
             auto tangent = computeTangent(index, tDiff, t);
-            return tangent.length();
+            return tangent.norm();
         };
 
         floating_t localA = (a - knots[index]) / tDiff;

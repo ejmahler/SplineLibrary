@@ -90,12 +90,12 @@ public:
 
         floating_t tDistance = knots[innerIndex + 1] - knots[innerIndex];
 
-        //it's perfectly legal for Bspline segments to have a T distance of 0, in which case the arc length is 0
+        //it's perfectly legal for Bspline segments to have a T distance of 0, in which case the arc norm is 0
         if(tDistance > 0)
         {
             auto segmentFunction = [this, innerIndex](floating_t t) -> floating_t {
                 auto tangent = computeDeboorDerivative(innerIndex + 1, splineDegree, t, 1);
-                return tangent.length();
+                return tangent.norm();
             };
 
             return SplineLibraryCalculus::gaussLegendreQuadratureIntegral<floating_t>(segmentFunction, a, b);
